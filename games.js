@@ -58,15 +58,6 @@ window.MONSTER_PIZZA = {
       color: "#e2608f",
     },
     {
-      id: "shark-attack",
-      title: "Shark Attack",
-      blurb: "Point, click, take your turn, don't get eaten. Play with friends.",
-      url: "https://stephen-petronis.github.io/sharkattack/",
-      marquee: "games/shark-attack/marquee.png",
-      screen: "games/shark-attack/screen.gif",
-      color: "#1f9a8e",
-    },
-    {
       id: "cpm",
       title: "Chris the Project Manager",
       blurb: "Survive the commute, the office brawl and the pudding run.",
