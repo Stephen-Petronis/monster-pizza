@@ -62,7 +62,10 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 #hall.dragging{cursor:grabbing}
 #hall.dragging .cab{pointer-events:none}
 #track{position:relative;height:100%;display:flex;width:max-content}
-.seg{position:relative;flex:none;height:100%;overflow:hidden}
+.seg{position:relative;flex:none;height:100%;overflow:hidden;z-index:1}
+#bgstrip{position:absolute;left:0;top:0;height:100%;display:flex;z-index:0;pointer-events:none;overflow:hidden}
+#bgstrip img{height:100%;width:auto;flex:none;display:block;user-select:none}
+#floor{position:absolute;left:0;bottom:0;z-index:0;pointer-events:none;background-repeat:repeat-x;background-position:0 0}
 .seg>.wall{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill;user-select:none;-webkit-user-drag:none}
 #lights{position:fixed;left:0;right:0;top:0;height:calc(15*var(--u));pointer-events:none;background-repeat:repeat-x;z-index:3}
 
@@ -454,8 +457,9 @@ enterBtn.addEventListener("click", () => enter());
 const hall = $("hall"), track = $("track"), lights = $("lights");
 let U = 9, SEG = 1200, CAP = 540, current = 0;
 
-function drawWall(ctx, w, h, seed, kind, gx) {
+function drawWall(ctx, w, h, seed, kind, gx, decorOnly) {
   const u = h / 100, R = seeded(seed * 977 + 13), p = pen(ctx, seed, u * .3), lw = Math.max(1.5, u * .45);
+  if (!decorOnly) {
   // ceiling
   ctx.fillStyle = "#2b1d18"; ctx.fillRect(0, 0, w, 8 * u);
   // wallpaper
@@ -487,8 +491,10 @@ function drawWall(ctx, w, h, seed, kind, gx) {
     }
     p.line(0, y0 * u, w, y0 * u, u * .25, "rgba(31,21,18,.6)", 1);
   });
+  }
 
   if (kind === "game") {
+    if (decorOnly) return;
     // hanging lamp over the cabinet
     const cx = w / 2;
     const gl = ctx.createRadialGradient(cx, 14 * u, u, cx, 30 * u, 40 * u);
@@ -606,15 +612,47 @@ const io = new IntersectionObserver((entries) => {
     const w = cv.clientWidth, h = cv.clientHeight;
     cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
     const c = cv.getContext("2d"); c.setTransform(DPR, 0, 0, DPR, 0, 0);
-    drawWall(c, w, h, +cv.dataset.seed, cv.dataset.kind, +cv.dataset.gx);
+    drawWall(c, w, h, +cv.dataset.seed, cv.dataset.kind, +cv.dataset.gx, cv.dataset.decor === "1");
   });
 }, { root: hall, rootMargin: "0px 120% 0px 120%" });
 
-function wallEl(kind, i, gx, src) {
+function wallEl(kind, i, gx, src, decor) {
   if (src) { const im = new Image(); im.className = "wall"; im.alt = ""; im.draggable = false; im.src = src; return im; }
   const cv = document.createElement("canvas"); cv.className = "wall";
-  cv.dataset.kind = kind; cv.dataset.seed = String(i + 1); cv.dataset.gx = String(gx);
+  cv.dataset.kind = kind; cv.dataset.seed = String(i + 1); cv.dataset.gx = String(gx); cv.dataset.decor = decor ? "1" : "";
   return cv;
+}
+
+/* your wall tiles: learn each one's shape before laying them down */
+const TILES = (CFG.walls || []).map((w) => typeof w === "string" ? { src: w, weight: 1 } : { weight: 1, ...w });
+const tilesReady = Promise.all(TILES.map((t) => new Promise((res) => {
+  const im = new Image();
+  im.onload = () => { t.aspect = im.naturalWidth / im.naturalHeight; res(); };
+  im.onerror = () => { t.bad = true; res(); };
+  im.src = t.src;
+})));
+
+function layTiles(total, H) {
+  const tiles = TILES.filter((t) => !t.bad && t.aspect);
+  const strip = document.createElement("div"); strip.id = "bgstrip"; strip.style.width = total + "px";
+  const sum = tiles.reduce((s, t) => s + t.weight, 0);
+  const plain = tiles.reduce((a, b) => (b.weight > a.weight ? b : a));
+  const R = seeded(CFG.wallSeed || 2026);
+  let x = 0, lastSpecial = true; // start on a plain wall
+  while (x < total) {
+    let t = plain;
+    if (!lastSpecial) { let r = R() * sum; t = tiles.find((tt) => (r -= tt.weight) < 0) || plain; }
+    lastSpecial = t !== plain;
+    const im = new Image(); im.src = t.src; im.alt = ""; im.draggable = false; im.decoding = "async";
+    strip.appendChild(im); x += H * t.aspect;
+  }
+  track.prepend(strip);
+  if (CFG.floor) {
+    const f = document.createElement("div"); f.id = "floor";
+    const top = CFG.floorTop ?? 84;
+    f.style.cssText = `width:${total}px;top:${top}%;background-image:url("${CFG.floor}");background-size:auto 100%`;
+    strip.after(f);
+  }
 }
 
 function build() {
@@ -622,22 +660,26 @@ function build() {
   U = H / 100; SEG = Math.round(H * 4 / 3); CAP = Math.round(H * .6);
   document.documentElement.style.setProperty("--u", U + "px");
   io.disconnect(); track.innerHTML = "";
+  const tiled = TILES.some((t) => !t.bad && t.aspect);
   let gx = 0;
   const add = (kind, w, i, src, inner) => {
     const seg = document.createElement("section"); seg.className = "seg"; seg.style.width = w + "px";
-    const wall = wallEl(kind, i, gx, src); seg.appendChild(wall);
+    // with your tiles behind everything, game walls are see-through and the ends only draw their door / sheet
+    const wall = tiled && kind === "game" && !src ? null : wallEl(kind, i, gx, src, tiled);
+    if (wall) seg.appendChild(wall);
     if (inner) seg.insertAdjacentHTML("beforeend", inner);
-    track.appendChild(seg); if (wall.tagName === "CANVAS") io.observe(wall);
+    track.appendChild(seg); if (wall && wall.tagName === "CANVAS") io.observe(wall);
     gx += w; return seg;
   };
   const left = add("left", CAP, 0, CFG.leftCap, `<button class="exitdoor" aria-label="Back outside"></button>`);
   left.querySelector(".exitdoor").addEventListener("click", () => leave());
   GAMES.forEach((g, i) => {
-    const seg = add("game", SEG, i, WALLS.length ? WALLS[i % WALLS.length] : "", cabinetHTML(g, i));
+    const seg = add("game", SEG, i, "", cabinetHTML(g, i));
     seg.id = g.id || ("game-" + (i + 1));
     seg.setAttribute("aria-label", g.title);
   });
   add("right", CAP, GAMES.length + 1, CFG.rightCap, "");
+  if (tiled) layTiles(gx, H);
   // broken images fall back to the drawn versions
   track.querySelectorAll(".marquee img").forEach((im) => im.addEventListener("error", () => { im.nextElementSibling.hidden = false; im.remove(); }));
   track.querySelectorAll(".screen img").forEach((im) => im.addEventListener("error", () => { im.nextElementSibling.hidden = false; im.remove(); }));
@@ -741,14 +783,14 @@ function showHall(on) {
 let built = false;
 function enter(target) {
   if (!shutterUp) liftShutter(false);
-  const go = () => {
+  const go = () => tilesReady.then(() => {
     stopTown(); showHall(true);
     if (!built) { build(); built = true; }
     const idx = typeof target === "number" ? target : 0;
     centerOn(idx, false); hall.focus({ preventScroll: true });
     intro.classList.remove("entering");
     try { history.replaceState(null, "", "#arcade"); } catch (e) {}
-  };
+  });
   if (REDUCED || typeof target === "number") return go();
   intro.classList.add("entering");
   setTimeout(go, 850);

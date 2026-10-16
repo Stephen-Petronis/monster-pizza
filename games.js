@@ -9,14 +9,20 @@ window.MONSTER_PIZZA = {
   // Leave this out and games open inside the site on github.io, in a new tab elsewhere.
   // openInPage: true,
 
-  // Your hand-drawn wall tiles. Leave empty to use the built-in doodle walls.
-  // Each image should follow the wall grid in README.md (4:3, e.g. 1200x900).
-  // They cycle: game 1 gets wall 1, game 2 gets wall 2 ... then it repeats.
+  // Your hand-drawn wall tiles. They're laid side by side behind the whole hallway,
+  // picked at random. Higher weight = shows up more often. Two "special" walls
+  // never land next to each other. Any width works; all should be the same height.
+  // Leave the list empty to use the built-in doodle walls.
   walls: [
-    // "walls/wall-01.png",
-    // "walls/wall-02.png",
-    // "walls/wall-03.png",
+    { src: "walls/wall-plain.jpg",   weight: 6 },   // the everyday wall
+    { src: "walls/wall-peeling.jpg", weight: 1 },
+    { src: "walls/wall-frames.jpg",  weight: 1 },
   ],
+
+  // One straight-on floor tile that repeats under everything, and how far down
+  // (in % of the wall height) your floor starts in the wall art.
+  floor: "walls/floor.jpg",
+  floorTop: 84,
 
   // Optional art for the two ends of the hallway (same height as a wall,
   // 60/100 as wide — e.g. 540x900). Leave blank for the built-in doodles.

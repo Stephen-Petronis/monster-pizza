@@ -32,35 +32,23 @@ Games open inside the site (with a "Back to the arcade" button) when it runs on 
 or locally; anywhere else they open in a new tab. Force it either way with
 `openInPage: true/false` at the top of `games.js`.
 
-## The wall grid (for your drawings)
+## Walls
 
-Every wall tile is one segment of hallway, **4:3** — draw at **1200 × 900 px** (or 1600 × 1200).
-It stretches to the screen height, so keep everything in proportion, not pixel-exact.
-Measurements below are % of the height (900px → 1% = 9px).
+Wall tiles are laid side by side behind the whole hallway, picked at random by `weight`
+in `games.js` (plain wall 6, special walls 1 each, so about 3 in 4 are plain). Two special
+walls never sit next to each other, and the hallway always starts on a plain one.
 
-```
-  0% ┌────────────────────────────────────────────────────────┐
-     │ ceiling band                                           │
-  8% ├────────────────────────────────────────────────────────┤  string of lights hangs to ~15%
-     │ upper wall          ┌──────────┐                       │
-     │  ┌─────────┐        │          │   ┌────────┐          │
-     │  │ picture │        │ CABINET  │   │  NOTE  │ 24%–55%  │
-     │  │  zone   │        │  ZONE    │   │  ZONE  │          │
- 57% ├──┴─────────┴────────┤ keep     ├───┴────────┴──────────┤  chair rail
-     │ lower wall          │  clear   │                       │
- 81% ├─────────────────────┤          ├───────────────────────┤  baseboard
- 83% │ floor               └──────────┘                       │  cabinet stands on ~84%
-100% └────────────────────────────────────────────────────────┘
-          cabinet zone: centered, 38% of height wide (x ≈ 429–771 px at 1200 wide), 15%–84% tall
-          note zone:    starts 23% of height right of center, 22% wide
-```
+Rules for new wall art:
+- **Same height as the others** (current tiles are 972 x 1619). Width can be anything.
+- **Left and right edges match**: ceiling beam, wallpaper top, red rail, baseboard all at the same heights.
+- **Floor starts at 84%** down. The floor in the wall art is covered by `walls/floor.jpg`,
+  a straight-on strip cut from your floor so it repeats without seams.
+- Cabinets stand in the middle of the screen from ~15% to 84% tall and cover whatever is behind them,
+  so detailed walls get partly hidden sometimes. That's fine.
 
-- **Edges must tile.** The left and right edges of every wall should line up with each other
-  (ceiling line, chair rail, baseboard, floor) so any wall can sit next to any other.
-- **Keep the cabinet zone plain** — the cabinet covers it.
-- Put the fun stuff (frames, cracks, stains, posters) in the picture zone, lower wall, ceiling and floor.
-- Add files to `walls/` and list them in `games.js` → `walls: [...]`. They cycle 1, 2, 3, 1, 2, 3...
-- End pieces (`leftCap` exit door, `rightCap` "coming soon") are the same height and 60% as wide (540 × 900).
+Drop a new file in `walls/` and add a line to `walls: [...]`.
+
+`templates/` has the original grid guides (made for the old 4:3 layout; the heights still apply).
 
 ## Deploy
 
