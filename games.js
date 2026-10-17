@@ -53,8 +53,11 @@ window.MONSTER_PIZZA = {
       title: "Hoofbeat Hills",
       blurb: "Race a unicorn or a pegasus over the pastel hills. There's a secret third horse.",
       url: "https://stephen-petronis.github.io/hoofbeat-hills/",
-      marquee: "games/hoofbeat-hills/marquee.png",
-      screen: "games/hoofbeat-hills/screen.gif",
+      // A full drawn cabinet replaces the built-in one. Cut out on a transparent background.
+      cabinet: "games/hoofbeat-hills/cabinet.webp",
+      // Want a GIF playing on the drawn screen? Add it and uncomment both lines.
+      // screen: "games/hoofbeat-hills/screen.gif",
+      // screenBox: [22, 24.6, 56, 22],   // left, top, width, height of the glass, in % of the cabinet art
       color: "#e2608f",
     },
     {
