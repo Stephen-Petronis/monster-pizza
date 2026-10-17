@@ -86,7 +86,9 @@ window.MONSTER_PIZZA = {
       title: "Whack-A-Ghost",
       blurb: "Pop the ghosts, spare the kitties, grab the hearts. Boss every 3 rounds.",
       url: "games/whack-a-ghost/index.html",          // lives inside this repo
-      screen: "games/whack-a-ghost/screen.gif",
+      cabinet: "games/whack-a-ghost/cabinet.webp",
+      screen: "games/whack-a-ghost/screen.gif",       // plays on the drawn glass
+      screenBox: [24.5, 25.6, 51, 20],
       color: "#7a5a40",
     },
   ],
