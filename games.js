@@ -69,5 +69,13 @@ window.MONSTER_PIZZA = {
       screen: "games/cpm/screen.gif",
       color: "#3c9a4e",
     },
+    {
+      id: "shuck-shack",
+      title: "Shuck Shack",
+      blurb: "Trace the shell, pop the top, fill the order. Watch your fingers.",
+      url: "games/shuck-shack/index.html",          // lives inside this repo
+      screen: "games/shuck-shack/screen.jpg",
+      color: "#d9862b",
+    },
   ],
 };
