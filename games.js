@@ -35,8 +35,9 @@ window.MONSTER_PIZZA = {
       title: "The Worst Commute",
       blurb: "Get Jason from Borough Hall to the office in one piece.",
       url: "https://stephen-petronis.github.io/worst-commute/",
-      marquee: "games/worst-commute/marquee.png",   // art across the top of the cabinet
-      screen: "games/worst-commute/screen.gif",     // GIF (or PNG/JPG) that plays on the screen
+      cabinet: "games/worst-commute/cabinet.webp",  // drawn cabinet, cut out on transparent
+      screen: "games/worst-commute/screen.gif",     // gameplay GIF that plays on the drawn glass
+      screenBox: [17.5, 24.4, 65, 23],              // left, top, width, height of the glass, in % of the cabinet art
       color: "#2f7fd0",                              // cabinet paint
     },
     {
@@ -45,8 +46,8 @@ window.MONSTER_PIZZA = {
       blurb: "Off the bleachers, off the rafters. 8 courts, 8 snacks, 1 legend.",
       url: "https://stephen-petronis.github.io/NothinButNet/",
       cabinet: "games/nothin-but-net/cabinet.webp",
-      // screen: "games/nothin-but-net/screen.gif",
-      // screenBox: [27, 25.5, 46, 20],
+      screen: "games/nothin-but-net/screen.gif",
+      screenBox: [23.5, 25.2, 53, 21],
       color: "#7b4bc4",
     },
     {
@@ -56,9 +57,8 @@ window.MONSTER_PIZZA = {
       url: "https://stephen-petronis.github.io/hoofbeat-hills/",
       // A full drawn cabinet replaces the built-in one. Cut out on a transparent background.
       cabinet: "games/hoofbeat-hills/cabinet.webp",
-      // Want a GIF playing on the drawn screen? Add it and uncomment both lines.
-      // screen: "games/hoofbeat-hills/screen.gif",
-      // screenBox: [22, 24.6, 56, 22],   // left, top, width, height of the glass, in % of the cabinet art
+      screen: "games/hoofbeat-hills/screen.gif",
+      screenBox: [22, 24.6, 56, 22],
       color: "#e2608f",
     },
     {
@@ -67,8 +67,8 @@ window.MONSTER_PIZZA = {
       blurb: "Survive the commute, the office brawl and the pudding run.",
       url: "https://stephen-petronis.github.io/CPM/",
       cabinet: "games/cpm/cabinet.webp",
-      // screen: "games/cpm/screen.gif",
-      // screenBox: [22, 24, 56, 22.5],   // left, top, width, height of the glass, in % of the cabinet art
+      screen: "games/cpm/screen.gif",
+      screenBox: [22, 24, 56, 22.5],
       color: "#3c9a4e",
     },
     {
@@ -77,9 +77,8 @@ window.MONSTER_PIZZA = {
       blurb: "Trace the shell, pop the top, fill the order. Watch your fingers.",
       url: "https://stephen-petronis.github.io/shuck-shack/",
       cabinet: "games/shuck-shack/cabinet.webp",
-      // The gameplay is painted on the glass. To play a GIF there instead, add it and uncomment:
-      // screen: "games/shuck-shack/screen.gif",
-      // screenBox: [22.5, 25.4, 54.8, 21.2],
+      screen: "games/shuck-shack/screen.gif",
+      screenBox: [22.6, 25.2, 54.7, 21],
       color: "#d9862b",
     },
     {
