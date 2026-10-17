@@ -41,11 +41,12 @@ window.MONSTER_PIZZA = {
     },
     {
       id: "nothin-but-net",
-      title: "Nothin' But Net",
-      blurb: "Off the bleachers, off the rim. Copy the trick shot or get a letter.",
+      title: "Nothing But Net",
+      blurb: "Off the bleachers, off the rafters. 8 courts, 8 snacks, 1 legend.",
       url: "https://stephen-petronis.github.io/NothinButNet/",
-      marquee: "games/nothin-but-net/marquee.png",
-      screen: "games/nothin-but-net/screen.gif",
+      cabinet: "games/nothin-but-net/cabinet.webp",
+      // screen: "games/nothin-but-net/screen.gif",
+      // screenBox: [27, 25.5, 46, 20],
       color: "#7b4bc4",
     },
     {
