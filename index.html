@@ -74,11 +74,11 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 #lights{position:fixed;left:0;right:0;top:0;height:calc(15*var(--u));pointer-events:none;background-repeat:repeat-x;z-index:3}
 
 /* cabinet */
-.cab{position:absolute;left:calc(50% - 19*var(--u));top:calc(15*var(--u));width:calc(38*var(--u));height:calc(69*var(--u));
+.cab{position:absolute;left:calc(50% - 20.5*var(--u));top:calc(19*var(--u));width:calc(41*var(--u));height:calc(74*var(--u));
   display:block;color:var(--ink);text-decoration:none;--cab:#2f7fd0;transition:transform .2s;z-index:1}
 .cab:hover,.cab:focus-visible{transform:translateY(calc(-1*var(--u)))}
 .cab:hover .shell,.cab:focus-visible .shell{animation:boil .45s steps(1) infinite}
-.cab .shadow{position:absolute;left:-6%;right:-6%;bottom:-4%;height:7%;background:rgba(0,0,0,.35);border-radius:50%;filter:blur(3px)}
+.cab .shadow{position:absolute;left:-8%;right:-8%;bottom:-2.5%;height:6%;background:radial-gradient(ellipse at 50% 40%,rgba(20,8,4,.6),rgba(20,8,4,0) 70%);border-radius:50%}
 .shell{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:url(#wob)}
 .shell .body{fill:var(--cab);stroke:var(--ink);stroke-width:calc(.7*var(--u));stroke-linejoin:round}
 .shell .side{fill:rgba(0,0,0,.18)}
@@ -108,7 +108,7 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 .cab .coin small{font-family:var(--f-arcade);font-size:calc(1.05*var(--u));color:var(--cheese);letter-spacing:.06em;white-space:nowrap}
 
 /* a cabinet drawn as one piece of art */
-.cab.art{width:calc(69*var(--u)*var(--ar,.54));left:50%;transform:translateX(-50%);filter:drop-shadow(0 0 calc(2*var(--u)) rgba(255,214,120,.25))}
+.cab.art{width:calc(74*var(--u)*var(--ar,.54));left:50%;transform:translateX(-50%);filter:drop-shadow(0 0 calc(2*var(--u)) rgba(255,214,120,.25))}
 .cab.art:hover,.cab.art:focus-visible{transform:translateX(-50%) translateY(calc(-1*var(--u))) rotate(-.6deg)}
 .cab.art .cabimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}
 .cab.art .artscreen{position:absolute;overflow:hidden;border-radius:calc(1*var(--u))}
@@ -116,7 +116,7 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 .cab.art .shadow{left:4%;right:4%}
 
 /* the paper note pinned beside each cabinet */
-.note{position:absolute;left:calc(50% + 23*var(--u));top:calc(24*var(--u));width:calc(22*var(--u));box-sizing:border-box;
+.note{position:absolute;left:calc(50% + 25*var(--u));top:calc(24*var(--u));width:calc(22*var(--u));box-sizing:border-box;
   background:var(--paper);color:var(--ink);padding:calc(1.6*var(--u)) calc(1.6*var(--u)) calc(1.8*var(--u));
   transform:rotate(3deg);box-shadow:3px 4px 0 rgba(0,0,0,.25);filter:url(#wob);font-size:calc(2*var(--u));line-height:1.1}
 .note::before{content:"";position:absolute;left:50%;top:calc(-1.4*var(--u));width:calc(8*var(--u));height:calc(2.6*var(--u));margin-left:calc(-4*var(--u));
@@ -838,6 +838,12 @@ function leave() {
   setMenu(false); showHall(false); startTown();
   try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
 }
+
+window.addEventListener("hashchange", () => {
+  const h = decodeURIComponent(location.hash.slice(1)), k = GAMES.findIndex((g) => g.id === h);
+  if (k < 0) return;
+  if (hall.hidden) { shutterUp = true; shutter.hidden = true; enter(k); } else centerOn(k, true);
+});
 
 let resizeT = 0;
 window.addEventListener("resize", () => {

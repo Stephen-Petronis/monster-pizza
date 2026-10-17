@@ -65,8 +65,9 @@ window.MONSTER_PIZZA = {
       title: "Chris the Project Manager",
       blurb: "Survive the commute, the office brawl and the pudding run.",
       url: "https://stephen-petronis.github.io/CPM/",
-      marquee: "games/cpm/marquee.png",
-      screen: "games/cpm/screen.gif",
+      cabinet: "games/cpm/cabinet.webp",
+      // screen: "games/cpm/screen.gif",
+      // screenBox: [22, 24, 56, 22.5],   // left, top, width, height of the glass, in % of the cabinet art
       color: "#3c9a4e",
     },
     {
