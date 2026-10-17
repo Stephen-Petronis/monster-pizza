@@ -51,7 +51,7 @@ window.MONSTER_PIZZA = {
     {
       id: "hoofbeat-hills",
       title: "Hoofbeat Hills",
-      blurb: "Race a unicorn or a pegasus over the pastel hills. There's a secret third horse.",
+      blurb: "Race horses through 19 wild worlds, befriend the bosses with a dance party, and hit STAR TURBO.",
       url: "https://stephen-petronis.github.io/hoofbeat-hills/",
       // A full drawn cabinet replaces the built-in one. Cut out on a transparent background.
       cabinet: "games/hoofbeat-hills/cabinet.webp",
