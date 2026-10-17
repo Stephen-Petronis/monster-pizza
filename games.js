@@ -75,7 +75,10 @@ window.MONSTER_PIZZA = {
       title: "Shuck Shack",
       blurb: "Trace the shell, pop the top, fill the order. Watch your fingers.",
       url: "https://stephen-petronis.github.io/shuck-shack/",
-      screen: "games/shuck-shack/screen.jpg",
+      cabinet: "games/shuck-shack/cabinet.webp",
+      // The gameplay is painted on the glass. To play a GIF there instead, add it and uncomment:
+      // screen: "games/shuck-shack/screen.gif",
+      // screenBox: [22.5, 25.4, 54.8, 21.2],
       color: "#d9862b",
     },
     {
