@@ -74,7 +74,7 @@ window.MONSTER_PIZZA = {
       id: "shuck-shack",
       title: "Shuck Shack",
       blurb: "Trace the shell, pop the top, fill the order. Watch your fingers.",
-      url: "games/shuck-shack/index.html",          // lives inside this repo
+      url: "https://stephen-petronis.github.io/shuck-shack/",
       screen: "games/shuck-shack/screen.jpg",
       color: "#d9862b",
     },
