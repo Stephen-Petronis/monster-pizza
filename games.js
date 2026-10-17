@@ -78,5 +78,13 @@ window.MONSTER_PIZZA = {
       screen: "games/shuck-shack/screen.jpg",
       color: "#d9862b",
     },
+    {
+      id: "whack-a-ghost",
+      title: "Whack-A-Ghost",
+      blurb: "Pop the ghosts, spare the kitties, grab the hearts. Boss every 3 rounds.",
+      url: "games/whack-a-ghost/index.html",          // lives inside this repo
+      screen: "games/whack-a-ghost/screen.gif",
+      color: "#7a5a40",
+    },
   ],
 };
