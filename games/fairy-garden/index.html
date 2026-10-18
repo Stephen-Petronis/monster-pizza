@@ -187,6 +187,15 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 .tbtn svg{width:38px;height:38px}
 .tbtn .tl{position:relative;font-family:var(--font-fey);font-size:9px;font-weight:400;color:var(--plum);letter-spacing:.02em}
 @media (max-width:520px){.tbtn{width:62px;height:66px}.tbtn svg{width:30px;height:30px}.tbtn .tl{font-size:7px}}
+:root{--padH:180px}
+@media (max-height:560px){:root{--padH:128px}}
+#game.inlevel canvas{height:calc(100% - var(--padH) - env(safe-area-inset-bottom,0px))}
+.pads{bottom:0;height:calc(var(--padH) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);align-items:center;box-sizing:border-box;pointer-events:auto;
+  background:radial-gradient(120% 90% at 50% 0%,#ffd0ef 0%,#ff9fd8 40%,#f377c6 80%,#d958b0 100%);
+  box-shadow:0 -3px 0 var(--plum),inset 0 4px 0 rgba(255,255,255,.7),inset 0 -10px 0 rgba(150,30,110,.3)}
+.pads::after{content:"\2665  FAIRY GARDEN  \2665";position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-family:var(--font-fey);font-size:9px;letter-spacing:.12em;color:#fff4fb;opacity:.85;pointer-events:none;white-space:nowrap}
+@media (hover:hover) and (pointer:fine){.pads{bottom:0;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:700px){.pads::after{display:none}}
 </style>
 </head>
 <body>
@@ -338,7 +347,7 @@ const ctx = cv.getContext('2d');
 const gameEl = document.getElementById('game');
 let W, H, dpr, scale, viewW, viewH;
 function resize(){
-  const r = gameEl.getBoundingClientRect();
+  const r = cv.getBoundingClientRect();
   W = r.width; H = r.height;
   const pix = Math.max(2, Math.floor(Math.min(W, H) / 360));   // CSS pixels per game pixel, for the 8-bit look
   dpr = 1 / pix;
@@ -2592,7 +2601,9 @@ const winScreen = document.getElementById('winScreen');
 const hudEl = document.querySelector('.hud'), padsEl = document.getElementById('pads'), toolsEl = document.getElementById('tools'), homeBtn = document.getElementById('homeBtn');
 function showUI(){
   hudEl.hidden = state !== 'play';
-  padsEl.hidden = state !== 'play';
+  const inLevel = state === 'play' || state === 'win' || state === 'lose';
+  padsEl.hidden = !inLevel;
+  if(gameEl.classList.contains('inlevel') !== inLevel){ gameEl.classList.toggle('inlevel', inLevel); resize(); }
   homeBtn.hidden = state !== 'play';
   toolsEl.hidden = state !== 'garden';
   document.getElementById('resetGameBtn').hidden = state !== 'garden';
