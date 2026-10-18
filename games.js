@@ -91,5 +91,13 @@ window.MONSTER_PIZZA = {
       screenBox: [24.5, 25.6, 51, 20],
       color: "#7a5a40",
     },
+    {
+      id: "fairy-garden",
+      title: "Fairy Garden",
+      blurb: "Fly out for seeds, grow a magic garden, brew potions and make bug friends.",
+      url: "games/fairy-garden/index.html",           // lives inside this repo
+      screen: "games/fairy-garden/screen.gif",        // no drawn cabinet yet: uses the built-in one
+      color: "#ff6fae",
+    },
   ],
 };
