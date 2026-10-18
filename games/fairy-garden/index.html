@@ -244,7 +244,7 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
         <button class="tile" id="goPond" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><ellipse cx="28" cy="34" rx="24" ry="13" fill="#7ec8ff"/><ellipse cx="22" cy="32" rx="9" ry="4" fill="#5aa95c"/><circle cx="36" cy="34" r="4" fill="#ff9fbd"/></svg>Pond</button>
         <button class="tile" id="goVeg" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M20 14l10 34 6-34z" fill="#ff9a3d"/><path d="M28 14c-4-8-10-8-12-6M28 14c2-8 8-10 12-8M28 14V4" stroke="#5aa95c" stroke-width="4" stroke-linecap="round" fill="none"/></svg>Veggie patch</button>
         <button class="tile" id="goCompost" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M8 48c4-16 12-24 20-24s16 8 20 24z" fill="#8a5a3b"/><circle cx="22" cy="40" r="3" fill="#5aa95c"/><circle cx="34" cy="34" r="3" fill="#e9b872"/></svg>Compost heap</button>
-        <button class="tile" type="button" disabled><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M10 24L28 8l18 16z" fill="#c95a77"/><rect x="16" y="24" width="24" height="18" fill="#e8c08e"/><path d="M28 42v12" stroke="#8a5a3b" stroke-width="4"/><circle cx="28" cy="32" r="4" fill="#5a3a1e"/></svg>Bird feeder<small>Soon</small></button>
+        <button class="tile" id="goFeeder" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M10 24L28 8l18 16z" fill="#c95a77"/><rect x="16" y="24" width="24" height="18" fill="#e8c08e"/><path d="M28 42v12" stroke="#8a5a3b" stroke-width="4"/><circle cx="28" cy="32" r="4" fill="#5a3a1e"/></svg>Bird feeder</button>
       </div>
       <button class="linkbtn" id="resetBtn" type="button">Start a new garden</button>
     </div>
@@ -422,9 +422,9 @@ for(let i = 0; i < 60; i++) bgBush.push({ x: 1790 + i * 45, y: 80 + Math.random(
 
 function makeRose(){ return makeRoseTiles(); }
 const PW = () => { const g = typeof G !== 'undefined' ? G : null, p = (g && g.powers) || {}, d = (g && g.decor) || {};
-  return { magic:(p.magic || 0) + (d.rock ? 1 : 0), float:p.float || 0, shield:p.shield || 0, heart:(p.heart || 0) + (d.gnome ? 1 : 0), speed:(p.speed || 0) + (d.frog ? 1 : 0), bounce:p.bounce || 0 }; };
+  return { magic:(p.magic || 0) + (d.rock ? 1 : 0), float:p.float || 0, shield:p.shield || 0, heart:(p.heart || 0) + (d.gnome ? 1 : 0), speed:(p.speed || 0) + (d.frog ? 1 : 0), bounce:p.bounce || 0, sneak:p.sneak || 0 }; };
 function makeLevel(id, team = {}){
-  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : makeRoseTiles();
+  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : makeRoseTiles();
   WORLD = l.world; L = l; l.team = team;
   const pw = PW();
   l.bubbles = pw.shield + (team.butterfly || 0); l.maxHearts = l.hearts = 3 + pw.heart; l.cd = 1; l.special = false; l.bonus = 0; l.decorGot = null;
@@ -991,9 +991,140 @@ function drawGardenMushroom(i, pl, x){
   ctx.restore();
 }
 
+// ---- Level 5: the bird feeders (a sneaky level) ----
+SOLID.F = 1; SOLID.W = 1;
+function makeFeeder(){
+  const COLS = 110, ROWS = 18, GR = 15;
+  const g = makeGrid(COLS, ROWS, (r, c) => r < GR ? '.' : r === GR ? '=' : '#');
+  const carve = carver(g);
+  carve(1, 14, 103, 109, 'W');                                                       // the house at the end
+  [16, 32, 48, 64, 80].forEach(c => carve(12, 14, c, c, 'F'));                     // little fences break the birds' view
+  [[14,6],[14,22],[14,38],[14,54],[14,70],[14,86],[14,94]].forEach(([r, c]) => carve(r, r, c, c + 1, 'H'));          // low bushes
+  [[3,14],[3,30],[3,46],[3,62],[3,78],[3,92]].forEach(([r, c]) => carve(r, r + 1, c, c + 1, 'H'));                    // high treetops
+  [[9,44],[7,60],[10,84]].forEach(([r, c]) => carve(r, r + 1, c, c + 1, 'H'));                                        // hanging baskets
+  const houseCols = [10, 18, 26, 34, 42, 50, 58, 66, 74, 82, 90, 97], houseRows = [6, 9, 5, 8, 6, 10, 5, 8, 7, 9, 6, 7];
+  const houses = houseCols.map((c, i) => ({ x:cc(c), top:houseRows[i] * T, hue:i }));
+  const sp = [[4,13],[9,14],[12,10],[14,6],[18,4],[22,12],[26,13],[30,6],[34,3],[38,12],[41,10],[44,7],[47,6],[51,3],[54,12],[58,13],[61,9],[64,5],[67,12],[70,12],[74,13],[78,6],[82,4],[85,9],[88,13],[92,6],[95,12],[99,9]];
+  return baseLevel({
+    id:'feeder', mode:'fly', seedKind:'tulip', flowerKind:'tulip', theme:'feeder', cols:COLS, rows:ROWS, gr:GR, grid:g, houses,
+    world:{ w:COLS * T, top:30, ground:null, bottom:ROWS * T },
+    player:{ x:120, y:rr(13), vx:0, vy:0, r:18, face:1, inv:0, onGround:false, flying:false },
+    items: itemsFrom(sp.map(([c, r]) => [cc(c), rr(r)]), 'sparkle')
+      .concat(itemsFrom([[cc(10),rr(12)],[cc(26),rr(11)],[cc(42),rr(4)],[cc(58),rr(12)],[cc(74),rr(5)],[cc(90),rr(13)],[cc(97),rr(3)],[cc(35),rr(14)]], 'water'))
+      .concat(itemsFrom([[cc(18),rr(13)],[cc(50),rr(13)],[cc(66),rr(3)],[cc(82),rr(12)],[cc(100),rr(13)]], 'food'))
+      .concat(itemsFrom([[cc(31),rr(4)],[cc(63),rr(4)],[cc(87),rr(14)]], 'heart')),
+    bugs: houses.map((h, i) => ({ kind:'jay', x:h.x, y:h.top - 16, chase:true, watch:true, x1:h.x, x2:h.x, turnEvery:2.4 + (i % 4) * .5 })),
+    rose:{ x:cc(101), y:rr(6) },
+    goblin:{ x:cc(101) + 86, y:rr(6) + 6, hp:CONFIG.goblinHP, state:'tug', hitT:0, vx:0, vy:0 },
+    seed:{ x:cc(101), y:rr(6) - 4, state:'stuck', t:0 },
+    waypoints:[[cc(6),rr(14)],[cc(14),rr(3)],[cc(22),rr(14)],[cc(30),rr(3)],[cc(38),rr(14)],[cc(44),rr(9)],[cc(46),rr(3)],[cc(54),rr(14)],[cc(60),rr(7)],[cc(62),rr(3)],[cc(70),rr(14)],[cc(78),rr(3)],[cc(84),rr(10)],[cc(86),rr(14)],[cc(92),rr(3)],[cc(94),rr(14)],[cc(101),rr(6)]]
+  });
+}
+// a watching bird: does it see the fairy right now?
+function watcherSees(b, d, dx, dy){
+  const center = b.dir > 0 ? .25 : Math.PI - .25;
+  const ang = Math.atan2(dy, dx);
+  const da = Math.abs(((ang - center + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+  return da < b.fov && d < b.sight * (1 - .2 * (PW().sneak || 0));
+}
+function drawFeederBack(){
+  const gy = L.gr * T;
+  ctx.fillStyle = '#b5e39a';
+  for(let x = -100; x < WORLD.w; x += 320){ ctx.beginPath(); ctx.ellipse(x, gy, 240, 110, 0, Math.PI, 0); ctx.fill(); }
+  // tree trunks under the high treetops
+  ctx.fillStyle = '#a06c46';
+  for(const c of [14, 30, 46, 62, 78, 92]){ const x = c * T + 60; ctx.beginPath(); ctx.moveTo(x - 16, gy); ctx.lineTo(x - 9, 5 * T); ctx.lineTo(x + 9, 5 * T); ctx.lineTo(x + 16, gy); ctx.fill(); }
+  // hanging-basket chains
+  ctx.strokeStyle = '#8d8a99'; ctx.lineWidth = 2;
+  for(const [r, c] of [[9,44],[7,60],[10,84]]){ const x = c * T + 60; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, r * T + 10); ctx.stroke(); }
+  // birdhouses on poles
+  const cols = ['#ff9fc4','#9fd8ff','#ffd76a','#b8f0c8','#c9b3ff','#ffb48a'];
+  for(const h of L.houses){
+    if(h.x < cam.x - 120 || h.x > cam.x + viewW + 120) continue;
+    ctx.fillStyle = '#8a5a3b'; ctx.fillRect(h.x - 5, h.top + 60, 10, gy - h.top - 60);
+    ctx.fillStyle = '#c99566'; ctx.fillRect(h.x - 44, h.top + 58, 88, 8);
+    ctx.fillStyle = '#e9b872'; for(let k = -36; k <= 36; k += 9){ ctx.beginPath(); ctx.arc(h.x + k, h.top + 56, 3, 0, 7); ctx.fill(); }
+    ctx.fillStyle = cols[h.hue % cols.length]; ctx.fillRect(h.x - 30, h.top + 8, 60, 50);
+    ctx.fillStyle = '#e8445f'; ctx.beginPath(); ctx.moveTo(h.x - 38, h.top + 12); ctx.lineTo(h.x, h.top - 8); ctx.lineTo(h.x + 38, h.top + 12); ctx.fill();
+    ctx.fillStyle = '#3a2350'; ctx.beginPath(); ctx.arc(h.x, h.top + 30, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = '#8a5a3b'; ctx.fillRect(h.x - 2, h.top + 42, 4, 10);
+  }
+  // the house roof at the end
+  const hx = 103 * T;
+  ctx.fillStyle = '#c95a77'; ctx.beginPath(); ctx.moveTo(hx - 40, T + 10); ctx.lineTo(hx + 210, -60); ctx.lineTo(hx + 460, T + 10); ctx.fill();
+}
+function drawFeederTile(t, x, y, c, r){
+  if(t === 'F'){
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.moveTo(x + 14, y + T); ctx.lineTo(x + 14, y + 10); ctx.lineTo(x + 30, y - 4); ctx.lineTo(x + 46, y + 10); ctx.lineTo(x + 46, y + T); ctx.fill();
+    ctx.strokeStyle = '#d8cfe6'; ctx.lineWidth = 2; ctx.strokeRect(x + 14, y + 10, 32, T - 10);
+    return true;
+  }
+  if(t === 'W'){
+    ctx.fillStyle = '#f6d0e4'; ctx.fillRect(x, y, T + 1, T + 1);
+    ctx.fillStyle = '#ecbfd6'; ctx.fillRect(x, y + 28, T + 1, 4); ctx.fillRect(x, y + 56, T + 1, 4);
+    return true;
+  }
+  return false;
+}
+function drawFeederFinale(){
+  const r = L.rose, wx = 103 * T + 10, wy = r.y - 110;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(wx - 6, wy - 6, 172, 132);
+  ctx.fillStyle = '#bfe6ff'; ctx.fillRect(wx, wy, 160, 120);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(wx + 76, wy, 8, 120); ctx.fillRect(wx, wy + 56, 160, 8);
+  ctx.fillStyle = '#ff9fc4'; ctx.fillRect(wx - 24, wy - 6, 24, 132); ctx.fillRect(wx + 160, wy - 6, 24, 132);
+  // the window box, poking out from the house
+  ctx.fillStyle = '#a06c46'; ctx.fillRect(r.x - 70, r.y + 20, 160, 34);
+  ctx.fillStyle = '#c99566'; ctx.fillRect(r.x - 70, r.y + 20, 160, 7);
+  for(let k = 0; k < 5; k++){
+    const fx = r.x - 50 + k * 32, fy = r.y - 6 + (k % 2) * 6;
+    ctx.strokeStyle = '#4f9a57'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(fx, r.y + 20); ctx.lineTo(fx, fy); ctx.stroke();
+    ctx.fillStyle = ['#ff7a3d','#ff5d8f','#ffd23d','#ff7a3d','#c06cf0'][k];
+    ctx.beginPath(); ctx.moveTo(fx - 11, fy); ctx.lineTo(fx - 11, fy - 16); ctx.lineTo(fx - 5, fy - 10); ctx.lineTo(fx, fy - 20); ctx.lineTo(fx + 5, fy - 10); ctx.lineTo(fx + 11, fy - 16); ctx.lineTo(fx + 11, fy); ctx.quadraticCurveTo(fx, fy + 8, fx - 11, fy); ctx.fill();
+  }
+  smile(r.x + 10, r.y + 37, 1.2);
+}
+function drawJay(b){
+  ctx.save(); ctx.translate(b.x, b.y); ctx.scale(b.dir, 1);
+  const turning = b.watch && b.mode === 'patrol' && b.turnT < .5;
+  if(turning) ctx.rotate(Math.sin(time * 30) * .12);
+  const fl = b.mode === 'patrol' && !(b.rest > 0) ? 0 : Math.sin(time * 14);
+  ctx.fillStyle = '#3f7fd9';
+  ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(-22, -16 * fl - 6); ctx.lineTo(8, -4); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 2, 20, 12, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(-32, -6); ctx.lineTo(-30, 8); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(4, 7, 13, 6, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#3f7fd9'; ctx.beginPath(); ctx.arc(16, -6, 10, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(10, -12); ctx.lineTo(4, -26); ctx.lineTo(18, -14); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(20, -4, 6, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b2440'; ctx.beginPath(); ctx.arc(21, -6, 2.4, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#2b2440'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(15, -13); ctx.lineTo(25, -10); ctx.stroke();
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(8, 2); ctx.quadraticCurveTo(16, 8, 24, 0); ctx.stroke();
+  ctx.fillStyle = '#2b2440'; ctx.beginPath(); ctx.moveTo(25, -6); ctx.lineTo(36, -3); ctx.lineTo(25, 0); ctx.fill();
+  ctx.restore();
+}
+function drawWatchCone(b){
+  if(b.stun > 0 || b.rest > 0) return;
+  const center = b.dir > 0 ? .25 : Math.PI - .25, R = b.sight * (1 - .2 * (PW().sneak || 0));
+  const alert = b.mode === 'chase';
+  if(b.mode !== 'patrol' && !alert) return;
+  if(b.x < cam.x - R || b.x > cam.x + viewW + R) return;
+  ctx.fillStyle = alert ? 'rgba(255,80,90,.12)' : 'rgba(255,236,120,.14)';
+  ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.arc(b.x, b.y, R, center - b.fov, center + b.fov); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = alert ? 'rgba(255,80,90,.35)' : 'rgba(255,220,90,.35)'; ctx.lineWidth = 2; ctx.stroke();
+}
+function drawGardenTulip(pl, i){
+  const hy = -122;
+  if(pl.stage === 4){ ctx.fillStyle = '#5aa95c'; ctx.beginPath(); ctx.ellipse(0, -112, 9, 15, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#ff7a3d'; ctx.beginPath(); ctx.ellipse(0, -118, 6, 8, 0, 0, 7); ctx.fill(); return; }
+  ctx.fillStyle = '#ff7a3d';
+  ctx.beginPath(); ctx.moveTo(-16, hy + 8); ctx.lineTo(-16, hy - 14); ctx.lineTo(-7, hy - 6); ctx.lineTo(0, hy - 20); ctx.lineTo(7, hy - 6); ctx.lineTo(16, hy - 14); ctx.lineTo(16, hy + 8); ctx.quadraticCurveTo(0, hy + 20, -16, hy + 8); ctx.fill();
+  ctx.fillStyle = '#ffa36b'; ctx.beginPath(); ctx.ellipse(-6, hy - 2, 4, 10, -.2, 0, 7); ctx.fill();
+  ctx.fillStyle = `rgba(255,255,255,${.5 + .5 * Math.sin(time * 5 + i)})`; star(20, hy - 22, 5); ctx.fill();
+}
+
 // ---- Bugs, chasers, bosses ----
 const BUG_BASE = { ant:{ r:14, speed:38 }, beetle:{ r:18, speed:55 }, aphid:{ r:13, speed:50 }, dragonfly:{ r:16, speed:75 },
-  crow:{ r:18, speed:70, sight:330, chaseSpeed:150 }, wasp:{ r:14, speed:60, sight:300, chaseSpeed:140 }, heron:{ r:24, speed:60, sight:400, chaseSpeed:185 }, raven:{ r:28, speed:75, sight:390, chaseSpeed:165 },
+  crow:{ r:18, speed:70, sight:330, chaseSpeed:150 }, wasp:{ r:14, speed:60, sight:300, chaseSpeed:140 }, heron:{ r:24, speed:60, sight:400, chaseSpeed:185 }, raven:{ r:28, speed:75, sight:390, chaseSpeed:165 }, jay:{ r:20, speed:70, sight:360, chaseSpeed:170 },
   grub:{ r:56, speed:0 }, cricket:{ r:56, speed:0 }, king:{ r:58, speed:0 } };
 function setupBugs(){
   for(const b of L.bugs){
@@ -1010,7 +1141,7 @@ function setupBugs(){
       b.y1 = Math.max(a * T, 40) + b.r + 4; b.y2 = (z + 1) * T - b.r - 4;
     }
   }
-  for(const b of L.bugs){ if(b.need){ b.x1 = b.x2 = b.x; } }
+  for(const b of L.bugs){ if(b.need){ b.x1 = b.x2 = b.x; } if(b.watch){ b.fov = .8; b.turnT = Math.random() * b.turnEvery + .8; } }
   if(L.boss) L.boss = Object.assign({ hp:CONFIG.bossHP, max:CONFIG.bossHP, t:0, dir:1, hitT:0, active:false, dead:false, throwT:1.5 }, L.boss);
 }
 function tileCollide(p){
@@ -1059,7 +1190,7 @@ function updateChaser(b, dt){
   const p = L.player, dx = p.x - b.x, dy = p.y - b.y, d = Math.hypot(dx, dy) || 1;
   if(b.rest > 0){ b.rest -= dt; moveToward(b, b.hx, b.hy - 60, b.speed * 1.6, dt); b.mode = 'patrol'; return; }
   const hidden = playerHidden();
-  const sees = d < b.sight && !hidden && lineClear(b.x, b.y, p.x, p.y);
+  const sees = (b.watch ? watcherSees(b, d, dx, dy) : d < b.sight) && !hidden && lineClear(b.x, b.y, p.x, p.y);
   if(sees){ if(b.mode !== 'chase'){ b.alertT = .6; tone(880, .08, 'square', .04); tone(1180, .08, 'square', .04, .09); } b.mode = 'chase'; b.lost = 0; b.lx = p.x; b.ly = p.y; }
   if(b.mode === 'chase'){
     if(!sees){ b.lost += dt; if(b.lost > (hidden ? .5 : 1.4)){ b.mode = 'return'; if(hidden) b.rest = 5; } }
@@ -1067,6 +1198,10 @@ function updateChaser(b, dt){
   } else if(b.mode === 'return'){
     moveToward(b, b.hx, b.hy, b.speed * 1.4, dt);
     if(Math.hypot(b.x - b.hx, b.y - b.hy) < 20) b.mode = 'patrol';
+  } else if(b.watch){
+    b.x += (b.hx - b.x) * Math.min(1, 4 * dt); b.y += (b.hy - b.y) * Math.min(1, 4 * dt);
+    b.turnT -= dt;
+    if(b.turnT <= 0){ b.dir *= -1; b.turnT = b.turnEvery; }
   } else {
     b.x += b.speed * b.dir * dt;
     if(b.x > b.x2){ b.x = b.x2; b.dir = -1; } if(b.x < b.x1){ b.x = b.x1; b.dir = 1; }
@@ -1112,6 +1247,7 @@ function hitBoss(s){
 
 // ---- Drawing for tile levels ----
 function drawTileBack(){
+  if(L.theme === 'feeder'){ drawFeederBack(); return; }
   if(L.theme === 'veg' || L.theme === 'compost'){
     const gy = L.gr * T;
     ctx.fillStyle = '#b5e39a';
@@ -1141,6 +1277,12 @@ function drawTileBack(){
   ctx.fillStyle = '#b98652'; ctx.fillRect(tx0 - 8, ty0 - 10, 16, gy - ty0 + 10);
 }
 function drawBush(x, y, kind){
+  if(kind === 'canopy'){
+    ctx.fillStyle = '#5fb36a'; ctx.beginPath(); ctx.arc(x + 12, y + 34, 24, 0, 7); ctx.arc(x + 48, y + 30, 26, 0, 7); ctx.arc(x + 30, y + 14, 26, 0, 7); ctx.arc(x + 30, y + 46, 22, 0, 7); ctx.fill();
+    ctx.fillStyle = '#86d29c'; ctx.beginPath(); ctx.arc(x + 22, y + 18, 10, 0, 7); ctx.arc(x + 44, y + 24, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffb3d6'; ctx.beginPath(); ctx.arc(x + 14, y + 40, 4, 0, 7); ctx.arc(x + 50, y + 42, 4, 0, 7); ctx.fill();
+    return;
+  }
   if(kind === 'veg'){
     ctx.fillStyle = '#7fc46a'; ctx.beginPath(); ctx.arc(x + 30, y + 38, 30, 0, 7); ctx.fill();
     ctx.fillStyle = '#a5dc8c'; ctx.beginPath(); ctx.arc(x + 30, y + 40, 20, 0, 7); ctx.fill();
@@ -1159,7 +1301,8 @@ function drawTiles(){
   const veg = L.theme === 'veg', comp = L.theme === 'compost', p = L.player;
   for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++){
     const t = L.grid[r][c], x = c * T, y = r * T;
-    const inside = comp ? (r >= L.tops[c] && r < L.gr) : veg ? r >= L.gr : (c >= 30 && c <= 90 && r < L.gr);
+    if(L.theme === 'feeder' && drawFeederTile(t, x, y, c, r)) continue;
+    const inside = comp ? (r >= L.tops[c] && r < L.gr) : veg ? r >= L.gr : (L.theme === 'rose' && c >= 30 && c <= 90 && r < L.gr);
     if(t === 'K'){
       ctx.fillStyle = '#8a5f3c'; ctx.fillRect(x, y, T + 1, T + 1);
       const h = (c * 31 + r * 17) % 7;
@@ -1184,7 +1327,7 @@ function drawTiles(){
       if((c * 7 + r * 3) % 5 === 0){ ctx.fillStyle = veg ? '#563826' : '#376a3c'; ctx.beginPath(); ctx.arc(x + 20, y + 30, 9, 0, 7); ctx.fill(); }
       if(veg && SOLID[tileAt(c, r - 1)] && (c + r) % 3 === 0){ ctx.strokeStyle = '#c9a27a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 30, y); ctx.quadraticCurveTo(x + 22, y + 14, x + 32, y + 24); ctx.stroke(); }
     } else if(t === '#' || t === '='){
-      if(!veg && !comp && r >= L.gr){
+      if(L.theme === 'rose' && r >= L.gr){
         if(r === L.gr){ ctx.fillStyle = '#ddd6ca'; ctx.fillRect(x, y, T + 1, 36); ctx.strokeStyle = '#c4bcae'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 36); ctx.stroke(); ctx.fillStyle = '#b3ab9e'; ctx.fillRect(x, y + 36, T + 1, 8); ctx.fillStyle = '#6e6a76'; ctx.fillRect(x, y + 44, T + 1, 17); }
         else { ctx.fillStyle = '#6e6a76'; ctx.fillRect(x, y, T + 1, T + 1); if(c % 2 === 0 && r === L.gr + 1){ ctx.fillStyle = '#f2e38a'; ctx.fillRect(x, y + 10, 50, 6); } }
         continue;
@@ -1240,7 +1383,7 @@ function drawCovers(){
     const c0 = Math.max(0, Math.floor(cam.x / T) - 1), c1 = Math.min(L.cols - 1, Math.floor((cam.x + viewW) / T) + 1);
     const r0 = Math.max(0, Math.floor(cam.y / T) - 1), r1 = Math.min(L.rows - 1, Math.floor((cam.y + viewH) / T) + 1);
     ctx.globalAlpha = .88;
-    for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++) if(L.grid[r][c] === 'H') drawBush(c * T, r * T, L.theme);
+    for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++) if(L.grid[r][c] === 'H') drawBush(c * T, r * T, L.theme === 'feeder' ? (r < 12 ? 'canopy' : 'rose') : L.theme);
     ctx.globalAlpha = 1;
   }
   for(const m of L.mushrooms){
@@ -1256,6 +1399,7 @@ function drawCovers(){
 }
 function drawChaser(b){
   if(b.kind === 'crow'){ drawCrow(b); }
+  else if(b.kind === 'jay'){ drawWatchCone(b); drawJay(b); }
   else if(b.kind === 'raven'){ ctx.save(); ctx.translate(b.x, b.y); ctx.scale(1.7, 1.7); drawCrow(Object.assign({}, b, { x:0, y:0, r:18 })); ctx.restore(); }
   else {
     ctx.save(); ctx.translate(b.x, b.y); ctx.scale(b.dir, 1);
@@ -1565,7 +1709,7 @@ function update(dt){
   }
 
   updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt);
-  playSong(L.boss && L.boss.active && !L.boss.dead ? 'boss' : L.id);
+  playSong((L.boss && L.boss.active && !L.boss.dead) || (L.id === 'feeder' && L.bugs.some(b => b.mode === 'chase')) ? 'boss' : L.id);
   for(const t of L.ltexts){ t.life -= dt; t.y -= 14 * dt; } L.ltexts = L.ltexts.filter(t => t.life > 0);
 
   // dropped sparkles float back
@@ -1622,6 +1766,7 @@ const SKIES = {
   rose:['#b99cf2','#c9a8f2','#d9b4f0','#e8c2ee','#f6d0ea','#ffdfe8'],
   pond:['#7fb0f0','#90bcf2','#a2c8f4','#b4d4f6','#c8e0f8','#dcecfa'],
   veg:['#8fa8e8','#a0b6ec','#b2c4f0','#c4d2f4','#d6e0f8','#e8eefc'],
+  feeder:['#9fd8ff','#b0e0ff','#c2e8ff','#d4f0ff','#e6f7ff','#f4fcff'],
   compost:['#ffc2a8','#ffcdb3','#ffd8c0','#ffe3cc','#ffedd9','#fff6e8'],
   garden:['#c4dcff','#d4d2ff','#ead0ff','#ffd6ec','#ffe6d6','#fff2c8']
 };
@@ -1940,7 +2085,7 @@ function render(){
     for(const b of L.buds) drawBud(b, L.player);
   }
   for(const it of L.items) if(!it.got) drawItem(it);
-  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else drawRoseFinale();
+  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else drawRoseFinale();
   if(L.seed.state !== 'got') drawSeed(L.seed);
   drawGoblin(L.goblin);
   for(const b of L.bugs) if(!b.dead) drawBug(b);
@@ -1970,7 +2115,7 @@ function render(){
 
 // ---- Garden (home) ----
 const SAVE_KEY = 'fairyGarden.v1';
-function newGarden(){ return { inv:{ seeds:[], water:0, food:0, sparkles:0, petals:{ rose:0, lily:0, sunflower:0, star:0, mushroom:0 } }, powers:{ magic:0, float:0, shield:0, heart:0, speed:0, bounce:0 }, lastPotion:null, decor:{}, plots:Array.from({length:12}, () => ({ stage:0, kind:null, name:'' })), friends:{} }; }
+function newGarden(){ return { inv:{ seeds:[], water:0, food:0, sparkles:0, petals:{ rose:0, lily:0, sunflower:0, star:0, mushroom:0, tulip:0 } }, powers:{ magic:0, float:0, shield:0, heart:0, speed:0, bounce:0, sneak:0 }, lastPotion:null, decor:{}, plots:Array.from({length:12}, () => ({ stage:0, kind:null, name:'' })), friends:{} }; }
 function loadGarden(){
   try{ const s = JSON.parse(localStorage.getItem(SAVE_KEY));
     if(s && s.inv && Array.isArray(s.plots) && s.plots.length >= 6){
@@ -1978,15 +2123,15 @@ function loadGarden(){
       if(!s.friends) s.friends = {};
       if(!Array.isArray(s.inv.seeds)){ s.inv.seeds = Array(Math.max(0, s.inv.seed | 0)).fill('rose'); delete s.inv.seed; }
       if(!s.inv.petals) s.inv.petals = { rose:0, lily:0 };
-      s.inv.petals = Object.assign({ rose:0, lily:0, sunflower:0, star:0, mushroom:0 }, s.inv.petals);
+      s.inv.petals = Object.assign({ rose:0, lily:0, sunflower:0, star:0, mushroom:0, tulip:0 }, s.inv.petals);
       if(!s.decor) s.decor = {};
-      s.powers = Object.assign({ magic:0, float:0, shield:0, heart:0, speed:0, bounce:0 }, s.powers);
+      s.powers = Object.assign({ magic:0, float:0, shield:0, heart:0, speed:0, bounce:0, sneak:0 }, s.powers);
       return s; } }catch(e){}
   return newGarden();
 }
 function saveGarden(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(G)); }catch(e){} }
 let G = loadGarden();
-const KIND_NAME = { rose:'rose', lily:'water lily', sunflower:'sunflower', star:'starflower', mushroom:'glow mushroom' };
+const KIND_NAME = { rose:'rose', lily:'water lily', sunflower:'sunflower', star:'starflower', mushroom:'glow mushroom', tulip:'tulip' };
 
 const GW = 1420, GH = 540, GROUND = 420, MAGIC_COST = 5;
 const plotX = i => 282 + i * 80;
@@ -1995,7 +2140,7 @@ const gf = { x:230, y:300, tx:230, ty:300, face:1, inv:0, flying:true, onGround:
 let gParts = [], gTexts = [];
 const plotFx = Array.from({length:12}, () => ({ wig:0, shake:0 }));
 let gScale = 1, gOX = 0, gOY = 0, tool = null, namingPlot = -1, seedPick = null;
-const SEED_COLOR = { rose:'#ff5d8f', lily:'#ffd1e3', sunflower:'#ffc83d', star:'#8f7bff', mushroom:'#38c6b2' };
+const SEED_COLOR = { rose:'#ff5d8f', lily:'#ffd1e3', sunflower:'#ffc83d', star:'#8f7bff', mushroom:'#38c6b2', tulip:'#ff7a3d' };
 const seedCount = k => G.inv.seeds.filter(s => s === k).length;
 const flyers = Array.from({length:12}, (_, i) => ({ ph:Math.random() * 6, sp:.6 + Math.random() * .5, c:['#ffb347','#8fd3ff','#ff8fb0','#c9a7ff','#ffe066','#9be37a'][i % 6] }));
 
@@ -2109,7 +2254,8 @@ function drawPlant(i, pl){
     stem(64); leaf(-12, -26, 1, -.5); leaf(12, -42, 1, .5); leaf(-10, -58, .7, -.4);
   } else {
     stem(100); leaf(-13, -30, 1.1, -.5); leaf(13, -50, 1.1, .5); leaf(-12, -72, .9, -.4);
-    if(pl.kind === 'sunflower' || pl.kind === 'star') drawFancyHead(pl, i);
+    if(pl.kind === 'tulip') drawGardenTulip(pl, i);
+    else if(pl.kind === 'sunflower' || pl.kind === 'star') drawFancyHead(pl, i);
     else if(pl.stage === 4){
       ctx.fillStyle = '#e8336f'; ctx.beginPath(); ctx.ellipse(0, -114, 11, 17, 0, 0, 7); ctx.fill();
       ctx.fillStyle = '#ff7aa3'; ctx.beginPath(); ctx.ellipse(-3, -118, 4, 9, 0, 0, 7); ctx.fill();
@@ -2340,7 +2486,7 @@ toolBtns.forEach(b => b.addEventListener('click', () => {
 }));
 function openSeedPicker(){
   const picker = document.getElementById('seedPick');
-  const kinds = ['rose','lily','sunflower','star','mushroom'].filter(k => seedCount(k) > 0);
+  const kinds = ['rose','lily','sunflower','star','mushroom','tulip'].filter(k => seedCount(k) > 0);
   picker.innerHTML = kinds.map(k => `<button type="button" data-k="${k}" class="${seedPick === k ? 'sel' : ''}" aria-label="${KIND_NAME[k]} seed"><svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="27" rx="11" ry="15" fill="#ffc83d" stroke="#d99a00" stroke-width="2.5"/><path d="M24 13c3-7 10-9 14-7-2 6-7 9-14 7z" fill="#5aa95c"/><circle cx="24" cy="29" r="6" fill="${SEED_COLOR[k]}" stroke="#fff" stroke-width="1.5"/></svg><span class="count">${seedCount(k)}</span><span class="lbl">${KIND_NAME[k]}</span></button>`).join('');
   picker.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
     seedPick = btn.dataset.k; tool = 'seed'; picker.hidden = true; tone(740, .08, 'sine', .08); updateTools();
@@ -2374,6 +2520,7 @@ document.getElementById('goRose').addEventListener('click', () => startLevel('ro
 document.getElementById('goPond').addEventListener('click', () => startLevel('pond'));
 document.getElementById('goVeg').addEventListener('click', () => startLevel('veg'));
 document.getElementById('goCompost').addEventListener('click', () => startLevel('compost'));
+document.getElementById('goFeeder').addEventListener('click', () => startLevel('feeder'));
 const resetBtn = document.getElementById('resetBtn');
 let resetArm = false;
 resetBtn.addEventListener('click', () => {
@@ -2400,7 +2547,8 @@ const POTIONS = [
   { id:'magic', name:'Power potion', desc:'Bigger magic. Stuns longer, then beats bugs', color:'#c06cf0', cost:{ rose:1, lily:1, sunflower:1 } },
   { id:'float', name:'Lily potion', desc:'Float longer when you flutter', color:'#8fd3ff', cost:{ lily:2 } },
   { id:'shield', name:'Star potion', desc:'A bubble that blocks a bump', color:'#8f7bff', cost:{ star:2 } },
-  { id:'bounce', name:'Bouncy potion', desc:'Jump higher at the pond', color:'#38c6b2', cost:{ mushroom:2 } }
+  { id:'bounce', name:'Bouncy potion', desc:'Jump higher at the pond', color:'#38c6b2', cost:{ mushroom:2 } },
+  { id:'sneak', name:'Sneaky potion', desc:'Birds can\'t see you as far', color:'#ff7a3d', cost:{ tulip:2 } }
 ];
 const POWER_MAX = 3;
 const potionScreen = document.getElementById('potionScreen');
@@ -2408,13 +2556,14 @@ const PETAL_SVG = {
   rose:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c5 4 7 8 5 13-1 3-4 5-5 5s-4-2-5-5C5 11 7 7 12 3z" fill="#ff5d8f" stroke="#c21f55" stroke-width="1.2"/></svg>',
   lily:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c5 4 7 8 5 13-1 3-4 5-5 5s-4-2-5-5C5 11 7 7 12 3z" fill="#ffe3ee" stroke="#ff9fc4" stroke-width="1.2"/></svg>',
   sunflower:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c5 4 7 8 5 13-1 3-4 5-5 5s-4-2-5-5C5 11 7 7 12 3z" fill="#ffd23d" stroke="#d99a00" stroke-width="1.2"/></svg>',
+  tulip:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6l3 3 4-6 4 6 3-3v8a7 7 0 01-14 0z" fill="#ff7a3d" stroke="#c4501c" stroke-width="1.2" stroke-linejoin="round"/></svg>',
   mushroom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13a9 7 0 0118 0z" fill="#38c6b2" stroke="#1f7f72" stroke-width="1.2"/><rect x="10" y="13" width="4" height="8" rx="1.5" fill="#f3ead8" stroke="#c9b38a" stroke-width="1"/><circle cx="9" cy="9" r="1.6" fill="#e8fffb"/><circle cx="15" cy="8" r="1.3" fill="#e8fffb"/></svg>',
   star:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 6.6 7 .5-5.4 4.5 1.7 6.9L12 16.8l-5.9 3.7 1.7-6.9L2.4 9.1l7-.5z" fill="#8f7bff" stroke="#5a48c9" stroke-width="1.2" stroke-linejoin="round"/></svg>'
 };
 const bottle = c => `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="19" y="4" width="10" height="8" rx="2" fill="#b07a48"/><path d="M18 12h12v6l7 9a12 12 0 11-26 0l7-9z" fill="#eaf6ff" stroke="#8fa9c0" stroke-width="2"/><path d="M12.5 30h23a11 11 0 11-23 0z" fill="${c}"/><circle cx="20" cy="34" r="2.5" fill="#fff" opacity=".7"/><circle cx="27" cy="38" r="1.6" fill="#fff" opacity=".7"/></svg>`;
 function canMake(po){ return (G.powers[po.id] || 0) < POWER_MAX && Object.entries(po.cost).every(([k, n]) => (G.inv.petals[k] || 0) >= n); }
 function renderPotions(){
-  document.getElementById('petalBar').innerHTML = ['rose','lily','sunflower','star','mushroom'].map(k => `<div class="pill" aria-label="${KIND_NAME[k]} petals">${PETAL_SVG[k]}<span>${G.inv.petals[k] || 0}</span></div>`).join('');
+  document.getElementById('petalBar').innerHTML = ['rose','lily','sunflower','star','mushroom','tulip'].map(k => `<div class="pill" aria-label="${KIND_NAME[k]} petals">${PETAL_SVG[k]}<span>${G.inv.petals[k] || 0}</span></div>`).join('');
   const list = document.getElementById('potionList');
   list.innerHTML = POTIONS.map(po => {
     const cost = Object.entries(po.cost).flatMap(([k, n]) => Array(n).fill(PETAL_SVG[k])).join('');
@@ -2452,7 +2601,7 @@ function drawCauldron(){
 
 // ---- Garden friends: feed visitors with food and they help you in levels ----
 const bloomCount = k => G.plots.filter(p => p.stage === 5 && p.kind === k).length;
-const maxSame = () => Math.max(...['rose','lily','sunflower','star','mushroom'].map(bloomCount));
+const maxSame = () => Math.max(...['rose','lily','sunflower','star','mushroom','tulip'].map(bloomCount));
 const FRIENDS = {
   butterfly:{ name:'Butterfly', perk:'a bubble that blocks a bump', here:() => maxSame() >= 3, x:760, y:205 },
   ladybug:{ name:'Ladybug', perk:'flutter longer', here:() => G.decor.gnome && bloomCount('rose') >= 3, x:150, y:236 },
@@ -2638,9 +2787,9 @@ document.getElementById('resetAll').addEventListener('click', () => {
   gTexts.push({ x:GW / 2, y:200, text:'A brand new garden!', life:2 });
 });
 document.getElementById('testKit').addEventListener('click', () => {
-  for(const k of ['rose','lily','sunflower','star','mushroom']) for(let i = 0; i < 3; i++) G.inv.seeds.push(k);
+  for(const k of ['rose','lily','sunflower','star','mushroom','tulip']) for(let i = 0; i < 3; i++) G.inv.seeds.push(k);
   G.inv.water += 30; G.inv.food += 10; G.inv.sparkles += 20;
-  for(const k of ['rose','lily','sunflower','star','mushroom']) G.inv.petals[k] += 6;
+  for(const k of ['rose','lily','sunflower','star','mushroom','tulip']) G.inv.petals[k] += 6;
   saveGarden(); goGarden(); sfx.win();
   gTexts.push({ x:GW / 2, y:200, text:'Test supplies added!', life:2 });
 });
@@ -2718,6 +2867,16 @@ const SONGS = {
     } },
   // Veggie Patch: plucky and jaunty in G, muffled when you're underground
   get compost(){ return this.veg; },
+  // Bird feeders: a tiptoe tune for sneaking
+  feeder:{ bpm:104, len:4,
+    root:[45,45,41,43],
+    mel:[[69,0,0,72,0,0,76,0,0,0,74,0,72,0,0,0],[69,0,0,72,0,0,74,0,76,0,0,0,0,0,0,0],[65,0,0,69,0,0,72,0,0,0,71,0,69,0,0,0],[67,0,0,71,0,0,74,0,72,0,71,0,67,0,0,0]],
+    step(bar, s, t, sd){
+      if(s % 4 === 0) mnote(this.root[bar], t, sd * .9, 'triangle', .08);
+      if(s % 4 === 2) perc(t, 'block', .03);
+      if(s % 8 === 6) mnote(this.root[bar] + 19, t, sd * .5, 'sine', .03, { send:.4 });
+      const n = this.mel[bar][s]; if(n) mnote(n, t, sd * .8, 'triangle', .06, { send:.3 });
+    } },
   veg:{ bpm:120, len:8,
     root:[43,43,48,50,43,41,48,50],
     ch:[[59,62,67],[59,62,67],[60,64,67],[62,66,69],[59,62,67],[60,65,69],[60,64,67],[62,66,69]],
