@@ -213,6 +213,7 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 .sw .newtag{position:absolute;top:-10px;right:-12px;background:var(--petal);color:#fff;font-family:var(--font-fey);font-size:7px;font-weight:400;padding:3px 4px;border-radius:6px;border:2px solid var(--plum)}
 .dressmsg{margin:4px 0 0;font-family:var(--font-display);font-size:16px;color:var(--ink-soft);min-height:1.3em}
 #game.racing .btn.jelly.magic{visibility:hidden}
+@media (max-height:500px){.tbtn{width:60px;height:60px;border-radius:18px}.tbtn svg{width:28px;height:28px}.tbtn .tl{font-size:7px}.tools{padding:8px 10px 10px;gap:8px}}
 </style>
 </head>
 <body>
@@ -2330,11 +2331,40 @@ const SEED_COLOR = { rose:'#ff5d8f', lily:'#ffd1e3', sunflower:'#ffc83d', star:'
 const seedCount = k => G.inv.seeds.filter(s => s === k).length;
 const flyers = Array.from({length:12}, (_, i) => ({ ph:Math.random() * 6, sp:.6 + Math.random() * .5, c:['#ffb347','#8fd3ff','#ff8fb0','#c9a7ff','#ffe066','#9be37a'][i % 6] }));
 
+// The garden is shown zoomed in; the view follows the fairy and can be dragged sideways.
+let gCamX = null, gBarH = 140;
 function gLayout(){
-  const barH = 104;
-  gScale = Math.min(W / GW, (H - barH) / GH);
-  gOX = (W - GW * gScale) / 2;
-  gOY = Math.max(0, (H - barH - GH * gScale) * .75);
+  const te = document.getElementById('tools');
+  if(te && !te.hidden && te.offsetHeight) gBarH = te.offsetHeight + 26;
+  const barH = gBarH;
+  gScale = Math.min((H - barH) / 460, W / 460);
+  if(GW * gScale < W) gScale = Math.min(W / GW, (H - barH) / GH);
+  const vw = W / gScale;
+  if(gCamX === null) gCamX = gf.x + vw * .2;
+  const lo = -30 + vw / 2, hi = GW + 30 - vw / 2;
+  gCamX = lo > hi ? GW / 2 : clamp(gCamX, lo, hi);
+  gOX = W / 2 - gCamX * gScale;
+  const slack = H - barH - GH * gScale;
+  gOY = slack > 0 ? slack * .75 : slack;
+}
+function gCamFollow(dt){
+  if(gDrag && gDrag.moved) return;
+  const vw = W / gScale, m = vw * .28;
+  if(Math.abs(gf.tx - gf.x) < 3 && Math.abs(gf.ty - gf.y) < 3) return;
+  const want = clamp(gCamX, gf.tx - m, gf.tx + m);
+  gCamX += (want - gCamX) * Math.min(1, dt * 3);
+}
+function gPan(dir){ gCamX += dir * (W / gScale) * .6; tone(dir > 0 ? 660 : 560, .08, 'sine', .07); }
+function drawGardenArrows(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const vw = W / gScale, canL = gCamX - vw / 2 > -20, canR = gCamX + vw / 2 < GW + 20, y = (H - gBarH) * .5, b = Math.sin(time * 4) * 4;
+  for(const [ok, dir] of [[canL, -1], [canR, 1]]){
+    if(!ok) continue;
+    const x = dir < 0 ? 30 - b : W - 30 + b;
+    ctx.fillStyle = 'rgba(255,250,255,.92)'; ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, 22, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ff6fae'; ctx.beginPath(); ctx.moveTo(x + dir * 9, y); ctx.lineTo(x - dir * 6, y - 11); ctx.lineTo(x - dir * 6, y + 11); ctx.closePath(); ctx.fill();
+  }
 }
 function gBurst(x, y, colors, n = 16, sp = 180){
   for(let i = 0; i < n; i++){ const a = rand(0, Math.PI * 2), s = rand(sp * .3, sp);
@@ -2402,6 +2432,7 @@ function bloomed(i){
 }
 
 function updateGarden(dt){
+  if(state === 'garden') gCamFollow(dt);
   const dx = gf.tx - gf.x, dy = gf.ty - gf.y;
   gf.x += dx * Math.min(1, 3.5 * dt); gf.y += dy * Math.min(1, 3.5 * dt);
   if(Math.abs(dx) > 3) gf.face = dx > 0 ? 1 : -1;
@@ -2641,15 +2672,36 @@ function renderGarden(){
   for(const tx of gTexts){ ctx.globalAlpha = Math.min(1, tx.life); ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.strokeStyle = '#3a2350'; const hw = ctx.measureText(tx.text).width / 2 + 8, xx = clamp(tx.x, -gOX / gScale + hw, (W - gOX) / gScale - hw); ctx.strokeText(tx.text, xx, tx.y); ctx.fillStyle = '#fff4fb'; ctx.fillText(tx.text, xx, tx.y); }
   ctx.globalAlpha = 1;
   ctx.setTransform(dpr * gScale, 0, 0, dpr * gScale, gOX * dpr, gOY * dpr);
-  drawForestFrame(-gOX / gScale - 10, (W - gOX) / gScale + 10);
+  if(W / gScale < GW - 1) drawForestFrame(-40, GW + 40); else drawForestFrame(-gOX / gScale - 10, (W - gOX) / gScale + 10);
+  if(state === 'garden') drawGardenArrows();
   storybookOverlay();
 }
 
 // garden taps
+let gDrag = null;
 cv.addEventListener('pointerdown', e => {
   if(state !== 'garden') return;
   initAudio();
+  gDrag = { id:e.pointerId, sx:e.clientX, cam:gCamX, moved:false };
+  try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+});
+cv.addEventListener('pointermove', e => {
+  if(!gDrag || gDrag.id !== e.pointerId || state !== 'garden') return;
+  const dx = e.clientX - gDrag.sx;
+  if(Math.abs(dx) > 12) gDrag.moved = true;
+  if(gDrag.moved){ gCamX = gDrag.cam - dx / gScale; ctipEl.hidden = true; }
+});
+cv.addEventListener('pointercancel', () => { gDrag = null; });
+cv.addEventListener('pointerup', e => {
+  const d = gDrag; gDrag = null;
+  if(state !== 'garden' || !d || d.moved) return;
+  gardenTap(e);
+});
+function gardenTap(e){
   const r = cv.getBoundingClientRect();
+  const sx = e.clientX - r.left, sy = e.clientY - r.top, vw = W / gScale, ay = (H - gBarH) * .5;
+  if(Math.abs(sy - ay) < 34 && sx < 58 && gCamX - vw / 2 > -20){ gPan(-1); return; }
+  if(Math.abs(sy - ay) < 34 && sx > W - 58 && gCamX + vw / 2 < GW + 20){ gPan(1); return; }
   const x = (e.clientX - r.left - gOX) / gScale, y = (e.clientY - r.top - gOY) / gScale;
   if((fr().grasshopper || 0) > 0 && Math.abs(x - RACE_FLAG.x) < 40 && y > GROUND + 40 && y < GROUND + 124){ startRace(); return; }
   if(tapVisitor(x, y)) return;
@@ -2659,7 +2711,7 @@ cv.addEventListener('pointerdown', e => {
   if(Math.abs(x - CAULDRON_X) < 54 && y > GROUND - 150 && y < GROUND + 30){ gf.tx = CAULDRON_X - 60; gf.ty = GROUND - 140; openPotions(); return; }
   for(let i = 0; i < 12; i++) if(Math.abs(x - plotX(i)) < 38 && y > GROUND - 175 && y < GROUND + 60){ useOnPlot(i); return; }
   gf.tx = clamp(x, 40, GW - 40); gf.ty = clamp(y, 70, GROUND - 30);
-});
+}
 
 // toolbar
 const toolBtns = [...document.querySelectorAll('.tbtn')];
@@ -2987,7 +3039,7 @@ document.getElementById('resetGameBtn').addEventListener('click', () => { initAu
 document.getElementById('resetClose').addEventListener('click', () => goGarden());
 document.getElementById('resetAll').addEventListener('click', () => {
   G = newGarden(); saveGarden(); tool = null; seedPick = null;
-  gf.x = 230; gf.y = 300; gf.tx = 300; gf.ty = 260;
+  gf.x = 230; gf.y = 300; gf.tx = 300; gf.ty = 260; gCamX = null;
   goGarden(); tone(520, .15, 'triangle', .08, 0, 260);
   gTexts.push({ x:GW / 2, y:200, text:'A brand new garden!', life:2 });
 });
@@ -3564,7 +3616,7 @@ function bankLoot(main){
 }
 function takeHome(){
   bankLoot(true); tool = null;
-  gf.x = 230; gf.y = 300; gf.tx = 300; gf.ty = 260;
+  gf.x = 230; gf.y = 300; gf.tx = 300; gf.ty = 260; gCamX = null;
   goGarden(); sfx.item();
 }
 document.getElementById('playBtn').addEventListener('click', () => { initAudio(); goGarden(); });
