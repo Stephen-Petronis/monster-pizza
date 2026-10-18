@@ -189,7 +189,11 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 @media (max-width:520px){.tbtn{width:62px;height:66px}.tbtn svg{width:30px;height:30px}.tbtn .tl{font-size:7px}}
 :root{--padH:180px}
 @media (max-height:560px){:root{--padH:128px}}
-#game.inlevel canvas{height:calc(100% - var(--padH) - env(safe-area-inset-bottom,0px))}
+:root{--topH:calc(70px + env(safe-area-inset-top,0px))}
+@media (max-height:560px){:root{--topH:calc(62px + env(safe-area-inset-top,0px))}}
+#game.inlevel canvas{margin-top:var(--topH);height:calc(100% - var(--padH) - var(--topH) - env(safe-area-inset-bottom,0px))}
+#game.inlevel::before{content:"";position:absolute;left:0;right:0;top:0;height:var(--topH);pointer-events:none;
+  background:linear-gradient(180deg,#ffe6f6 0%,#ffc2e4 100%);box-shadow:0 3px 0 var(--plum),inset 0 -5px 0 rgba(150,30,110,.15)}
 .pads{bottom:0;height:calc(var(--padH) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);align-items:center;box-sizing:border-box;pointer-events:auto;
   background:radial-gradient(120% 90% at 50% 0%,#ffd0ef 0%,#ff9fd8 40%,#f377c6 80%,#d958b0 100%);
   box-shadow:0 -3px 0 var(--plum),inset 0 4px 0 rgba(255,255,255,.7),inset 0 -10px 0 rgba(150,30,110,.3)}
@@ -216,6 +220,8 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 @media (max-height:500px){.tbtn{width:60px;height:60px;border-radius:18px}.tbtn svg{width:28px;height:28px}.tbtn .tl{font-size:7px}.tools{padding:8px 10px 10px;gap:8px}}
 #mapScreen .card{max-width:min(640px,100%);width:100%}
 #mapScreen .tiles{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+@media (max-width:480px){.hud{gap:5px;left:calc(8px + env(safe-area-inset-left,0px))}.hud .pill{padding:3px 7px 3px 4px;font-size:11px;gap:3px;border-width:2px}.hud .pill svg{width:16px;height:16px}.hud .hearts svg{width:15px;height:15px}}
+@media (max-height:500px){:root{--topH:calc(54px + env(safe-area-inset-top,0px))}.hud{top:calc(8px + env(safe-area-inset-top,0px))}.mute,.homeb{width:40px;height:40px;top:calc(7px + env(safe-area-inset-top,0px))}.homeb{right:calc(58px + env(safe-area-inset-right,0px))}.hud .pill{padding:3px 9px 3px 5px;font-size:12px}}
 </style>
 </head>
 <body>
