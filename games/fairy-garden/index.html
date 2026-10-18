@@ -461,6 +461,29 @@ for(let i = 0; i < 60; i++) bgBush.push({ x: 1790 + i * 45, y: 80 + Math.random(
 function makeRose(){ return makeRoseTiles(); }
 const PW = () => { const g = typeof G !== 'undefined' ? G : null, p = (g && g.powers) || {}, d = (g && g.decor) || {};
   return { magic:(p.magic || 0) + (d.rock ? 1 : 0), float:p.float || 0, shield:p.shield || 0, heart:(p.heart || 0) + (d.gnome ? 1 : 0), speed:(p.speed || 0) + (d.frog ? 1 : 0), bounce:p.bounce || 0, sneak:p.sneak || 0, homing:d.ball ? 1 : 0, spread:d.chime ? 1 : 0 }; };
+// Extra hearts scattered through every level so kids can heal easily
+function addHearts(l){
+  const near = (x, y, d) => l.items.some(it => Math.hypot(it.x - x, it.y - y) < d);
+  if(!l.grid){
+    l.plats.forEach((pl, i) => { if(pl.w >= 80){ const x = pl.x + pl.w / 2, y = pl.y - 90; if(!l.items.some(it => it.type === 'heart' && Math.abs(it.x - x) < 500)) l.items.push({ x, y, type:'heart', got:false }); } });
+    return;
+  }
+  const pass = (c, r) => r >= 0 && c >= 0 && r < l.rows && c < l.cols && !SOLID[l.grid[r][c]];
+  const sc = Math.floor(l.player.x / T), sr = Math.floor(l.player.y / T), seen = new Set([sc + ',' + sr]), q = [[sc, sr]], cells = [];
+  while(q.length){ const [c, r] = q.shift(); cells.push([c, r]);
+    for(const [dc, dr] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nc = c + dc, nr = r + dr, k = nc + ',' + nr; if(seen.has(k) || !pass(nc, nr)) continue; seen.add(k); q.push([nc, nr]); } }
+  const ratPts = [];
+  for(const rt of (l.rats || [])){ const pts = rt.path || []; for(let i = 0; i < pts.length; i++){ const a = pts[i], b = pts[(i + 1) % pts.length]; for(let u = 0; u <= 1; u += .1) ratPts.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]); } }
+  const band = 8;
+  for(let c0 = sc + 4; c0 < l.cols - 2; c0 += band){
+    const opts = cells.filter(([c, r]) => c >= c0 && c < c0 + band && l.grid[r][c] !== 'H' && pass(c - 1, r) && pass(c + 1, r))
+      .map(([c, r]) => ({ x:cc(c), y:rr(r) }))
+      .filter(o => !near(o.x, o.y, 150) && !ratPts.some(([x, y]) => Math.hypot(x - o.x, y - o.y) < 80));
+    if(!opts.length) continue;
+    const o = opts[Math.floor(Math.random() * opts.length)];
+    l.items.push({ x:o.x, y:o.y, type:'heart', got:false });
+  }
+}
 function makeLevel(id, team = {}){
   const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : makeRoseTiles();
   WORLD = l.world; L = l; l.team = team;
@@ -473,6 +496,7 @@ function makeLevel(id, team = {}){
   if(id === 'feeder') l.boss = { x:cc(99), y:rr(10), x1:cc(98), x2:cc(101), y1:rr(8), y2:rr(12), fly:true };
   const owned = (typeof G !== 'undefined' && G.decor) || {};
   l.items = l.items.filter(it => it.type !== 'decor' || !owned[it.id]);
+  addHearts(l);
   l.covers = l.mushrooms.map(m => ({ x:m.x - 64, y:m.top - 112, w:128, h:112 }));
   setupBugs(); setupRats(); makeHelpers(l);
   return l;
@@ -1668,6 +1692,7 @@ function popBubble(){
 }
 function zapBug(b, s){
   const mp = PW().magic;
+  if(!b.zapped){ b.zapped = true; if(L.hearts < L.maxHearts && Math.random() < .4){ L.items.push({ x:b.x, y:b.y, type:'heart', got:false }); L.ltexts.push({ x:b.x, y:b.y - 40, text:'A heart!', life:1.6 }); } }
   if(b.need){
     if(mp >= b.need){
       b.hp -= s.dmg; b.flash = .4; sfx.goblin(); burst(b.x, b.y, ['#fff3a8','#ffffff'], 12, 160);
