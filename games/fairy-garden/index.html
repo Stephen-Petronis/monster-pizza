@@ -45,7 +45,7 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 .btn.magic.on{background:conic-gradient(rgba(255,200,61,1) calc(var(--charge,1) * 360deg), rgba(255,255,255,.75) 0)}
 .hearts{gap:1px;padding-left:8px}
 .hearts svg{width:24px;height:24px}
-@media (hover:hover) and (pointer:fine){.pads{display:none}}
+
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--shade);padding:16px}
 .card{background:var(--cream);border-radius:14px;padding:26px 26px 24px;max-width:min(440px,100%);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;border:3px solid var(--plum);box-shadow:0 0 0 6px var(--blush),0 0 0 9px var(--plum),0 12px 0 9px #b0388f,0 12px 0 12px var(--plum)}
 .card h1{font-family:var(--font-fey);font-size:26px;line-height:1.35;margin:0;color:var(--petal);font-weight:400;text-shadow:3px 3px 0 var(--plum);text-wrap:balance}
@@ -147,6 +147,46 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 @media (prefers-reduced-motion:no-preference){.btn.jelly.hint{animation:jellyHint 1s ease-in-out infinite}}
 @keyframes jellyHint{0%,100%{filter:none}50%{filter:drop-shadow(0 0 14px rgba(255,236,120,.95)) brightness(1.08)}}
 @media (max-width:600px),(max-height:500px){.btn.jelly{width:86px;height:80px;border-radius:24px}.btn.jelly svg{width:38px;height:38px}.btn.jelly.magic{width:88px;height:88px}.btn.jelly.fly{width:112px;height:112px}.btn.jelly.fly svg{width:46px;height:38px}.btn.jelly small{font-size:9px}.cluster{gap:10px}}
+/* garden toolbar + menu buttons as candy jelly too */
+.tbtn{border:0;border-radius:22px;overflow:visible;
+  background:radial-gradient(ellipse 60% 45% at 50% 80%,rgba(255,255,255,.8),transparent 70%),linear-gradient(180deg,#fffaff 0%,#ffe4f4 45%,#ffc2e4 100%);
+  box-shadow:0 0 0 3px var(--plum),0 7px 0 0 #e58fc0,0 7px 0 3px var(--plum),0 12px 10px 2px rgba(10,0,25,.25),inset 0 -8px 12px rgba(220,90,160,.3),inset 0 3px 4px #fff;
+  transition:transform .38s cubic-bezier(.25,1.9,.45,1),box-shadow .2s}
+.tbtn::before{content:"";position:absolute;left:14%;right:14%;top:5%;height:30%;border-radius:50% 50% 45% 45% / 90% 90% 30% 30%;background:linear-gradient(rgba(255,255,255,.95),rgba(255,255,255,.1));pointer-events:none}
+.tbtn svg{position:relative;filter:drop-shadow(0 2px 0 rgba(58,35,80,.25))}
+.tbtn:active{transform:translateY(5px) scale(1.04,.92);transition-duration:.06s;box-shadow:0 0 0 3px var(--plum),0 2px 0 0 #e58fc0,0 2px 0 3px var(--plum),inset 0 -6px 12px rgba(220,90,160,.35),inset 0 3px 4px #fff}
+.tbtn.sel{background:radial-gradient(ellipse 60% 45% at 50% 80%,rgba(255,252,220,.8),transparent 70%),radial-gradient(circle at 50% 35%,#fffbe0,#ffe27a 55%,#f2b632 100%);
+  box-shadow:0 0 0 3px var(--plum),0 7px 0 0 #c98a14,0 7px 0 3px var(--plum),0 0 18px 6px rgba(255,215,106,.7),inset 0 3px 4px #fff;transform:translateY(-6px)}
+.tools{border-radius:28px;padding:12px 14px 16px;
+  background:radial-gradient(120% 70% at 50% 0%,#ffd0ef 0%,#ff9fd8 40%,#f377c6 80%,#d958b0 100%);
+  box-shadow:0 0 0 3px var(--plum),inset 0 4px 0 rgba(255,255,255,.7),inset 0 -8px 0 rgba(150,30,110,.3),0 8px 0 3px var(--plum)}
+.seedpick button{border:0;border-radius:18px;background:linear-gradient(180deg,#fffaff 0%,#ffe4f4 50%,#ffc2e4 100%);box-shadow:0 0 0 3px var(--plum),0 5px 0 3px var(--plum),inset 0 3px 4px #fff}
+.seedpick button.sel{background:radial-gradient(circle at 50% 35%,#fffbe0,#ffe27a 55%,#f2b632 100%)}
+.play,.make{position:relative;overflow:hidden;border:0;border-radius:18px;
+  background:radial-gradient(ellipse 60% 40% at 50% 85%,rgba(255,214,236,.8),transparent 70%),linear-gradient(180deg,#ffb3da 0%,#ff6db1 50%,#e0408f 100%);
+  box-shadow:0 0 0 3px var(--plum),0 7px 0 0 #b02670,0 7px 0 3px var(--plum),0 12px 10px 2px rgba(10,0,25,.25),inset 0 3px 4px rgba(255,255,255,.8);
+  transition:transform .38s cubic-bezier(.25,1.9,.45,1),box-shadow .2s}
+.play::before,.make::before{content:"";position:absolute;left:10%;right:10%;top:6%;height:36%;border-radius:999px;background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,.1));pointer-events:none}
+.play{font-size:18px;padding:18px 34px;margin-top:10px}
+.play:active,.make:active{transform:translateY(5px) scale(1.03,.93);transition-duration:.06s;box-shadow:0 0 0 3px var(--plum),0 2px 0 0 #b02670,0 2px 0 3px var(--plum),inset 0 3px 4px rgba(255,255,255,.8)}
+.make{padding:12px 14px;font-size:12px}
+.make[disabled]{background:linear-gradient(180deg,#f3ecfa,#ddd0ec);box-shadow:0 0 0 3px #b9a7d0,inset 0 3px 4px #fff;color:#9a8ab3;text-shadow:none}
+.danger{background:linear-gradient(180deg,#d9a6ff 0%,#a052d6 50%,#7a2fb0 100%)!important;box-shadow:0 0 0 3px var(--plum),0 7px 0 0 #5a1f84,0 7px 0 3px var(--plum),inset 0 3px 4px rgba(255,255,255,.7)!important}
+.tile{border:0;border-radius:20px;background:linear-gradient(180deg,#fffaff 0%,#fff0f8 60%,#ffd9ee 100%);box-shadow:0 0 0 3px var(--plum),0 6px 0 3px var(--plum),inset 0 3px 4px #fff;transition:transform .38s cubic-bezier(.25,1.9,.45,1)}
+.tile:not([disabled]){background:radial-gradient(circle at 50% 30%,#fffbe0,#ffe9a0 60%,#ffd76a 100%)}
+.tile:not([disabled]):active{transform:translateY(4px) scale(1.03,.94);transition-duration:.06s}
+.tile:not([disabled]) svg{animation:none}
+@media (prefers-reduced-motion:no-preference){.tile:not([disabled]){animation:tileBob 2.2s ease-in-out infinite}}
+@keyframes tileBob{50%{transform:translateY(-3px)}}
+.mute,.homeb,.closex{border:0;background:linear-gradient(180deg,#fffaff 0%,#ffe4f4 55%,#ffc2e4 100%);box-shadow:0 0 0 3px var(--plum),0 4px 0 3px var(--plum),inset 0 2px 3px #fff}
+.btn.jelly kbd{display:none;position:absolute;z-index:4;left:50%;bottom:-30px;transform:translateX(-50%);font-family:var(--font-fey);font-size:9px;color:var(--plum);background:var(--cream);border:2px solid var(--plum);border-radius:6px;padding:4px 6px;box-shadow:0 2px 0 var(--plum);white-space:nowrap;pointer-events:none}
+.btn.jelly.arrow,.btn.jelly.magic{overflow:visible}
+.btn.jelly.arrow::before,.btn.jelly.magic::before{overflow:hidden}
+@media (hover:hover) and (pointer:fine){.btn.jelly kbd{display:block}.pads{bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
+.tbtn{width:82px;height:82px;flex-direction:column;display:flex;align-items:center;justify-content:center;gap:2px}
+.tbtn svg{width:38px;height:38px}
+.tbtn .tl{position:relative;font-family:var(--font-fey);font-size:9px;font-weight:400;color:var(--plum);letter-spacing:.02em}
+@media (max-width:520px){.tbtn{width:62px;height:66px}.tbtn svg{width:30px;height:30px}.tbtn .tl{font-size:7px}}
 </style>
 </head>
 <body>
@@ -167,23 +207,23 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 
   <div class="pads" id="pads">
     <div class="cluster">
-      <button class="btn jelly arrow" data-k="left" aria-label="Move left" type="button"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 20 L26 6.5 C29.5 4 33 5.5 33 9.5 L33 30.5 C33 34.5 29.5 36 26 33.5 Z"/><path class="shine" d="M24 10 L13 18 C12 19 13 20 14 19.5 L25 12 C26.5 11 25.5 9 24 10 Z"/></svg><small>LEFT</small></button>
-      <button class="btn jelly arrow" data-k="right" aria-label="Move right" type="button"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M33 20 L14 6.5 C10.5 4 7 5.5 7 9.5 L7 30.5 C7 34.5 10.5 36 14 33.5 Z"/><path class="shine" d="M12 10 L12 18 C12 19.5 13.5 19.5 14 18.5 L16 12 C16.5 10.5 13 9 12 10 Z"/></svg><small>RIGHT</small></button>
+      <button class="btn jelly arrow" data-k="left" aria-label="Move left" type="button"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 20 L26 6.5 C29.5 4 33 5.5 33 9.5 L33 30.5 C33 34.5 29.5 36 26 33.5 Z"/><path class="shine" d="M24 10 L13 18 C12 19 13 20 14 19.5 L25 12 C26.5 11 25.5 9 24 10 Z"/></svg><small>LEFT</small><kbd>&larr;</kbd></button>
+      <button class="btn jelly arrow" data-k="right" aria-label="Move right" type="button"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M33 20 L14 6.5 C10.5 4 7 5.5 7 9.5 L7 30.5 C7 34.5 10.5 36 14 33.5 Z"/><path class="shine" d="M12 10 L12 18 C12 19.5 13.5 19.5 14 18.5 L16 12 C16.5 10.5 13 9 12 10 Z"/></svg><small>RIGHT</small><kbd>&rarr;</kbd></button>
     </div>
     <div class="cluster">
-      <button class="btn jelly magic" data-k="magic" aria-label="Magic" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg><small>MAGIC</small></button>
-      <button class="btn jelly fly" data-k="fly" aria-label="Fly" type="button"><span class="dome"><svg viewBox="0 0 48 40" aria-hidden="true"><path d="M24 26C18 10 6 4 3 9s4 16 21 17zM24 26c6-16 18-22 21-17s-4 16-21 17z"/><path d="M24 26c-4 2-10 9-6 11s6-6 6-11zm0 0c4 2 10 9 6 11s-6-6-6-11z"/></svg><small id="flyLbl">FLY</small></span></button>
+      <button class="btn jelly magic" data-k="magic" aria-label="Magic" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg><small>MAGIC</small><kbd>X</kbd></button>
+      <button class="btn jelly fly" data-k="fly" aria-label="Fly" type="button"><span class="dome"><svg viewBox="0 0 48 40" aria-hidden="true"><path d="M24 26C18 10 6 4 3 9s4 16 21 17zM24 26c6-16 18-22 21-17s-4 16-21 17z"/><path d="M24 26c-4 2-10 9-6 11s6-6 6-11zm0 0c4 2 10 9 6 11s-6-6-6-11z"/></svg><small id="flyLbl">FLY</small></span><kbd>SPACE</kbd></button>
     </div>
   </div>
 
 <div class="ctip" id="ctip" hidden></div>
 <div class="seedpick" id="seedPick" hidden></div>
   <div class="tools" id="tools" hidden>
-    <button class="tbtn" data-tool="seed" data-tip="Pick which seeds to plant" type="button" aria-label="Seed" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="27" rx="11" ry="15" fill="#ffc83d" stroke="#d99a00" stroke-width="2.5"/><path d="M24 13c3-7 10-9 14-7-2 6-7 9-14 7z" fill="#5aa95c"/><ellipse cx="20" cy="24" rx="3" ry="5" fill="#fff6cf"/></svg><span class="count">0</span></button>
-    <button class="tbtn" data-tool="water" data-tip="Water your flowers to make them grow" type="button" aria-label="Water" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 22h20l-3 16H13z" fill="#7ec8ff" stroke="#2a86d6" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 26l10-8" stroke="#2a86d6" stroke-width="4" stroke-linecap="round"/><path d="M13 22c0-6 14-6 14 0" fill="none" stroke="#2a86d6" stroke-width="2.5"/><circle cx="42" cy="24" r="2.4" fill="#4fb3ff"/><circle cx="44" cy="31" r="2" fill="#4fb3ff"/></svg><span class="count">0</span></button>
-    <button class="tbtn" data-tool="food" data-tip="Feed your bug friends" type="button" aria-label="Food for garden friends" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 30c0-10 8-18 18-18 8 0 14 6 14 14 0 8-8 12-16 12-10 0-16-2-16-8z" fill="#e9b872" stroke="#b9823f" stroke-width="2.5"/><circle cx="20" cy="24" r="2.2" fill="#8a5a2b"/><circle cx="28" cy="20" r="2" fill="#8a5a2b"/><circle cx="30" cy="30" r="2.4" fill="#8a5a2b"/><circle cx="18" cy="32" r="1.8" fill="#8a5a2b"/></svg><span class="count">0</span></button>
-    <button class="tbtn" data-tool="chop" data-tip="Clear a plant to grow something new" type="button" aria-label="Clippers to clear a plant" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="14" cy="36" r="7" fill="none" stroke="#e8445f" stroke-width="4"/><circle cx="30" cy="38" r="7" fill="none" stroke="#e8445f" stroke-width="4"/><path d="M18 31L38 8M26 32L20 10" stroke="#8d8a99" stroke-width="4.5" stroke-linecap="round"/></svg><span class="count">&middot;</span></button>
-    <button class="tbtn" data-tool="pick" data-tip="Pick flowers to make potions" type="button" aria-label="Pick flowers for potion petals" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 22h28l-4 18H14z" fill="#e8c08e" stroke="#b07a48" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 22c0-10 20-10 20 0" fill="none" stroke="#b07a48" stroke-width="3"/><path d="M13 29h22M14 35h20" stroke="#b07a48" stroke-width="2"/><circle cx="18" cy="20" r="5" fill="#ff5d8f"/><circle cx="30" cy="19" r="5" fill="#ffd1e3"/><circle cx="24" cy="17" r="5" fill="#ff7aa3"/></svg><span class="count">0</span></button>
+    <button class="tbtn" data-tool="seed" data-tip="Pick which seeds to plant" type="button" aria-label="Seed" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="27" rx="11" ry="15" fill="#ffc83d" stroke="#d99a00" stroke-width="2.5"/><path d="M24 13c3-7 10-9 14-7-2 6-7 9-14 7z" fill="#5aa95c"/><ellipse cx="20" cy="24" rx="3" ry="5" fill="#fff6cf"/></svg><b class="tl">SEED</b><span class="count">0</span></button>
+    <button class="tbtn" data-tool="water" data-tip="Water your flowers to make them grow" type="button" aria-label="Water" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 22h20l-3 16H13z" fill="#7ec8ff" stroke="#2a86d6" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 26l10-8" stroke="#2a86d6" stroke-width="4" stroke-linecap="round"/><path d="M13 22c0-6 14-6 14 0" fill="none" stroke="#2a86d6" stroke-width="2.5"/><circle cx="42" cy="24" r="2.4" fill="#4fb3ff"/><circle cx="44" cy="31" r="2" fill="#4fb3ff"/></svg><b class="tl">WATER</b><span class="count">0</span></button>
+    <button class="tbtn" data-tool="food" data-tip="Feed your bug friends" type="button" aria-label="Food for garden friends" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 30c0-10 8-18 18-18 8 0 14 6 14 14 0 8-8 12-16 12-10 0-16-2-16-8z" fill="#e9b872" stroke="#b9823f" stroke-width="2.5"/><circle cx="20" cy="24" r="2.2" fill="#8a5a2b"/><circle cx="28" cy="20" r="2" fill="#8a5a2b"/><circle cx="30" cy="30" r="2.4" fill="#8a5a2b"/><circle cx="18" cy="32" r="1.8" fill="#8a5a2b"/></svg><b class="tl">FOOD</b><span class="count">0</span></button>
+    <button class="tbtn" data-tool="chop" data-tip="Clear a plant to grow something new" type="button" aria-label="Clippers to clear a plant" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="14" cy="36" r="7" fill="none" stroke="#e8445f" stroke-width="4"/><circle cx="30" cy="38" r="7" fill="none" stroke="#e8445f" stroke-width="4"/><path d="M18 31L38 8M26 32L20 10" stroke="#8d8a99" stroke-width="4.5" stroke-linecap="round"/></svg><b class="tl">CLEAR</b><span class="count">&middot;</span></button>
+    <button class="tbtn" data-tool="pick" data-tip="Pick flowers to make potions" type="button" aria-label="Pick flowers for potion petals" aria-pressed="false"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 22h28l-4 18H14z" fill="#e8c08e" stroke="#b07a48" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 22c0-10 20-10 20 0" fill="none" stroke="#b07a48" stroke-width="3"/><path d="M13 29h22M14 35h20" stroke="#b07a48" stroke-width="2"/><circle cx="18" cy="20" r="5" fill="#ff5d8f"/><circle cx="30" cy="19" r="5" fill="#ffd1e3"/><circle cx="24" cy="17" r="5" fill="#ff7aa3"/></svg><b class="tl">PICK</b><span class="count">0</span></button>
   </div>
 
   <div class="overlay" id="mapScreen" hidden>
