@@ -469,6 +469,8 @@ function makeLevel(id, team = {}){
   l.prizes = []; l.chestFx = [];
   if(id === 'compost') l.items.push({ x:cc(79), y:rr(17), type:'decor', id:'ball', got:false });
   if(id === 'feeder') l.items.push({ x:cc(86), y:rr(4), type:'decor', id:'chime', got:false });
+  if(id === 'compost') l.boss = { x:cc(60), y:rr(3), x1:cc(54), x2:cc(68), y1:rr(1), y2:rr(4), fly:true };
+  if(id === 'feeder') l.boss = { x:cc(99), y:rr(10), x1:cc(98), x2:cc(101), y1:rr(8), y2:rr(12), fly:true };
   const owned = (typeof G !== 'undefined' && G.decor) || {};
   l.items = l.items.filter(it => it.type !== 'decor' || !owned[it.id]);
   l.covers = l.mushrooms.map(m => ({ x:m.x - 64, y:m.top - 112, w:128, h:112 }));
@@ -1279,7 +1281,7 @@ function updateEshots(dt){
   L.eshots = L.eshots.filter(e => e.life > 0);
 }
 function homeTarget(s){
-  let best = null, bd = 470;
+  let best = null, bd = s.range || 470;
   const look = (x, y) => { const dx = x - s.x, dy = y - s.y, d = Math.hypot(dx, dy); if(d < bd && dx * s.vx + dy * s.vy > 0 && lineClear(s.x, s.y, x, y)){ bd = d; best = { x, y }; } };
   for(const b of L.bugs) if(!b.dead && (b.need || b.stun <= 0)) look(b.x, b.y);
   const bo = L.boss; if(bo && bo.active && !bo.dead) look(bo.x, bo.y);
@@ -1720,15 +1722,16 @@ function update(dt){
   L.cool -= dt;
   if(input.magic && L.cool <= 0){
     const pw = PW(), mp = pw.magic, sp = CONFIG.magicSpeed * (1 + .12 * mp);
+    const hl = 1 + mp + (pw.homing ? 2 : 0);   // magic always aims a little; Power potions and the crystal ball aim better
     for(const a of pw.spread ? [-.24, 0, .24] : [0])
-      L.shots.push({x:p.x + p.face * 24, y:p.y - 8, vx:p.face * sp * Math.cos(a), vy:sp * Math.sin(a), sp, home:!!pw.homing, rt:0, tg:null, hue:Math.random() * 360, life:CONFIG.magicLife * (pw.homing ? 1.4 : 1), size:1 + .3 * mp, dmg:mp >= 2 ? 2 : 1});
+      L.shots.push({x:p.x + p.face * 24, y:p.y - 8, vx:p.face * sp * Math.cos(a), vy:sp * Math.sin(a), sp, home:true, turn:2.6 + 1.3 * hl, range:300 + 60 * hl, rt:0, tg:null, hue:Math.random() * 360, life:CONFIG.magicLife * (1.15 + .1 * hl), size:1 + .3 * mp, dmg:mp >= 2 ? 2 : 1});
     L.cool = L.cd = CONFIG.wandRecharge[Math.min(4, PW().speed || 0)]; sfx.zap();
   }
   for(const s of L.shots){
     if(s.home){
       s.rt -= dt; if(s.rt <= 0){ s.rt = .1; s.tg = homeTarget(s); }
       if(s.tg){ const a = Math.atan2(s.vy, s.vx); let d = Math.atan2(s.tg.y - s.y, s.tg.x - s.x) - a; d = Math.atan2(Math.sin(d), Math.cos(d));
-        const na = a + clamp(d, -6 * dt, 6 * dt); s.vx = Math.cos(na) * s.sp; s.vy = Math.sin(na) * s.sp; }
+        const na = a + clamp(d, -s.turn * dt, s.turn * dt); s.vx = Math.cos(na) * s.sp; s.vy = Math.sin(na) * s.sp; }
     }
     s.x += s.vx * dt; s.y += (s.vy || 0) * dt; s.life -= dt;
     if(Math.random() < .8) L.parts.push({x:s.x, y:s.y + rand(-4,4), vx:rand(-20,20), vy:rand(-20,20), life:.35, max:.35, c:lookOf().magic.rainbow ? RAINBOW[Math.floor(Math.random() * 6)] : lookOf().magic.a, size:rand(2,4)});
@@ -2480,7 +2483,7 @@ const DECOR = {
   gnome:{ name:'Garden gnome', a:'a garden gnome', perk:'+1 heart', x:250, y:GROUND + 100, wig:0 },
   frog:{ name:'Frog statue', a:'a frog statue', perk:'faster wand', x:150, y:GROUND + 80, wig:0 },
   rock:{ name:'Rock sculpture', a:'a rock sculpture', perk:'stronger magic', x:1252, y:GROUND + 100, wig:0 },
-  ball:{ name:'Crystal ball', a:'a crystal ball', perk:'magic flies to bugs', x:560, y:GROUND + 92, wig:0 },
+  ball:{ name:'Crystal ball', a:'a crystal ball', perk:'magic aims much better', x:560, y:GROUND + 92, wig:0 },
   chime:{ name:'Wind chime', a:'a wind chime', perk:'magic shoots 3 ways', x:880, y:GROUND + 84, wig:0, post:true }
 };
 function drawGardenDecor(){
@@ -2712,7 +2715,7 @@ document.getElementById('nameSkip').addEventListener('click', () => { nameInput.
 const POTIONS = [
   { id:'heart', name:'Heart potion', desc:'One more heart', color:'#ff4f7b', cost:{ rose:3 } },
   { id:'speed', name:'Sunny potion', desc:'Your wand fills up faster', color:'#ffd23d', cost:{ sunflower:3 } },
-  { id:'magic', name:'Power potion', desc:'Bigger magic. Stuns longer, then beats bugs', color:'#c06cf0', cost:{ rose:1, lily:1, sunflower:1 } },
+  { id:'magic', name:'Power potion', desc:'Bigger magic that aims better. Stuns longer, then beats bugs', color:'#c06cf0', cost:{ rose:1, lily:1, sunflower:1 } },
   { id:'float', name:'Lily potion', desc:'Float longer when you flutter', color:'#8fd3ff', cost:{ lily:2 } },
   { id:'shield', name:'Star potion', desc:'A bubble that blocks a bump', color:'#8f7bff', cost:{ star:2 } },
   { id:'bounce', name:'Bouncy potion', desc:'Jump higher at the pond', color:'#38c6b2', cost:{ mushroom:2 } },
