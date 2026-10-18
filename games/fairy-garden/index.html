@@ -214,6 +214,8 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 .dressmsg{margin:4px 0 0;font-family:var(--font-display);font-size:16px;color:var(--ink-soft);min-height:1.3em}
 #game.racing .btn.jelly.magic{visibility:hidden}
 @media (max-height:500px){.tbtn{width:60px;height:60px;border-radius:18px}.tbtn svg{width:28px;height:28px}.tbtn .tl{font-size:7px}.tools{padding:8px 10px 10px;gap:8px}}
+#mapScreen .card{max-width:min(640px,100%);width:100%}
+#mapScreen .tiles{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 </style>
 </head>
 <body>
@@ -264,6 +266,8 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
         <button class="tile" id="goVeg" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M20 14l10 34 6-34z" fill="#ff9a3d"/><path d="M28 14c-4-8-10-8-12-6M28 14c2-8 8-10 12-8M28 14V4" stroke="#5aa95c" stroke-width="4" stroke-linecap="round" fill="none"/></svg>Veggie patch</button>
         <button class="tile" id="goCompost" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M8 48c4-16 12-24 20-24s16 8 20 24z" fill="#8a5a3b"/><circle cx="22" cy="40" r="3" fill="#5aa95c"/><circle cx="34" cy="34" r="3" fill="#e9b872"/></svg>Compost heap</button>
         <button class="tile" id="goFeeder" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M10 24L28 8l18 16z" fill="#c95a77"/><rect x="16" y="24" width="24" height="18" fill="#e8c08e"/><path d="M28 42v12" stroke="#8a5a3b" stroke-width="4"/><circle cx="28" cy="32" r="4" fill="#5a3a1e"/></svg>Bird feeder</button>
+        <button class="tile" id="goAnthill" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M4 48c6-20 14-30 24-30s18 10 24 30z" fill="#d9ab6a"/><ellipse cx="28" cy="22" rx="5" ry="3" fill="#5e3c28"/><circle cx="16" cy="40" r="3" fill="#b83a2a"/><circle cx="20" cy="40" r="2.4" fill="#b83a2a"/><circle cx="36" cy="34" r="3" fill="#b83a2a"/><circle cx="40" cy="34" r="2.4" fill="#b83a2a"/></svg>Ant hill<small>New maze every time!</small></button>
+        <button class="tile" id="goHive" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M28 6v6" stroke="#a06c46" stroke-width="4"/><ellipse cx="28" cy="16" rx="10" ry="6" fill="#f2b632"/><ellipse cx="28" cy="25" rx="15" ry="7" fill="#f2b632"/><ellipse cx="28" cy="35" rx="17" ry="7" fill="#f2b632"/><ellipse cx="28" cy="44" rx="13" ry="6" fill="#f2b632"/><ellipse cx="28" cy="40" rx="4" ry="3" fill="#5a3a1e"/><ellipse cx="46" cy="14" rx="5" ry="4" fill="#ffcf2e"/><path d="M44 11v6M47 11v6" stroke="#3a2a1a" stroke-width="1.5"/></svg>Beehive</button>
         <button class="tile" id="goRace" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M8 44h40" stroke="#3a2350" stroke-width="3"/><path d="M18 34l-6 10M22 34l4 10M14 30l-4-12 14 10" stroke="#4f9a37" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="28" cy="30" rx="16" ry="6" fill="#7fd34e"/><circle cx="43" cy="28" r="5" fill="#6dbb4a"/><circle cx="45" cy="27" r="1.6" fill="#2b2440"/><path d="M40 8v18" stroke="#8b5a2b" stroke-width="3"/><path d="M40 8h12v8H40z" fill="#fff" stroke="#3a2350" stroke-width="2"/><path d="M40 8h4v4h-4zM48 8h4v4h-4zM44 12h4v4h-4z" fill="#3a2350"/></svg>Grasshopper race<small id="raceNote"></small></button>
       </div>
       <button class="linkbtn" id="resetBtn" type="button">Start a new garden</button>
@@ -486,7 +490,7 @@ function addHearts(l){
   }
 }
 function makeLevel(id, team = {}){
-  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : makeRoseTiles();
+  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : id === 'anthill' ? makeAnthill() : id === 'beehive' ? makeHive() : makeRoseTiles();
   WORLD = l.world; L = l; l.team = team;
   const pw = PW();
   l.bubbles = pw.shield + (team.butterfly || 0); l.maxHearts = l.hearts = 3 + pw.heart; l.cd = 1; l.special = false; l.bonus = 0; l.decorGot = null;
@@ -499,7 +503,7 @@ function makeLevel(id, team = {}){
   l.items = l.items.filter(it => it.type !== 'decor' || !owned[it.id]);
   addHearts(l);
   l.covers = l.mushrooms.map(m => ({ x:m.x - 64, y:m.top - 112, w:128, h:112 }));
-  setupBugs(); setupRats(); makeHelpers(l);
+  setupBugs(); setupRats(); setupAnts(); makeHelpers(l);
   return l;
 }
 // ---- Level 2: the pond (too windy to fly: jump and flutter) ----
@@ -1190,9 +1194,307 @@ function drawGardenTulip(pl, i){
   ctx.fillStyle = `rgba(255,255,255,${.5 + .5 * Math.sin(time * 5 + i)})`; star(20, hy - 22, 5); ctx.fill();
 }
 
+// ---- Ant Hill: a new random maze every trip. Grab seeds and fly back out the hole to keep them! ----
+const ANT_KINDS = ['rose','lily','sunflower','star','mushroom','tulip'];
+function makeAnthill(){
+  const MW = 14, MH = 6, MC = 4, S = 6, MR = S + 3;                 // maze cells, maze left col, surface row, maze top row
+  const COLS = MC + MW * 3 + 1 + 4, ROWS = MR + MH * 3 + 1 + 2, BASE = ROWS - 2;
+  const ec = MC + 1 + 3 * 1;                                         // the entrance shaft drops into maze cell (1, 0)
+  const tops = Array.from({ length:COLS }, (_, c) => {
+    if(c < MC - 1 || c > COLS - 3) return S + 2;
+    const u = (c - (MC - 1)) / (COLS - 2 - MC);
+    return Math.round(S + 1 - Math.sin(Math.PI * u) * 2.2 + Math.abs(c - ec) * .02);
+  });
+  // the far left and right edges are flat ground, with the dirt mound in between
+  const g = makeGrid(COLS, ROWS, (r, c) => r >= BASE ? '#' : (r >= tops[c] ? 'K' : '.'));
+  // maze: recursive backtracker on MW x MH cells, then knock out extra walls for loops
+  const open = (i, j) => { for(let r = 0; r < 2; r++) for(let c = 0; c < 2; c++) g[MR + 1 + 3 * j + r][MC + 1 + 3 * i + c] = '.'; };
+  const link = (i, j, di, dj) => {
+    if(di) for(let r = 0; r < 2; r++) g[MR + 1 + 3 * j + r][MC + 3 * Math.max(i, i + di)] = '.';
+    else for(let c = 0; c < 2; c++) g[MR + 3 * Math.max(j, j + dj)][MC + 1 + 3 * i + c] = '.';
+  };
+  const nb = Array.from({ length:MW * MH }, () => []), seen = new Set(['1,0']), stack = [[1, 0]];
+  const D = [[1,0],[-1,0],[0,1],[0,-1]];
+  for(let i = 0; i < MW; i++) for(let j = 0; j < MH; j++) open(i, j);
+  const join = (i, j, di, dj) => { link(i, j, di, dj); nb[j * MW + i].push([i + di, j + dj]); nb[(j + dj) * MW + i + di].push([i, j]); };
+  while(stack.length){
+    const [i, j] = stack[stack.length - 1];
+    const opts = D.filter(([di, dj]) => { const a = i + di, b = j + dj; return a >= 0 && b >= 0 && a < MW && b < MH && !seen.has(a + ',' + b); });
+    if(!opts.length){ stack.pop(); continue; }
+    const [di, dj] = opts[Math.floor(Math.random() * opts.length)];
+    join(i, j, di, dj); seen.add((i + di) + ',' + (j + dj)); stack.push([i + di, j + dj]);
+  }
+  for(let k = 0; k < MW * MH * .14; k++){
+    const i = Math.floor(Math.random() * MW), j = Math.floor(Math.random() * MH), [di, dj] = D[Math.floor(Math.random() * 4)];
+    const a = i + di, b = j + dj; if(a < 0 || b < 0 || a >= MW || b >= MH) continue;
+    if(nb[j * MW + i].some(([x, y]) => x === a && y === b)) continue;
+    join(i, j, di, dj);
+  }
+  // entrance shaft from the top of the mound down into the maze
+  for(let r = tops[ec] - 1; r <= MR; r++) for(let c = ec; c <= ec + 1; c++) g[r][c] = '.';
+  const cx = i => (MC + 2 + 3 * i) * T, cy = j => (MR + 2 + 3 * j) * T;
+  // distances from the entrance cell
+  const dist = new Map([['1,0', 0]]), q = [[1, 0]];
+  while(q.length){ const [i, j] = q.shift(); for(const [a, b] of nb[j * MW + i]){ const k = a + ',' + b; if(dist.has(k)) continue; dist.set(k, dist.get(i + ',' + j) + 1); q.push([a, b]); } }
+  const cells = [...dist.keys()].map(k => k.split(',').map(Number));
+  const far = cells.filter(([i, j]) => dist.get(i + ',' + j) >= 5);
+  const dead = far.filter(([i, j]) => nb[j * MW + i].length === 1);
+  const shuffle = a => { for(let i = a.length - 1; i > 0; i--){ const k = Math.floor(Math.random() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; } return a; };
+  const spots = shuffle(dead.slice()).concat(shuffle(far.filter(c => !dead.includes(c))));
+  const used = new Set();
+  const take = () => { const s = spots.find(([i, j]) => !used.has(i + ',' + j)); if(!s) return null; used.add(s[0] + ',' + s[1]); return s; };
+  const items = [];
+  // one of each seed, deep in the maze
+  for(const k of shuffle(ANT_KINDS.slice())){ const s = take(); if(s) items.push({ x:cx(s[0]), y:cy(s[1]), type:'aseed', kind:k, got:false }); }
+  const any = () => cells[Math.floor(Math.random() * cells.length)];
+  for(let n = 0; n < 6; n++){ const [i, j] = any(); items.push({ x:cx(i) - 30, y:cy(j) + 20, type:'water', got:false }); }
+  for(let n = 0; n < 4; n++){ const [i, j] = any(); items.push({ x:cx(i) + 30, y:cy(j) - 20, type:'food', got:false }); }
+  for(let n = 0; n < 16; n++){ const [i, j] = any(); items.push({ x:cx(i) + (Math.random() - .5) * 60, y:cy(j) + (Math.random() - .5) * 50, type:'sparkle', got:false }); }
+  // ants: lots of them, each marching back and forth on its own tunnel route
+  const path = (a, b) => {
+    const prev = new Map([[a.join(','), null]]), qq = [a];
+    while(qq.length){ const [i, j] = qq.shift(); if(i === b[0] && j === b[1]) break; for(const n of nb[j * MW + i]){ const k = n.join(','); if(prev.has(k)) continue; prev.set(k, [i, j]); qq.push(n); } }
+    const out = []; let cur = b; while(cur){ out.unshift(cur); cur = prev.get(cur.join(',')); } return out;
+  };
+  const ants = [];
+  let tries = 0;
+  while(ants.length < 20 && tries++ < 400){
+    const a = any(), b = any(), pa = path(a, b);
+    if(pa.length < 4 || pa.length > 12) continue;
+    if(pa.some(([i, j]) => dist.get(i + ',' + j) < 2)) continue;          // keep the doorway calm
+    ants.push({ pts:pa.map(([i, j]) => [cx(i), cy(j)]), v:85 + Math.random() * 55 + ants.length * 2, s:Math.random() });
+  }
+  return baseLevel({
+    id:'anthill', mode:'fly', seedKind:null, flowerKind:'anthill', theme:'anthill', cols:COLS, rows:ROWS, gr:BASE, grid:g, tops,
+    world:{ w:COLS * T, top:30, ground:null, bottom:ROWS * T },
+    player:{ x:120, y:(S + 1) * T, vx:0, vy:0, r:18, face:1, inv:0, onGround:false, flying:false },
+    items, bugs:[], ants, exit:{ x:(ec + 1) * T, y:(tops[ec] - 1) * T }, gotSeeds:[], wentIn:false,
+    rose:{ x:(ec + 1) * T, y:(tops[ec] - 1) * T },
+    goblin:{ x:-999, y:1e6, hp:0, state:'run', hitT:0, vx:0, vy:0 },
+    seed:{ x:-999, y:-999, state:'got', t:0 },
+    waypoints:[]
+  });
+}
+function setupAnts(){
+  for(const a of (L.ants || [])){
+    let len = 0; a.seg = [];
+    for(let i = 0; i < a.pts.length - 1; i++){ const p = a.pts[i], q = a.pts[i + 1], d = Math.hypot(q[0] - p[0], q[1] - p[1]); a.seg.push({ a:p, b:q, d, at:len }); len += d; }
+    a.len = len; a.pos = a.s * len * 2; a.r = 17; a.dead = false; a.back = 0; a.x = a.pts[0][0]; a.y = a.pts[0][1]; a.ang = 0; a.step = Math.random() * 6;
+  }
+}
+function updateAnts(dt){
+  const p = L.player;
+  for(const a of (L.ants || [])){
+    if(a.dead){
+      a.back -= dt;
+      if(a.back <= 0 && Math.hypot(p.x - a.pts[0][0], p.y - a.pts[0][1]) > 420){ a.dead = false; a.pos = 0; burst(a.pts[0][0], a.pts[0][1], ['#c99a5e','#e0b878'], 8, 90); }
+      continue;
+    }
+    a.pos = (a.pos + a.v * dt) % (a.len * 2); a.step += dt * a.v / 9;
+    const d = a.pos < a.len ? a.pos : a.len * 2 - a.pos;
+    const sg = a.seg.find(q => d >= q.at && d <= q.at + q.d) || a.seg[a.seg.length - 1];
+    const u = (d - sg.at) / sg.d, nx = sg.a[0] + (sg.b[0] - sg.a[0]) * u, ny = sg.a[1] + (sg.b[1] - sg.a[1]) * u;
+    if(Math.hypot(nx - a.x, ny - a.y) > .01) a.ang = Math.atan2(ny - a.y, nx - a.x);
+    a.x = nx; a.y = ny;
+    if(p.inv <= 0 && state === 'play' && Math.hypot(p.x - a.x, p.y - a.y) < a.r + p.r - 4){
+      const dx = p.x - a.x, dy = p.y - a.y, dd = Math.hypot(dx, dy) || 1;
+      L.ltexts.push({ x:a.x, y:a.y - 44, text:'Pinch!', life:1 });
+      hurt(dx / dd, dy / dd); p.vx = dx / dd * 340; p.vy = dy / dd * 240;
+    }
+  }
+  // fly back out of the hole to keep everything
+  if(!L.wentIn && p.y > L.exit.y + 3 * T) L.wentIn = true;
+  if(L.wentIn && state === 'play' && Math.hypot(p.x - L.exit.x, p.y - L.exit.y) < 70){ L.escaped = true; sfx.bloom(); win(); }
+}
+function antShot(s){
+  for(const a of (L.ants || [])){
+    if(a.dead || s.life <= 0 || Math.hypot(s.x - a.x, s.y - a.y) > a.r + 10 * s.size) continue;
+    s.life = 0; a.dead = true; a.back = 14; sfx.stun(); burst(a.x, a.y, ['#fff3a8','#ffffff','#c9643a'], 16, 200);
+    if(L.hearts < L.maxHearts && Math.random() < .2){ L.items.push({ x:a.x, y:a.y, type:'heart', got:false }); }
+  }
+}
+function drawAnt(a){
+  if(a.dead || a.x < cam.x - 60 || a.x > cam.x + viewW + 60 || a.y < cam.y - 60 || a.y > cam.y + viewH + 60) return;
+  ctx.save(); ctx.translate(a.x, a.y);
+  const flip = Math.cos(a.ang) < 0 ? -1 : 1;
+  ctx.rotate(flip > 0 ? a.ang : a.ang + Math.PI); ctx.scale(flip, 1);
+  ctx.strokeStyle = '#3a1f14'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  for(let k = -1; k <= 1; k++){ const sw = Math.sin(a.step + k * 2) * 5;
+    ctx.beginPath(); ctx.moveTo(k * 7, 2); ctx.lineTo(k * 7 + sw, 14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(k * 7, -2); ctx.lineTo(k * 7 - sw, -12); ctx.stroke(); }
+  ctx.fillStyle = '#b83a2a';
+  ctx.beginPath(); ctx.ellipse(-14, 0, 11, 9, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 0, 7, 6, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(13, -1, 8, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(-16, -4, 5, 3, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(16, -3, 3, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b1810'; ctx.beginPath(); ctx.arc(17, -3, 1.6, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#3a1f14'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, -8); ctx.quadraticCurveTo(22, -18, 28, -14); ctx.moveTo(12, -8); ctx.quadraticCurveTo(14, -20, 20, -20); ctx.stroke();
+  ctx.lineCap = 'butt'; ctx.restore();
+}
+function drawAntTile(t, x, y, c, r){
+  const inside = r >= L.tops[c] && r < L.gr;
+  if(t === 'K'){
+    ctx.fillStyle = '#c99a5e'; ctx.fillRect(x, y, T + 1, T + 1);
+    ctx.fillStyle = '#b5874f'; ctx.beginPath(); ctx.arc(x + 14 + (c * 13) % 30, y + 16 + (r * 7) % 26, 3, 0, 7); ctx.arc(x + 44, y + 40 - (c * 5) % 18, 2.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e0b878'; ctx.beginPath(); ctx.arc(x + 30 + (r * 9) % 20, y + 34, 2.5, 0, 7); ctx.fill();
+    if(!SOLID[tileAt(c, r - 1)] && r === L.tops[c]){
+      if(c < 3 || c > L.cols - 3){ ctx.fillStyle = '#6ab35a'; ctx.fillRect(x, y, T + 1, 10); ctx.fillStyle = '#7cc46a'; for(let k = 0; k < 3; k++){ ctx.beginPath(); ctx.arc(x + 10 + k * 20, y + 4, 10, Math.PI, 0); ctx.fill(); } }
+      else { ctx.fillStyle = '#e3b878'; ctx.fillRect(x, y, T + 1, 8); }
+    }
+    return true;
+  }
+  if((t === '.' || t === 'H') && inside){
+    ctx.fillStyle = '#6e4a2c'; ctx.fillRect(x, y, T + 1, T + 1);
+    if((c * 7 + r * 3) % 5 === 0){ ctx.fillStyle = '#7d5634'; ctx.beginPath(); ctx.ellipse(x + 22, y + 34, 9, 6, 0, 0, 7); ctx.fill(); }
+    if((c * 3 + r * 5) % 7 === 0){ ctx.fillStyle = '#f3e3c3'; ctx.beginPath(); ctx.ellipse(x + 40, y + 50, 4, 2.5, .4, 0, 7); ctx.fill(); }
+    return true;
+  }
+  return false;
+}
+function drawAnthillExit(){
+  const e = L.exit, b = Math.sin(time * 4) * 5;
+  ctx.fillStyle = `rgba(255,240,150,${.25 + .15 * Math.sin(time * 4)})`; ctx.beginPath(); ctx.arc(e.x, e.y, 66, 0, 7); ctx.fill();
+  ctx.fillStyle = '#8b5a2b'; ctx.fillRect(e.x + 90, e.y - 110, 8, 120);
+  ctx.fillStyle = '#ff6fae'; ctx.fillRect(e.x + 54, e.y - 136, 80, 36);
+  ctx.font = '400 13px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff'; ctx.fillText('EXIT', e.x + 94, e.y - 117);
+  if(L.gotSeeds.length && L.player.y > e.y + 120){
+    ctx.fillStyle = '#ffd23d'; ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(e.x, e.y - 30 + b); ctx.lineTo(e.x - 18, e.y - 6 + b); ctx.lineTo(e.x - 7, e.y - 6 + b); ctx.lineTo(e.x - 7, e.y + 16 + b); ctx.lineTo(e.x + 7, e.y + 16 + b); ctx.lineTo(e.x + 7, e.y - 6 + b); ctx.lineTo(e.x + 18, e.y - 6 + b); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+}
+function drawAntSeed(it){
+  const x = it.x, y = it.y + Math.sin(time * 3 + x) * 4;
+  ctx.fillStyle = SEED_COLOR[it.kind]; ctx.globalAlpha = .35 + .15 * Math.sin(time * 5); ctx.beginPath(); ctx.arc(x, y, 34, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+  drawSeed({ x, y });
+  ctx.fillStyle = SEED_COLOR[it.kind]; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y + 2, 6, 0, 7); ctx.fill(); ctx.stroke();
+}
+function drawAntBag(){
+  // the seeds you're carrying, along the top of the screen
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = ANT_KINDS.length, w = 30, x0 = W / 2 - (n * w) / 2 + w / 2, y = 82;
+  ctx.fillStyle = 'rgba(255,250,255,.9)'; ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0 - 26, y - 18, n * w + 22, 36, 12) : ctx.rect(x0 - 26, y - 18, n * w + 22, 36); ctx.fill(); ctx.stroke();
+  ANT_KINDS.forEach((k, i) => {
+    const got = L.gotSeeds.includes(k);
+    ctx.fillStyle = got ? SEED_COLOR[k] : 'rgba(58,35,80,.15)'; ctx.beginPath(); ctx.arc(x0 + i * w - 4, y, 10, 0, 7); ctx.fill();
+    if(got){ ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke(); }
+  });
+}
+
+// ---- Beehive: sneak past guard bees that look left and right. Hide in flowers and honeycomb! ----
+SOLID.Y = 1;
+function makeHive(){
+  const COLS = 100, ROWS = 18, GR = 15;
+  const g = makeGrid(COLS, ROWS, (r, c) => r < GR ? '.' : r === GR ? '=' : '#');
+  const carve = carver(g);
+  [17, 38, 59, 80].forEach(c => carve(9, 14, c, c, 'Y'));                                   // honeycomb pillars block the bees' view
+  [28, 49, 70].forEach(c => carve(0, 4, c, c, 'Y'));                                        // honeycomb hanging from above
+  [5, 13, 21, 31, 41, 48, 55, 64, 72, 77, 85].forEach(c => carve(13, 14, c, c + 1, 'H'));   // big flowers on the ground
+  [[2,11],[2,25],[2,41],[2,54],[2,66],[2,83]].forEach(([r, c]) => carve(r, r + 1, c, c + 1, 'H'));   // hanging honeycomb up high
+  [[7,19],[8,33],[7,45],[8,61],[7,75],[8,88]].forEach(([r, c]) => carve(r, r + 1, c, c + 1, 'H'));   // leafy puffs in the middle
+  const beeCols = [9, 16, 23, 30, 36, 44, 51, 57, 63, 69, 79, 86], beeRows = [10, 5, 12, 6, 11, 5, 11, 6, 12, 5, 11, 6];
+  const sp = [[4,13],[8,14],[11,4],[15,8],[19,9],[22,14],[25,4],[30,13],[33,10],[36,4],[41,12],[45,9],[48,12],[52,4],[55,13],[58,8],[61,10],[64,12],[67,4],[71,9],[75,10],[77,12],[81,4],[85,12],[88,10],[91,13]];
+  return baseLevel({
+    id:'beehive', mode:'fly', seedKind:'sunflower', flowerKind:'hive', theme:'beehive', cols:COLS, rows:ROWS, gr:GR, grid:g,
+    world:{ w:COLS * T, top:30, ground:null, bottom:ROWS * T },
+    player:{ x:120, y:rr(13), vx:0, vy:0, r:18, face:1, inv:0, onGround:false, flying:false },
+    items: itemsFrom(sp.map(([c, r]) => [cc(c), rr(r)]), 'sparkle')
+      .concat(itemsFrom([[cc(12),rr(13)],[cc(26),rr(3)],[cc(42),rr(13)],[cc(55),rr(3)],[cc(66),rr(13)],[cc(84),rr(3)],[cc(90),rr(14)]], 'water'))
+      .concat(itemsFrom([[cc(20),rr(8)],[cc(34),rr(9)],[cc(46),rr(8)],[cc(62),rr(9)],[cc(76),rr(8)],[cc(89),rr(9)]], 'food')),
+    bugs: beeCols.map((c, i) => ({ kind:'bee', x:cc(c), y:rr(beeRows[i]), chase:true, watch:true, x1:cc(c), x2:cc(c), turnEvery:2.2 + (i % 4) * .5 })),
+    boss:{ x:cc(92), y:rr(8), x1:cc(91), x2:cc(93), y1:rr(6), y2:rr(10), fly:true },
+    rose:{ x:cc(95), y:rr(9) },
+    goblin:{ x:cc(95) + 86, y:rr(14) - 4, hp:CONFIG.goblinHP, state:'tug', hitT:0, vx:0, vy:0 },
+    seed:{ x:cc(95) + 20, y:rr(14), state:'stuck', t:0 },
+    waypoints:[[cc(5),rr(14)],[cc(11),rr(2)],[cc(13),rr(14)],[cc(19),rr(7)],[cc(21),rr(14)],[cc(25),rr(2)],[cc(31),rr(14)],[cc(33),rr(8)],[cc(41),rr(14)],[cc(45),rr(7)],[cc(48),rr(14)],[cc(54),rr(2)],[cc(55),rr(14)],[cc(61),rr(8)],[cc(64),rr(14)],[cc(66),rr(2)],[cc(72),rr(14)],[cc(75),rr(7)],[cc(77),rr(14)],[cc(83),rr(2)],[cc(85),rr(14)],[cc(88),rr(8)],[cc(95),rr(13)]]
+  });
+}
+function drawHiveBack(){
+  const gy = L.gr * T;
+  ctx.fillStyle = '#c9ec9a';
+  for(let x = -100; x < WORLD.w; x += 300){ ctx.beginPath(); ctx.ellipse(x, gy, 230, 100, 0, Math.PI, 0); ctx.fill(); }
+  // far-away flowers
+  for(let x = 60; x < WORLD.w; x += 170){
+    const h = 120 + (x * 7) % 90, c = ['#ff9fc4','#ffd23d','#c9a7ff','#ffffff'][(x / 170 | 0) % 4];
+    ctx.strokeStyle = '#8fc96f'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - h); ctx.stroke();
+    ctx.fillStyle = c; for(let k = 0; k < 6; k++){ const a = k * 1.047; ctx.beginPath(); ctx.arc(x + Math.cos(a) * 12, gy - h + Math.sin(a) * 12, 9, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#ffb43d'; ctx.beginPath(); ctx.arc(x, gy - h, 7, 0, 7); ctx.fill();
+  }
+}
+function hexPath(x, y, r){ ctx.beginPath(); for(let k = 0; k < 6; k++){ const a = k * Math.PI / 3 + Math.PI / 6; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); }
+function drawHiveTile(t, x, y, c, r){
+  if(t !== 'Y') return false;
+  ctx.fillStyle = '#e8a52a'; ctx.fillRect(x + 4, y, T - 8, T + 1);
+  for(const [dx, dy] of [[18, 14], [42, 14], [30, 34], [18, 54], [42, 54]]){
+    hexPath(x + dx, y + dy, 11); ctx.fillStyle = '#ffd25a'; ctx.fill(); ctx.strokeStyle = '#c47f12'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(x + dx - 5, y + dy - 6, 4, 3);
+  }
+  if((c + r) % 3 === 0){ ctx.fillStyle = '#ffb81f'; ctx.beginPath(); ctx.ellipse(x + 30, y + T - 2, 5, 9 + Math.sin(time * 2 + c) * 2, 0, 0, 7); ctx.fill(); }
+  return true;
+}
+function drawHiveHide(x, y, r){
+  if(r >= 12){
+    // a big friendly flower to hide in
+    ctx.fillStyle = '#5aa95c'; ctx.fillRect(x + 27, y + 30, 6, 32);
+    const col = ['#ff9fc4','#c9a7ff','#ffffff','#ffb3d6'][(x / T | 0) % 4];
+    ctx.fillStyle = col; for(let k = 0; k < 8; k++){ const a = k * .785 + Math.sin(time + x) * .05; ctx.beginPath(); ctx.ellipse(x + 30 + Math.cos(a) * 20, y + 26 + Math.sin(a) * 20, 15, 9, a, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#ffc83d'; ctx.beginPath(); ctx.arc(x + 30, y + 26, 13, 0, 7); ctx.fill();
+    smile(x + 30, y + 26, .8);
+  } else if(r <= 4){
+    // a drippy chunk of honeycomb
+    ctx.fillStyle = '#e8a52a'; ctx.beginPath(); ctx.ellipse(x + 30, y + 28, 34, 30, 0, 0, 7); ctx.fill();
+    for(const [dx, dy] of [[14, 18], [34, 14], [24, 36], [44, 34], [10, 40]]){ hexPath(x + dx, y + dy, 9); ctx.fillStyle = '#ffd25a'; ctx.fill(); ctx.strokeStyle = '#c47f12'; ctx.lineWidth = 2; ctx.stroke(); }
+    ctx.fillStyle = '#ffb81f'; ctx.beginPath(); ctx.ellipse(x + 26, y + 60, 5, 8 + Math.sin(time * 2 + x) * 2, 0, 0, 7); ctx.fill();
+  } else {
+    // a leafy puff
+    ctx.fillStyle = '#7cc46a'; ctx.beginPath(); ctx.arc(x + 14, y + 32, 22, 0, 7); ctx.arc(x + 46, y + 30, 24, 0, 7); ctx.arc(x + 30, y + 14, 24, 0, 7); ctx.arc(x + 30, y + 46, 20, 0, 7); ctx.fill();
+    ctx.fillStyle = '#a5dc8c'; ctx.beginPath(); ctx.arc(x + 22, y + 18, 9, 0, 7); ctx.arc(x + 44, y + 26, 7, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x + 12, y + 42, 4, 0, 7); ctx.arc(x + 50, y + 44, 4, 0, 7); ctx.fill();
+  }
+}
+function drawBee(b){
+  ctx.save(); ctx.translate(b.x, b.y + Math.sin(time * 3 + b.x) * 5); ctx.scale(b.dir, 1);
+  const turning = b.watch && b.mode === 'patrol' && b.turnT < .5;
+  if(turning) ctx.rotate(Math.sin(time * 30) * .12);
+  const fl = b.stun > 0 ? .3 : Math.abs(Math.sin(time * 40));
+  ctx.fillStyle = 'rgba(230,246,255,.85)'; ctx.strokeStyle = '#9fd0ea'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(-4, -20, 9, 14 * fl + 3, -.4, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(6, -18, 7, 11 * fl + 3, .3, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ffcf2e'; ctx.beginPath(); ctx.ellipse(0, 0, 21, 16, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#3a2a1a'; ctx.fillRect(-9, -15, 6, 30); ctx.fillRect(2, -16, 6, 32);
+  ctx.beginPath(); ctx.moveTo(-20, -3); ctx.lineTo(-30, 0); ctx.lineTo(-20, 4); ctx.fill();
+  ctx.fillStyle = '#ffdf6a'; ctx.beginPath(); ctx.arc(16, -3, 11, 0, 7); ctx.fill();
+  ctx.fillStyle = '#3a2a1a';
+  const mad = b.mode === 'chase';
+  ctx.beginPath(); ctx.arc(19, -5, 2.6, 0, 7); ctx.fill();
+  if(mad){ ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(14, -12); ctx.lineTo(22, -9); ctx.stroke(); }
+  ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(14, -12); ctx.quadraticCurveTo(14, -22, 8, -26); ctx.moveTo(19, -12); ctx.quadraticCurveTo(22, -22, 26, -25); ctx.stroke();
+  ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.arc(8, -26, 2.5, 0, 7); ctx.arc(26, -25, 2.5, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,111,174,.6)'; ctx.beginPath(); ctx.arc(21, 2, 2.5, 0, 7); ctx.fill();
+  if(!mad){ ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(18, 1, 3, .3, Math.PI - .5); ctx.stroke(); }
+  ctx.restore();
+}
+function drawHiveFinale(){
+  const r = L.rose, gy = L.gr * T, hx = cc(97);
+  // the big beehive hanging from a branch
+  ctx.strokeStyle = '#a06c46'; ctx.lineWidth = 18; ctx.beginPath(); ctx.moveTo(hx - 160, 70); ctx.quadraticCurveTo(hx, 50, WORLD.w + 40, 90); ctx.stroke();
+  const bands = [[0, 44], [44, 70], [100, 86], [166, 92], [238, 84], [302, 64]];
+  for(const [dy, w] of bands){ ctx.fillStyle = '#f2b632'; ctx.beginPath(); ctx.ellipse(hx, 120 + dy, w, 38, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#ffd25a'; ctx.beginPath(); ctx.ellipse(hx - w * .2, 110 + dy, w * .7, 16, 0, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#5a3a1e'; ctx.beginPath(); ctx.ellipse(hx, 300, 22, 16, 0, 0, 7); ctx.fill();
+  smile(hx, 220, 2);
+  ctx.fillStyle = '#ffb81f'; for(const dx of [-40, 10, 46]){ ctx.beginPath(); ctx.ellipse(hx + dx, 400 + Math.sin(time * 2 + dx) * 6, 7, 12, 0, 0, 7); ctx.fill(); }
+  // the sunflower the goblin wants
+  ctx.strokeStyle = '#4f9a3e'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(r.x, gy); ctx.quadraticCurveTo(r.x - 20, (gy + r.y) / 2, r.x, r.y); ctx.stroke();
+  ctx.fillStyle = '#5aa95c'; ctx.beginPath(); ctx.ellipse(r.x + 30, (gy + r.y) / 2 + 30, 34, 10, -.3, 0, 7); ctx.fill();
+  for(let k = 0; k < 14; k++){ const a = k * Math.PI / 7 + time * .1; ctx.fillStyle = k % 2 ? '#ffd23d' : '#ffbf1f'; ctx.beginPath(); ctx.ellipse(r.x + Math.cos(a) * 42, r.y + Math.sin(a) * 42, 22, 9, a, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#7a4a22'; ctx.beginPath(); ctx.arc(r.x, r.y, 32, 0, 7); ctx.fill();
+  smile(r.x, r.y + 2, 1.4);
+}
+
 // ---- Bugs, chasers, bosses ----
 const BUG_BASE = { ant:{ r:14, speed:38 }, beetle:{ r:18, speed:55 }, aphid:{ r:13, speed:50 }, dragonfly:{ r:16, speed:75 },
-  crow:{ r:18, speed:70, sight:330, chaseSpeed:150 }, wasp:{ r:14, speed:60, sight:300, chaseSpeed:140 }, heron:{ r:24, speed:60, sight:400, chaseSpeed:185 }, raven:{ r:28, speed:75, sight:390, chaseSpeed:165 }, jay:{ r:20, speed:70, sight:360, chaseSpeed:170 },
+  crow:{ r:18, speed:70, sight:330, chaseSpeed:150 }, wasp:{ r:14, speed:60, sight:300, chaseSpeed:140 }, heron:{ r:24, speed:60, sight:400, chaseSpeed:185 }, raven:{ r:28, speed:75, sight:390, chaseSpeed:165 }, jay:{ r:20, speed:70, sight:360, chaseSpeed:170 }, bee:{ r:20, speed:70, sight:330, chaseSpeed:160 },
   grub:{ r:56, speed:0 }, cricket:{ r:56, speed:0 }, king:{ r:58, speed:0 } };
 function setupBugs(){
   for(const b of L.bugs){
@@ -1312,6 +1614,7 @@ function homeTarget(s){
   const bo = L.boss; if(bo && bo.active && !bo.dead) look(bo.x, bo.y);
   const g = L.goblin; if(g && g.state !== 'run' && g.hp > 0) look(g.x, g.y);
   for(const f of L.fish) if(f.on && !(f.stun > 0)) look(f.cx, f.cy);
+  for(const a of (L.ants || [])) if(!a.dead) look(a.x, a.y);
   return best;
 }
 function hitBoss(s){
@@ -1325,8 +1628,9 @@ function hitBoss(s){
 // ---- Drawing for tile levels ----
 function drawTileBack(){
   if(L.theme === 'feeder'){ drawFeederBack(); return; }
-  if(L.theme === 'veg' || L.theme === 'compost'){
-    const gy = L.gr * T;
+  if(L.theme === 'beehive'){ drawHiveBack(); return; }
+  if(L.theme === 'veg' || L.theme === 'compost' || L.theme === 'anthill'){
+    const gy = L.theme === 'anthill' ? L.tops[0] * T : L.gr * T;
     ctx.fillStyle = '#b5e39a';
     for(let x = -100; x < WORLD.w; x += 300){ ctx.beginPath(); ctx.ellipse(x, gy, 220, 90, 0, Math.PI, 0); ctx.fill(); }
     ctx.fillStyle = '#e8d6b0'; ctx.fillRect(0, gy - 70, WORLD.w, 8);
@@ -1379,6 +1683,8 @@ function drawTiles(){
   for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++){
     const t = L.grid[r][c], x = c * T, y = r * T;
     if(L.theme === 'feeder' && drawFeederTile(t, x, y, c, r)) continue;
+    if(L.theme === 'anthill' && drawAntTile(t, x, y, c, r)) continue;
+    if(L.theme === 'beehive' && drawHiveTile(t, x, y, c, r)) continue;
     const inside = comp ? (r >= L.tops[c] && r < L.gr) : veg ? r >= L.gr : (L.theme === 'rose' && c >= 30 && c <= 90 && r < L.gr);
     if(t === 'K'){
       ctx.fillStyle = '#8a5f3c'; ctx.fillRect(x, y, T + 1, T + 1);
@@ -1460,7 +1766,7 @@ function drawCovers(){
     const c0 = Math.max(0, Math.floor(cam.x / T) - 1), c1 = Math.min(L.cols - 1, Math.floor((cam.x + viewW) / T) + 1);
     const r0 = Math.max(0, Math.floor(cam.y / T) - 1), r1 = Math.min(L.rows - 1, Math.floor((cam.y + viewH) / T) + 1);
     ctx.globalAlpha = .88;
-    for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++) if(L.grid[r][c] === 'H') drawBush(c * T, r * T, L.theme === 'feeder' ? (r < 12 ? 'canopy' : 'rose') : L.theme);
+    for(let r = r0; r <= r1; r++) for(let c = c0; c <= c1; c++) if(L.grid[r][c] === 'H'){ if(L.theme === 'beehive'){ if((c === 0 || L.grid[r][c - 1] !== 'H') && (r === 0 || L.grid[r - 1][c] !== 'H')) { const hx = c * T + 60, hy = r * T + 60; ctx.save(); ctx.translate(hx, hy); ctx.scale(1.75, 1.75); ctx.translate(-hx, -hy); drawHiveHide(hx - 30, hy - 30, r); ctx.restore(); } } else drawBush(c * T, r * T, L.theme === 'feeder' ? (r < 12 ? 'canopy' : 'rose') : L.theme); }
     ctx.globalAlpha = 1;
   }
   for(const m of L.mushrooms){
@@ -1477,6 +1783,7 @@ function drawCovers(){
 function drawChaser(b){
   if(b.kind === 'crow'){ drawCrow(b); }
   else if(b.kind === 'jay'){ drawWatchCone(b); drawJay(b); }
+  else if(b.kind === 'bee'){ drawWatchCone(b); drawBee(b); }
   else if(b.kind === 'raven'){ ctx.save(); ctx.translate(b.x, b.y); ctx.scale(1.7, 1.7); drawCrow(Object.assign({}, b, { x:0, y:0, r:18 })); ctx.restore(); }
   else {
     ctx.save(); ctx.translate(b.x, b.y); ctx.scale(b.dir, 1);
@@ -1766,7 +2073,7 @@ function update(dt){
     }
     for(const th of L.thorns) if(s.life > 0 && inRect(s.x, s.y, th)){ s.life = 0; burst(s.x, s.y, ['#fff3a8'], 6, 90); }
     shotTiles(s);
-    ratBlocksShot(s);
+    ratBlocksShot(s); antShot(s);
     hitBoss(s);
     for(const bug of L.bugs) if(s.life > 0 && !bug.dead && (bug.need || bug.stun <= 0) && Math.hypot(s.x - bug.x, s.y - bug.y) < bug.r + 12 * s.size){
       s.life = 0; zapBug(bug, s);
@@ -1793,6 +2100,7 @@ function update(dt){
       else if(it.type === 'bonus'){ L.bonus++; sfx.win(); burst(it.x, it.y, ['#ffd23d','#ffffff','#9be37a'], 30, 240); }
       else if(it.type === 'decor'){ L.decorGot = it.id; sfx.win(); burst(it.x, it.y, ['#ffd23d','#ffffff','#8fd3ff'], 34, 260); }
       else if(it.type === 'star'){ L.special = true; sfx.win(); burst(it.x, it.y, ['#8f7bff','#ffffff','#ffd23d'], 34, 260); }
+      else if(it.type === 'aseed'){ if(!L.gotSeeds.includes(it.kind)) L.gotSeeds.push(it.kind); sfx.win(); burst(it.x, it.y, [SEED_COLOR[it.kind], '#ffffff', '#ffd23d'], 30, 240); L.ltexts.push({ x:it.x, y:it.y - 50, text:'A ' + KIND_NAME[it.kind] + ' seed! Fly out to keep it', life:2.4 }); }
       else { L[it.type]++; sfx.item(); burst(it.x, it.y, it.type === 'water' ? ['#4fb3ff','#d6efff'] : ['#e9b872','#fff1d6'], 14, 160); }
       updateHUD();
     }
@@ -1811,8 +2119,8 @@ function update(dt){
     else if(d < b.r + p.r - 4) hurt(dx / (d || 1), dy / (d || 1));
   }
 
-  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt);
-  playSong((L.boss && L.boss.active && !L.boss.dead) || (L.id === 'feeder' && L.bugs.some(b => b.mode === 'chase')) ? 'boss' : L.id);
+  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt); if(L.ants) updateAnts(dt);
+  playSong((L.boss && L.boss.active && !L.boss.dead) || ((L.id === 'feeder' || L.id === 'beehive') && L.bugs.some(b => b.mode === 'chase')) ? 'boss' : L.id);
   for(const t of L.ltexts){ t.life -= dt; t.y -= 14 * dt; } L.ltexts = L.ltexts.filter(t => t.life > 0);
   for(const c of L.chestFx) c.t += dt; L.chestFx = L.chestFx.filter(c => c.t < 4);
 
@@ -1870,6 +2178,8 @@ const SKIES = {
   rose:['#b99cf2','#c9a8f2','#d9b4f0','#e8c2ee','#f6d0ea','#ffdfe8'],
   pond:['#7fb0f0','#90bcf2','#a2c8f4','#b4d4f6','#c8e0f8','#dcecfa'],
   veg:['#8fa8e8','#a0b6ec','#b2c4f0','#c4d2f4','#d6e0f8','#e8eefc'],
+  beehive:['#ffe9a0','#ffeeb0','#fff2c0','#fff5cf','#fff8dd','#fffbea'],
+  anthill:['#ffd9a8','#ffe0b5','#ffe7c2','#ffeecf','#fff4dc','#fffae8'],
   feeder:['#9fd8ff','#b0e0ff','#c2e8ff','#d4f0ff','#e6f7ff','#f4fcff'],
   compost:['#ffc2a8','#ffcdb3','#ffd8c0','#ffe3cc','#ffedd9','#fff6e8'],
   race:['#a8e0ff','#b8e8ff','#c8f0ff','#d8f6f0','#e8fae0','#f6fdd0'],
@@ -2013,6 +2323,7 @@ function drawItem(it){
     ctx.fillStyle = '#ffd3e2'; ctx.beginPath(); ctx.ellipse(x - 7, y - 5, 3, 4, -.5, 0, 7); ctx.fill();
     return;
   }
+  if(it.type === 'aseed'){ drawAntSeed(it); return; }
   if(it.type === 'chest'){ drawChest(it.x, it.y + bob, false); return; }
   if(it.type === 'bonus'){ drawSeed({ x:it.x, y:it.y + bob }); return; }
   if(it.type === 'decor'){
@@ -2178,7 +2489,7 @@ function render(){
   if(L.id === 'pond') drawPondBack(); else drawTileBack();
   for(const q of L.parts) if(q.c === 'wind'){ ctx.strokeStyle = `rgba(255,255,255,${.6 * q.life / q.max})`; ctx.lineWidth = 3; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(q.x + q.size, q.y); ctx.stroke(); ctx.lineCap = 'butt'; }
-  if(L.grid){ drawTiles(); if(L.rats){ drawRatTracks(); for(const rt of L.rats) drawRat(rt); } }
+  if(L.grid){ drawTiles(); if(L.rats){ drawRatTracks(); for(const rt of L.rats) drawRat(rt); } if(L.ants) for(const a of L.ants) drawAnt(a); }
   else if(L.id === 'pond'){
     for(const f of L.fish) drawFish(f);
     drawPondWater();
@@ -2191,7 +2502,7 @@ function render(){
   }
   for(const it of L.items) if(!it.got) drawItem(it);
   for(const c of L.chestFx){ ctx.globalAlpha = Math.max(0, Math.min(1, 4 - c.t)); drawChest(c.x, c.y, true, c.t); ctx.globalAlpha = 1; }
-  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else drawRoseFinale();
+  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else if(L.flowerKind === 'anthill') drawAnthillExit(); else if(L.flowerKind === 'hive') drawHiveFinale(); else drawRoseFinale();
   if(L.seed.state !== 'got') drawSeed(L.seed);
   drawGoblin(L.goblin);
   for(const b of L.bugs) if(!b.dead) drawBug(b);
@@ -2220,6 +2531,7 @@ function render(){
   ctx.globalAlpha = 1;
   drawFirefly(L.ff);
   storybookOverlay();
+  if(L.id === 'anthill') drawAntBag();
 }
 
 // ---- Wardrobe: dresses, wings, hair, wands and magic colors ----
@@ -2768,6 +3080,8 @@ document.getElementById('goPond').addEventListener('click', () => startLevel('po
 document.getElementById('goVeg').addEventListener('click', () => startLevel('veg'));
 document.getElementById('goCompost').addEventListener('click', () => startLevel('compost'));
 document.getElementById('goFeeder').addEventListener('click', () => startLevel('feeder'));
+document.getElementById('goAnthill').addEventListener('click', () => startLevel('anthill'));
+document.getElementById('goHive').addEventListener('click', () => startLevel('beehive'));
 document.getElementById('goRace').addEventListener('click', startRace);
 const resetBtn = document.getElementById('resetBtn');
 let resetArm = false;
@@ -3477,6 +3791,8 @@ const SONGS = {
     } },
   // Veggie Patch: plucky and jaunty in G, muffled when you're underground
   get compost(){ return this.veg; },
+  get anthill(){ return this.veg; },
+  get beehive(){ return this.feeder; },
   // Bird feeders: a tiptoe tune for sneaking
   feeder:{ bpm:104, len:4,
     root:[45,45,41,43],
@@ -3586,6 +3902,15 @@ function win(){
   setTimeout(() => { if(state !== 'win') return; winScreen.hidden = false; document.getElementById('takeHome').focus(); }, 900);
 }
 function outOfHearts(){
+  if(L.id === 'anthill'){
+    const had = L.water + L.food + L.sparkles + L.gotSeeds.length;
+    L.water = L.food = L.sparkles = 0; L.gotSeeds = []; updateHUD();
+    document.getElementById('loseKeep').textContent = had ? 'Oh no! The ants took everything back. Next time, fly out the hole sooner!' : 'The ants got you! Zap them with magic.';
+    state = 'lose'; showUI(); stopSong(); sfx.lose();
+    burst(L.player.x, L.player.y, ['#ff4f7b','#ffd3e2','#ffffff'], 30, 240);
+    setTimeout(() => { if(state !== 'lose') return; loseScreen.hidden = false; document.getElementById('retryBtn').focus(); }, 900);
+    return;
+  }
   const kept = L.water + L.food + L.sparkles + L.bonus + (L.special ? 1 : 0) + (L.decorGot ? 1 : 0) + L.prizes.length;
   document.getElementById('loseKeep').textContent = kept ? 'You keep everything you found. It\'s waiting in your garden.' : 'Make heart potions to get more hearts.';
   bankLoot(false);
@@ -3597,6 +3922,11 @@ const loseScreen = document.getElementById('loseScreen');
 document.getElementById('retryBtn').addEventListener('click', () => startLevel(L.id, L.team));
 document.getElementById('loseHome').addEventListener('click', goGarden);
 function winText(){
+  if(L.id === 'anthill'){
+    const ks = L.gotSeeds.map(k => KIND_NAME[k]);
+    if(!ks.length) return 'You made it out safe!';
+    return 'You escaped with ' + (ks.length === 1 ? 'a ' + ks[0] + ' seed' : ks.length + ' seeds: ' + ks.slice(0, -1).join(', ') + ' and ' + ks[ks.length - 1]) + '!';
+  }
   const k = KIND_NAME[L.seedKind], parts = ['a ' + k + ' seed'];
   if(L.bonus) parts.push(L.bonus + ' extra ' + k + ' seed' + (L.bonus > 1 ? 's' : ''));
   if(L.special) parts.push('a starflower seed');
@@ -3605,7 +3935,9 @@ function winText(){
   return 'You found ' + (parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0]) + '!';
 }
 function bankLoot(main){
-  if(main) G.inv.seeds.push(L.seedKind);
+  if(main && L.seedKind) G.inv.seeds.push(L.seedKind);
+  for(const k of (L.gotSeeds || [])) G.inv.seeds.push(k);
+  if(L.gotSeeds) L.gotSeeds = [];
   for(let k = 0; k < L.bonus; k++) G.inv.seeds.push(L.seedKind);
   if(L.special) G.inv.seeds.push('star');
   if(L.decorGot) G.decor[L.decorGot] = true;
@@ -3621,7 +3953,13 @@ function takeHome(){
 }
 document.getElementById('playBtn').addEventListener('click', () => { initAudio(); goGarden(); });
 document.getElementById('takeHome').addEventListener('click', takeHome);
-homeBtn.addEventListener('click', () => { if(state === 'play') bankLoot(false); goGarden(); });
+homeBtn.addEventListener('click', () => {
+  if(state === 'play' && L.id === 'anthill' && (L.gotSeeds.length || L.water || L.food || L.sparkles) && !(L.homeArm > time - 3)){
+    L.homeArm = time; L.ltexts.push({ x:L.player.x, y:L.player.y - 60, text:'Leaving here loses your treasure! Fly to the EXIT', life:2.6 }); tone(260, .12, 'triangle', .08, 0, 200); return;
+  }
+  if(state === 'play' && L.id !== 'anthill') bankLoot(false);
+  goGarden();
+});
 
 L = makeLevel('rose'); cam.y = WORLD.bottom - viewH;
 showUI();
