@@ -27,6 +27,11 @@ window.MONSTER_PIZZA = {
   // Optional art for the two ends of the hallway (same height as a wall,
   // 60/100 as wide — e.g. 540x900). Leave blank for the built-in doodles.
   leftCap: "",   // the exit door back outside
+
+  // Where the exit door goes. Paste the Sylli Town itch.io link here.
+  // Leave it empty and the door goes back out to the Monster Pizza street.
+  exitUrl: "",
+  exitLabel: "SYLLI TOWN",
   rightCap: "",  // the "more games coming" end
 
   games: [

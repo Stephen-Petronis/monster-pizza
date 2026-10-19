@@ -172,6 +172,21 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 #player .bar a{color:var(--paper);font-weight:700}
 #frame{flex:1;width:100%;border:0;background:#000}
 
+/* ---------- "more games" monster hand ---------- */
+#more{position:absolute;z-index:2;left:calc(50% + 21*var(--u));top:calc(47*var(--u));display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:0;padding:0;cursor:pointer;transition:opacity .45s,transform .45s}
+#more.gone{opacity:0;pointer-events:none;transform:translateX(30px)}
+#more .neon{font-family:var(--f-display);font-size:calc(4.6*var(--u));line-height:1;letter-spacing:.04em;color:#fff4c9;
+  text-shadow:0 0 4px #fff,0 0 10px #ff4fd8,0 0 22px #ff4fd8,0 0 38px #b24bff;animation:neonA 1.2s steps(1) infinite}
+#more .neon.b{text-shadow:0 0 4px #fff,0 0 10px #3ff0ff,0 0 22px #3ff0ff,0 0 38px #2a7dff;animation-delay:-.6s}
+#more .hand{width:calc(23*var(--u));height:auto;display:block;overflow:visible;transform-origin:20% 60%;animation:fingergun 1.2s ease-in-out infinite;filter:url(#wob)}
+#more .hand .ink{stroke:var(--ink);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}
+#more .pew{transform-origin:236px 52px;animation:pew 1.2s ease-out infinite}
+@keyframes neonA{0%{opacity:1}50%{opacity:.18}}
+@keyframes fingergun{0%,100%{transform:translateX(0) rotate(0)}38%{transform:translateX(16px) rotate(0)}48%{transform:translateX(6px) rotate(-16deg)}62%{transform:translateX(16px) rotate(0)}}
+@keyframes pew{0%,40%{opacity:0;transform:scale(.3)}48%{opacity:1;transform:scale(1.1)}70%,100%{opacity:0;transform:scale(1.4)}}
+@media (max-width:600px){#more{position:fixed;z-index:5;left:auto;right:calc(10px + env(safe-area-inset-right,0px));top:auto;bottom:calc(78px + env(safe-area-inset-bottom,0px))}#more .hand{width:118px}#more .neon{font-size:26px}}
+@media (prefers-reduced-motion:reduce){#more .hand,#more .pew,#more .neon{animation:none}}
 @keyframes blink{50%{opacity:0}}
 @keyframes boil{0%{filter:url(#wob)}50%{filter:url(#wob2)}}
 @media (prefers-reduced-motion:reduce){
@@ -216,6 +231,25 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
   <hr>
   <ol><li><button id="menuOutside"><span class="chip" style="background:var(--sauce)"></span>Back outside</button></li></ol>
 </nav>
+<button id="more" class="gone" hidden aria-label="More games this way">
+  <span class="neon a">MORE</span>
+  <svg class="hand" viewBox="-4 -20 262 156" aria-hidden="true">
+    <path class="ink" fill="#5b2b9e" d="M44,32 L22,40 L34,50 L12,58 L30,68 L8,78 L28,88 L10,100 L30,108 L14,120 L48,122 Z"/>
+    <path class="ink" fill="#8a4fd8" d="M40,40 C40,26 52,20 68,22 L112,28 C124,30 130,38 130,50 L130,104 C130,118 120,126 106,126 L60,126 C46,126 40,118 40,106 Z"/>
+    <path class="ink" fill="#8a4fd8" d="M110,38 L196,38 C208,38 214,46 214,54 C214,62 208,70 196,70 L112,70 Z"/>
+    <path class="ink" fill="#fbf0d6" d="M206,42 L230,54 L206,66 Z"/>
+    <path class="ink" fill="none" d="M156,42 C152,50 152,58 156,66 M182,42 C178,50 178,58 182,66"/>
+    <rect class="ink" fill="#8a4fd8" x="100" y="72" width="44" height="20" rx="10"/>
+    <rect class="ink" fill="#8a4fd8" x="98" y="90" width="42" height="19" rx="9.5"/>
+    <rect class="ink" fill="#8a4fd8" x="94" y="107" width="36" height="17" rx="8.5"/>
+    <path class="ink" fill="#8a4fd8" d="M68,30 C62,10 66,-4 80,-4 C94,-4 98,10 96,30 Z"/>
+    <path class="ink" fill="#fbf0d6" d="M72,-2 L82,-18 L92,-2 Z"/>
+    <circle fill="#5b2b9e" cx="62" cy="58" r="7"/><circle fill="#5b2b9e" cx="80" cy="98" r="5"/>
+    <circle fill="#5b2b9e" cx="56" cy="110" r="4"/><circle fill="#5b2b9e" cx="168" cy="50" r="3.5"/><circle fill="#5b2b9e" cx="84" cy="10" r="3.5"/>
+    <g class="pew"><path fill="#ffe14f" stroke="#1f1512" stroke-width="3" stroke-linejoin="round" d="M236,52 L244,38 L248,50 L262,44 L252,56 L262,66 L248,62 L244,74 L238,62 L226,66 L234,56 L224,46 Z"/></g>
+  </svg>
+  <span class="neon b">GAMES</span>
+</button>
 <div class="nav" id="nav" hidden>
   <button id="prev" aria-label="Previous game">&lsaquo;</button>
   <output id="count">1 / 1</output>
@@ -580,7 +614,10 @@ function drawWall(ctx, w, h, seed, kind, gx, decorOnly) {
     p.circ(dx + dw - 4 * u, dy + dh * .58, 1.3 * u, 0, "#f4b63e", lw * .7);
     p.rect(dx + 2 * u, dy - 9 * u, dw - 4 * u, 6 * u, "#3d8752", lw);
     ctx.fillStyle = "#fbf0d6"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = `700 ${3.6 * u}px "Gaegu", cursive`; ctx.fillText("← OUTSIDE", dx + dw / 2, dy - 5.8 * u);
+    const doorTxt = "← " + (CFG.exitUrl ? (CFG.exitLabel || "EXIT") : "OUTSIDE");
+    let dfs = 3.6 * u; ctx.font = `700 ${dfs}px "Gaegu", cursive`;
+    while (ctx.measureText(doorTxt).width > dw - 6 * u && dfs > u) { dfs -= u * .1; ctx.font = `700 ${dfs}px "Gaegu", cursive`; }
+    ctx.fillText(doorTxt, dx + dw / 2, dy - 5.8 * u);
   } else {
     // the end of the hall: a cabinet under a sheet
     const cx = w * .45;
@@ -696,9 +733,9 @@ function layTiles(total, H) {
 
 function build() {
   const H = hall.clientHeight || window.innerHeight;
-  U = H / 100; SEG = Math.round(H * 4 / 3); CAP = Math.round(H * .6);
+  U = H / 100; SEG = Math.round(H * (CFG.spacing || 0.92)); CAP = Math.round(H * .6);
   document.documentElement.style.setProperty("--u", U + "px");
-  io.disconnect(); track.innerHTML = "";
+  io.disconnect(); document.body.appendChild($("more")); track.innerHTML = "";
   const tiled = TILES.some((t) => !t.bad && t.aspect);
   let gx = 0;
   const add = (kind, w, i, src, inner) => {
@@ -710,14 +747,15 @@ function build() {
     track.appendChild(seg); if (wall && wall.tagName === "CANVAS") io.observe(wall);
     gx += w; return seg;
   };
-  const left = add("left", CAP, 0, CFG.leftCap, `<button class="exitdoor" aria-label="Back outside"></button>`);
-  left.querySelector(".exitdoor").addEventListener("click", () => leave());
+  const left = add("left", CAP, 0, CFG.leftCap, `<button class="exitdoor" aria-label="${CFG.exitUrl ? "Exit to " + (CFG.exitLabel || "the next place") : "Back outside"}"></button>`);
+  left.querySelector(".exitdoor").addEventListener("click", () => exitArcade());
   GAMES.forEach((g, i) => {
     const seg = add("game", SEG, i, "", cabinetHTML(g, i));
     seg.id = g.id || ("game-" + (i + 1));
     seg.setAttribute("aria-label", g.title);
   });
   add("right", CAP, GAMES.length + 1, CFG.rightCap, "");
+  const firstSeg = track.children[1]; if (firstSeg && GAMES.length > 1) firstSeg.appendChild($("more"));
   if (tiled) layTiles(gx, H);
   // broken images fall back to the drawn versions
   track.querySelectorAll(".marquee img").forEach((im) => im.addEventListener("error", () => { im.nextElementSibling.hidden = false; im.remove(); }));
@@ -749,6 +787,7 @@ function onScroll() {
     $("count").textContent = GAMES.length ? `${current + 1} / ${GAMES.length}` : "0 / 0";
     $("prev").disabled = current <= 0; $("next").disabled = current >= GAMES.length - 1;
     lights.style.backgroundPosition = `${-hall.scrollLeft * 1.25}px 0`;
+    $("more").classList.toggle("gone", GAMES.length < 2 || current > 0);
     document.querySelectorAll("#menuList button").forEach((b, k) => b.setAttribute("aria-current", String(k === current)));
   });
 }
@@ -780,6 +819,7 @@ hall.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") { centerOn(current - 1, true); e.preventDefault(); }
 });
 $("prev").addEventListener("click", () => centerOn(current - 1, true));
+$("more").addEventListener("click", () => centerOn(current + 1, true));
 $("next").addEventListener("click", () => centerOn(current + 1, true));
 
 /* playing a game */
@@ -807,6 +847,16 @@ function setMenu(open) { menu.hidden = !open; burger.setAttribute("aria-expanded
 burger.addEventListener("click", (e) => { e.stopPropagation(); setMenu(menu.hidden); });
 $("menuList").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; setMenu(false); centerOn(+b.dataset.i, true); });
 $("menuOutside").addEventListener("click", () => { setMenu(false); leave(); });
+if (CFG.exitUrl) {
+  const li = document.createElement("li");
+  li.innerHTML = `<button id="menuExit"><span class="chip" style="background:var(--basil)"></span>Exit to ${(CFG.exitLabel || "next stop").replace(/</g, "&lt;")}</button>`;
+  $("menuOutside").closest("ol").appendChild(li);
+  $("menuExit").addEventListener("click", () => { setMenu(false); exitArcade(); });
+}
+function exitArcade() {
+  if (!CFG.exitUrl) return leave();
+  try { (window.top || window).location.href = CFG.exitUrl; } catch (e) { location.href = CFG.exitUrl; }
+}
 $("logoBtn").addEventListener("click", () => leave());
 document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target)) setMenu(false); });
 document.addEventListener("keydown", (e) => {
@@ -816,7 +866,7 @@ document.addEventListener("keydown", (e) => {
 
 /* switching between outside and inside */
 function showHall(on) {
-  ["hall", "lights", "topbar", "nav"].forEach((id) => { $(id).hidden = !on; });
+  ["hall", "lights", "topbar", "nav", "more"].forEach((id) => { $(id).hidden = !on; });
   intro.hidden = on;
 }
 let built = false;
