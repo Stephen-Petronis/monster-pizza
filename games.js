@@ -30,7 +30,7 @@ window.MONSTER_PIZZA = {
 
   // Where the exit door goes. Paste the Sylli Town itch.io link here.
   // Leave it empty and the door goes back out to the Monster Pizza street.
-  exitUrl: "",
+  exitUrl: "https://stephen-petronis.itch.io/syllitown",
   exitLabel: "SYLLI TOWN",
   rightCap: "",  // the "more games coming" end
 
