@@ -1,7 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Whack-A-Ghost</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Limelight&family=Alfa+Slab+One&display=swap">
 <style>
+html,body{margin:0}
 /* Layout: one full-bleed canvas. Default style is a 1930s rubber-hose cartoon (inked, watercolor, film grain); an 8-bit style renders at NES resolution with palette dithering. DOM menus are vaudeville title cards (cartoon) or NES dialog boxes (8-bit). */
 :root{
   --black:#000000;
@@ -96,7 +102,8 @@ body.bw .card{background:#efe5cf}
 body.bw .legend canvas{filter:grayscale(1) sepia(.35)}
 body.bw .hudbtns button{background:#f3e9d2}
 </style>
-
+</head>
+<body>
 <canvas id="game" aria-label="Whack-A-Ghost game field"></canvas>
 <div id="probe"></div>
 
@@ -180,6 +187,8 @@ const CONFIG = {
   streak: { multEvery: 10, maxMult: 5, milestoneEvery: 5,
             words: { 5:'NICE!', 10:'SPOOKY!', 15:'BOO-TIFUL!', 20:'FANG-TASTIC!', 25:'WITCHY!', 30:'GHOSTBUSTER!' }, bigWord: 'LEGENDARY!' },
   lightningEvery: [9, 18], musicVolume: 0.45,
+  // your soundtrack: an MP3 next to the game. If it's missing, the built-in chiptune plays instead.
+  sounds: { music: 'sounds/music.mp3', musicVolume: 0.6, bossSpeed: 1.06 },
   cartoonResolution: 1.5,
   // black & white cartoon keeps just a few spot colors: red, light orange, dark orange, yellow
   // faded hand-tinted color creeping in from the screen edges, like old colorized film worn down over time
@@ -358,6 +367,7 @@ function unlockAudio(){
       master = AC.createGain(); master.gain.value = muted ? 0 : 1; master.connect(AC.destination);
       sfxBus = AC.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
       musBus = AC.createGain(); musBus.gain.value = CONFIG.musicVolume; musBus.connect(master);
+      setTimeout(decodeTrack, 0);
       NOISE = AC.createBuffer(1, AC.sampleRate*2, AC.sampleRate);
       const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
     } catch(e){ AC = null; }
@@ -443,7 +453,47 @@ function musicTick(){
   if (MUS.next < AC.currentTime) MUS.next = AC.currentTime + 0.05;
   while (MUS.next < AC.currentTime + 0.15) { MUS.next += playStep(MUS.step, MUS.next); MUS.step++; }
 }
-function startMusic(){ if (!AC || MUS.timer) return; MUS.next = AC.currentTime + 0.1; MUS.timer = setInterval(musicTick, 30); }
+// ---- soundtrack file: fetched early, decoded once audio is unlocked, looped seamlessly ----
+const TRACK = { raw: null, buf: null, src: null, gain: null, rate: 1, loopStart: 0, loopEnd: 0 };
+function fetchTrack(){
+  const url = CONFIG.sounds.music; if (!url) return;
+  fetch(url).then(r => r.ok ? r.arrayBuffer() : null).then(ab => { if (ab) { TRACK.raw = ab; decodeTrack(); } }).catch(() => {});
+}
+function decodeTrack(){
+  if (!AC || !TRACK.raw || TRACK.buf) return;
+  const raw = TRACK.raw; TRACK.raw = null;
+  AC.decodeAudioData(raw).then(buf => {
+    // skip the MP3 encoder's silent padding at each end so the loop doesn't hiccup
+    const ch = buf.getChannelData(0), n = ch.length, th = 0.002;
+    let a = 0; while (a < n && Math.abs(ch[a]) < th) a++;
+    let b = n - 1; while (b > a && Math.abs(ch[b]) < th) b--;
+    TRACK.buf = buf; TRACK.loopStart = a/buf.sampleRate; TRACK.loopEnd = (b + 1)/buf.sampleRate;
+    if (MUS.timer || MUS.wanted) playTrack();
+  }).catch(() => {});
+}
+function playTrack(){
+  if (!AC || !TRACK.buf || TRACK.src) return;
+  if (MUS.timer) { clearInterval(MUS.timer); MUS.timer = null; }   // hand over from the chiptune
+  TRACK.gain = AC.createGain(); TRACK.gain.gain.setValueAtTime(0.0001, AC.currentTime);
+  TRACK.gain.gain.exponentialRampToValueAtTime(CONFIG.sounds.musicVolume/Math.max(0.01, CONFIG.musicVolume), AC.currentTime + 1.2);
+  TRACK.gain.connect(musBus);
+  const src = AC.createBufferSource(); src.buffer = TRACK.buf; src.loop = true;
+  src.loopStart = TRACK.loopStart; src.loopEnd = TRACK.loopEnd;
+  src.connect(TRACK.gain); src.start(AC.currentTime + 0.05, TRACK.loopStart);
+  TRACK.src = src; TRACK.rate = 1;
+}
+function trackRate(){
+  // a touch faster (and higher) during boss fights
+  if (!TRACK.src || !AC) return;
+  const want = G.mode === 'play' && G.boss ? CONFIG.sounds.bossSpeed : 1;
+  if (want !== TRACK.rate) { TRACK.rate = want; TRACK.src.playbackRate.setTargetAtTime(want, AC.currentTime, 0.6); }
+}
+function startMusic(){
+  if (!AC) return;
+  MUS.wanted = true;
+  if (TRACK.buf) { playTrack(); return; }
+  if (MUS.timer) return; MUS.next = AC.currentTime + 0.1; MUS.timer = setInterval(musicTick, 30);
+}
 function musicLevel(v){ if (musBus && AC) musBus.gain.setTargetAtTime(v, AC.currentTime, 0.15); }
 
 /* ============ game state ============ */
@@ -1736,6 +1786,7 @@ document.addEventListener('dblclick', e => e.preventDefault());
 function update(dt){
   G.time += dt;
   G.shake = Math.max(0, G.shake - dt); G.flash = Math.max(0, G.flash - dt);
+  trackRate();
   G.lflash = Math.max(0, G.lflash - dt); G.streakPulse = Math.max(0, G.streakPulse - dt);
   if (G.bolt) { G.bolt.life -= dt; if (G.bolt.life <= 0) G.bolt = null; }
   G.shown += (G.score - G.shown) * Math.min(1, dt*8); if (Math.abs(G.score - G.shown) < 1) G.shown = G.score;
@@ -2471,6 +2522,7 @@ window.__wagBoss = idx => { newGame(); G.banner = null; G.iris = null; G.round =
 window.__wagStreak = n => { G.streak = n - 1; addStreak(W/2, H/2); };
 
 loadArt();
+fetchTrack();
 paintMute();
 setStyle(STYLE);
 resize();
@@ -2480,3 +2532,6 @@ if (document.fonts && document.fonts.load) Promise.all([document.fonts.load(`16p
 requestAnimationFrame(frame);
 })();
 </script>
+
+</body>
+</html>
