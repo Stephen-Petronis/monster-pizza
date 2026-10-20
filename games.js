@@ -36,6 +36,16 @@ window.MONSTER_PIZZA = {
 
   games: [
     {
+      id: "whack-a-ghost",
+      title: "Whack-A-Ghost",
+      blurb: "Pop the ghosts, spare the kitties, grab the hearts. Boss every 3 rounds.",
+      url: "games/whack-a-ghost/index.html",          // lives inside this repo
+      cabinet: "games/whack-a-ghost/cabinet.webp",
+      screen: "games/whack-a-ghost/screen.gif",       // plays on the drawn glass
+      screenBox: [24.5, 25.6, 51, 20],
+      color: "#7a5a40",
+    },
+    {
       id: "worst-commute",                 // short name, used for links like monsterpizza/#worst-commute
       title: "The Worst Commute",
       blurb: "Get Jason from Borough Hall to the office in one piece.",
@@ -85,16 +95,6 @@ window.MONSTER_PIZZA = {
       screen: "games/shuck-shack/screen.gif",
       screenBox: [22.6, 25.2, 54.7, 21],
       color: "#d9862b",
-    },
-    {
-      id: "whack-a-ghost",
-      title: "Whack-A-Ghost",
-      blurb: "Pop the ghosts, spare the kitties, grab the hearts. Boss every 3 rounds.",
-      url: "games/whack-a-ghost/index.html",          // lives inside this repo
-      cabinet: "games/whack-a-ghost/cabinet.webp",
-      screen: "games/whack-a-ghost/screen.gif",       // plays on the drawn glass
-      screenBox: [24.5, 25.6, 51, 20],
-      color: "#7a5a40",
     },
     {
       id: "fairy-garden",
