@@ -32,6 +32,21 @@ window.MONSTER_PIZZA = {
   // Leave it empty and the door goes back out to the Monster Pizza street.
   exitUrl: "https://stephen-petronis.itch.io/syllitown",
   exitLabel: "SYLLI TOWN",
+
+  // The gift shop window at the end of the hallway. The first 3 items show up in the window.
+  // For each item: a picture, a price, and the link to buy it (Etsy, Shopify, Printful, etc.).
+  // soon: true shows it as COMING SOON and doesn't link anywhere.
+  shop: {
+    storeUrl: "",            // link to the whole store, shown at the top of the shop
+    items: [
+      { name: "Monster Pizza Tee",        image: "art/logo.webp",                      price: "", url: "", soon: true },
+      { name: "Hoofbeat Hills Sticker",   image: "games/hoofbeat-hills/cabinet.webp",  price: "", url: "", soon: true },
+      { name: "Whack-A-Ghost Poster",     image: "games/whack-a-ghost/cabinet.webp",   price: "", url: "", soon: true },
+      { name: "Nothing But Net Sticker",  image: "games/nothin-but-net/cabinet.webp",  price: "", url: "", soon: true },
+      { name: "Worst Commute Mug",        image: "games/worst-commute/cabinet.webp",   price: "", url: "", soon: true },
+      { name: "Shuck Shack Sticker",      image: "games/shuck-shack/cabinet.webp",     price: "", url: "", soon: true },
+    ],
+  },
   rightCap: "",  // the "more games coming" end
 
   games: [

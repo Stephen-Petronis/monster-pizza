@@ -172,6 +172,34 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 #player .bar a{color:var(--paper);font-weight:700}
 #frame{flex:1;width:100%;border:0;background:#000}
 
+/* ---------- gift shop ---------- */
+.shopdoor{position:absolute;left:calc(46*var(--u));top:calc(11*var(--u));width:calc(45*var(--u));height:calc(73*var(--u));background:transparent;border:0;padding:0;cursor:pointer;border-radius:calc(2*var(--u))}
+.shopdoor .wi{position:absolute;object-fit:contain;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));transition:transform .2s}
+.shopdoor .wi0{left:calc(19*var(--u));bottom:calc(22*var(--u));height:calc(15*var(--u));max-width:calc(16*var(--u))}
+.shopdoor .wi1{left:calc(12*var(--u));top:calc(20*var(--u));height:calc(10*var(--u));max-width:calc(12*var(--u))}
+.shopdoor .wi2{left:calc(26*var(--u));top:calc(20.5*var(--u));height:calc(9.5*var(--u));max-width:calc(12*var(--u))}
+.shopdoor:hover .wi0,.shopdoor:focus-visible .wi0{transform:translateY(calc(-1*var(--u))) rotate(-3deg)}
+.shopdoor:hover,.shopdoor:focus-visible{background:radial-gradient(ellipse at 50% 60%,rgba(255,225,120,.28),transparent 70%)}
+#shop{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;background:#e9b24b url("walls/wall-plain.jpg") repeat-x center top/auto 100%;color:var(--ink)}
+#shop .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--sauce);color:var(--paper);
+  padding:calc(8px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+#shop .bar button{background:var(--cheese);color:var(--ink);border:3px solid var(--ink);border-radius:12px;padding:2px 14px;font-weight:700;cursor:pointer;font-size:20px}
+#shop .bar strong{font-family:var(--f-display);font-weight:400;font-size:24px;flex:1;min-width:0}
+#shop .bar a{color:var(--paper);font-weight:700}
+#shop .room{flex:1;overflow:auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#shop .sign{display:block;margin:0 auto 22px;width:min(520px,80vw);height:auto;filter:drop-shadow(4px 6px 0 rgba(31,21,18,.4));transform:rotate(-2deg)}
+#shop .shelves{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:34px 26px}
+.item{position:relative;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--ink);padding-bottom:18px}
+.item::after{content:"";position:absolute;left:-6%;right:-6%;bottom:0;height:18px;background:#7a4a2a;border:3px solid var(--ink);border-radius:4px;box-shadow:0 8px 0 rgba(31,21,18,.35)}
+.item .pic{height:200px;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.item img{max-height:190px;max-width:100%;object-fit:contain;display:block;filter:drop-shadow(3px 5px 0 rgba(31,21,18,.35));transition:transform .2s}
+.item:hover img{transform:translateY(-6px) rotate(-2deg)}
+.item .tag{position:absolute;right:4%;top:6px;background:var(--paper);border:3px solid var(--ink);border-radius:6px 6px 6px 18px;padding:4px 10px 6px;
+  font-weight:700;font-size:19px;line-height:1.05;transform:rotate(6deg);box-shadow:3px 3px 0 rgba(31,21,18,.35);text-align:center;max-width:70%}
+.item .tag small{display:block;font-family:var(--f-arcade);font-size:11px;font-weight:400;color:var(--sauce)}
+.item.soon{cursor:default}
+.item.soon img{filter:drop-shadow(3px 5px 0 rgba(31,21,18,.35)) saturate(.75)}
+@media (max-width:600px){#shop .shelves{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 14px}.item .pic{height:150px}.item img{max-height:140px}.item .tag{font-size:15px}}
 /* ---------- "more games" monster hand ---------- */
 #more{position:absolute;z-index:2;left:calc(50% + 21*var(--u));top:calc(47*var(--u));display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:0;padding:0;cursor:pointer;transition:opacity .45s,transform .45s}
@@ -257,6 +285,17 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 </div>
 
 <!-- Game player -->
+<div id="shop" hidden>
+  <div class="bar">
+    <button id="closeShop">&larr; Back to the arcade</button>
+    <strong>Gift Shop</strong>
+    <a id="shopStore" href="#" target="_blank" rel="noopener" hidden>Visit the whole store &nearr;</a>
+  </div>
+  <div class="room">
+    <img class="sign" src="art/logo.webp" alt="Monster Pizza">
+    <div class="shelves" id="shelves"></div>
+  </div>
+</div>
 <div id="player" hidden>
   <div class="bar">
     <button id="closePlayer">&larr; Back to the arcade</button>
@@ -619,8 +658,46 @@ function drawWall(ctx, w, h, seed, kind, gx, decorOnly) {
     while (ctx.measureText(doorTxt).width > dw - 6 * u && dfs > u) { dfs -= u * .1; ctx.font = `700 ${dfs}px "Gaegu", cursive`; }
     ctx.fillText(doorTxt, dx + dw / 2, dy - 5.8 * u);
   } else {
-    // the end of the hall: a cabinet under a sheet
-    const cx = w * .45;
+    // the end of the hall: a cabinet under a sheet (and the gift shop door, when there is a shop)
+    const cx = CFG.shop ? 25 * u : w * .45;
+    if (CFG.shop) {
+      const wx = 50 * u, wy = 29 * u, ww = 37 * u, wh = 33 * u;   // window opening
+      // sign
+      p.rect(wx + 4 * u, 11.5 * u, ww - 8 * u, 7.5 * u, "#3d8752", lw * 1.1);
+      ctx.fillStyle = "#fbf0d6"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      let sfs = 4.6 * u; ctx.font = `700 ${sfs}px "Gaegu", cursive`;
+      while (ctx.measureText("GIFT SHOP").width > ww - 12 * u && sfs > u) { sfs -= u * .1; ctx.font = `700 ${sfs}px "Gaegu", cursive`; }
+      ctx.fillText("GIFT SHOP", wx + ww / 2, 15.4 * u);
+      // window frame and the shop inside
+      p.rect(wx - 1.5 * u, wy - 1.5 * u, ww + 3 * u, wh + 3 * u, "#7a4a2a", lw * 1.2);
+      p.rect(wx, wy, ww, wh, "#5a2f3f", lw);
+      for (let i = 1; i < 6; i++) p.line(wx + i * ww / 6, wy + u, wx + i * ww / 6, wy + wh - u, u * .3, "rgba(255,255,255,.08)", 1);
+      p.rect(wx + u, wy + 14 * u, ww - 2 * u, 1.6 * u, "#c8874a", lw * .7);          // shelf
+      // a little monster clerk behind the counter
+      const mx = wx + ww * .2, my = wy + wh;
+      p.circ(mx, my - 6 * u, 5.5 * u, 6.5 * u, "#9adf5e", lw);
+      p.line(mx - 3 * u, my - 11.5 * u, mx - 4.5 * u, my - 15 * u, lw); p.line(mx + 3 * u, my - 11.5 * u, mx + 4.5 * u, my - 15 * u, lw);
+      p.circ(mx - 2 * u, my - 8 * u, 1.5 * u, 0, "#fff", lw * .5); p.circ(mx + 2 * u, my - 8 * u, 1.5 * u, 0, "#fff", lw * .5);
+      p.circ(mx - 1.7 * u, my - 7.8 * u, .6 * u, 0, INK, 0); p.circ(mx + 2.3 * u, my - 7.8 * u, .6 * u, 0, INK, 0);
+      p.line(mx - 2 * u, my - 4.5 * u, mx + 2 * u, my - 4.5 * u, lw * .8);
+      // counter ledge and the counter front down to the floor
+      p.rect(wx - 3.5 * u, wy + wh, ww + 7 * u, 3.6 * u, "#c8874a", lw * 1.2);
+      p.rect(wx - 1.5 * u, wy + wh + 3.6 * u, ww + 3 * u, 84 * u - (wy + wh + 3.6 * u), "#d6452d", lw * 1.1);
+      for (let i = 1; i < 6; i++) p.line(wx - 1.5 * u + i * (ww + 3 * u) / 6, wy + wh + 4.5 * u, wx - 1.5 * u + i * (ww + 3 * u) / 6, 83 * u, u * .3, "#a8301f", 1);
+      p.rect(wx + ww / 2 - 9 * u, wy + wh + 7 * u, 18 * u, 5.5 * u, "#fbf0d6", lw * .8);
+      ctx.fillStyle = INK; let rfs = 2.8 * u; ctx.font = `700 ${rfs}px "Gaegu", cursive`;
+      while (ctx.measureText("RING FOR SERVICE").width > 16 * u && rfs > u) { rfs -= u * .1; ctx.font = `700 ${rfs}px "Gaegu", cursive`; }
+      ctx.fillText("RING FOR SERVICE", wx + ww / 2, wy + wh + 9.8 * u);
+      // bell on the counter
+      const bx = wx + ww - 4 * u, by = wy + wh;
+      p.shape([[bx - 2.6 * u, by], [bx - 2.2 * u, by - 2 * u], [bx - 1 * u, by - 3 * u], [bx + 1 * u, by - 3 * u], [bx + 2.2 * u, by - 2 * u], [bx + 2.6 * u, by]], "#f4b63e", lw * .7);
+      p.circ(bx, by - 3.6 * u, .7 * u, 0, "#f4b63e", lw * .5);
+      // striped awning
+      for (let i = 0; i < 7; i++) {
+        const ax = wx - 4 * u + i * (ww + 8 * u) / 7, aw = (ww + 8 * u) / 7;
+        p.shape([[ax, 20.5 * u], [ax + aw, 20.5 * u], [ax + aw, 25.5 * u], [ax + aw / 2, 27.2 * u], [ax, 25.5 * u]], i % 2 ? "#fbf0d6" : "#d6452d", lw * .7);
+      }
+    }
     p.shape([[cx - 15 * u, 84 * u], [cx - 13 * u, 30 * u], [cx - 8 * u, 22 * u], [cx + 9 * u, 21 * u], [cx + 14 * u, 30 * u], [cx + 16 * u, 84 * u],
       [cx + 9 * u, 82 * u], [cx + 3 * u, 85 * u], [cx - 4 * u, 82 * u], [cx - 10 * u, 85 * u]], "#efe7d6", lw * 1.2);
     for (let i = 0; i < 4; i++) p.line(cx - 8 * u + i * 5 * u, 32 * u, cx - 10 * u + i * 6 * u, 80 * u, u * .3, "rgba(31,21,18,.35)", 1);
@@ -754,7 +831,10 @@ function build() {
     seg.id = g.id || ("game-" + (i + 1));
     seg.setAttribute("aria-label", g.title);
   });
-  add("right", CAP, GAMES.length + 1, CFG.rightCap, "");
+  const right = add("right", CFG.shop ? Math.round(H * .95) : CAP, GAMES.length + 1, CFG.rightCap,
+    CFG.shop ? `<button class="shopdoor" aria-label="Open the gift shop">${(CFG.shop.items || []).slice(0, 3).map((it, k) =>
+      `<img class="wi wi${k}" src="${String(it.image || "").replace(/"/g, "&quot;")}" alt="" draggable="false">`).join("")}</button>` : "");
+  if (CFG.shop) right.querySelector(".shopdoor").addEventListener("click", () => openShop());
   const firstSeg = track.children[1]; if (firstSeg && GAMES.length > 1) firstSeg.appendChild($("more"));
   if (tiled) layTiles(gx, H);
   // broken images fall back to the drawn versions
@@ -853,6 +933,28 @@ if (CFG.exitUrl) {
   $("menuOutside").closest("ol").appendChild(li);
   $("menuExit").addEventListener("click", () => { setMenu(false); exitArcade(); });
 }
+const shopEl = $("shop");
+function openShop() {
+  const sh = CFG.shop; if (!sh) return;
+  const esc = (t) => String(t || "").replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  $("shelves").innerHTML = (sh.items || []).map((it) => {
+    const live = it.url && !it.soon;
+    const tag = it.soon ? `<small>COMING SOON</small>${esc(it.name)}` : `${esc(it.price || "")}<small>${esc(it.name)}</small>`;
+    return `<${live ? "a" : "div"} class="item${live ? "" : " soon"}" ${live ? `href="${esc(it.url)}" target="_blank" rel="noopener"` : ""}>
+      <span class="pic"><img src="${esc(it.image)}" alt="${esc(it.name)}" loading="lazy"></span><span class="tag">${tag}</span></${live ? "a" : "div"}>`;
+  }).join("");
+  const st = $("shopStore"); st.hidden = !sh.storeUrl; if (sh.storeUrl) st.href = sh.storeUrl;
+  shopEl.hidden = false; $("closeShop").focus();
+}
+function closeShop() { shopEl.hidden = true; hall.focus({ preventScroll: true }); }
+$("closeShop").addEventListener("click", closeShop);
+if (CFG.shop) {
+  const li = document.createElement("li");
+  li.innerHTML = `<button id="menuShop"><span class="chip" style="background:var(--cheese)"></span>Gift Shop</button>`;
+  $("menuOutside").closest("ol").prepend(li);
+  $("menuShop").addEventListener("click", () => { setMenu(false); openShop(); });
+}
+
 function exitArcade() {
   if (!CFG.exitUrl) return leave();
   try { (window.top || window).location.href = CFG.exitUrl; } catch (e) { location.href = CFG.exitUrl; }
@@ -861,7 +963,7 @@ $("logoBtn").addEventListener("click", () => leave());
 document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target)) setMenu(false); });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  if (!player.hidden) closePlayer(); else if (!menu.hidden) setMenu(false);
+  if (!player.hidden) closePlayer(); else if (!shopEl.hidden) closeShop(); else if (!menu.hidden) setMenu(false);
 });
 
 /* switching between outside and inside */
@@ -912,6 +1014,7 @@ const deep = GAMES.findIndex((g) => g.id === hash);
 startTown();
 fontsReady.then(() => {
   if (!intro.hidden) drawTown(performance.now() / 1000);
+  if (hash === "shop" && CFG.shop) { shutterUp = true; shutter.hidden = true; enter(GAMES.length - 1); setTimeout(openShop, 400); return; }
   if (hash === "arcade" || deep >= 0) { shutterUp = true; shutter.hidden = true; enter(Math.max(0, deep)); return; }
   shutterTimer = setTimeout(() => liftShutter(false), REDUCED ? 0 : 1400);
 });
