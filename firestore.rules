@@ -1,0 +1,31 @@
+rules_version = '2';
+// Firestore rules for the shared "monster-pizza" Firebase project (all arcade games).
+// Paste this whole file into Firebase console > Firestore Database > Rules, then Publish.
+// Anyone can read the score boards and add a score; nobody can edit or delete one.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{board}/{doc} {
+      allow read: if board.matches('ss_g[0-3]') || board == 'wag';
+
+      allow create: if
+        // Super Sullivan: one collection per minigame (ss_g0 .. ss_g3)
+        (board.matches('ss_g[0-3]')
+          && request.resource.data.keys().hasOnly(['n', 'k', 'd', 't'])
+          && request.resource.data.n is string && request.resource.data.n.size() == 3
+          && request.resource.data.k is number
+          && request.resource.data.d is string && request.resource.data.d.size() <= 12
+          && request.resource.data.t is timestamp)
+        ||
+        // Whack-A-Ghost: initials, score, round reached, time
+        (board == 'wag'
+          && request.resource.data.keys().hasOnly(['n', 's', 'r', 't'])
+          && request.resource.data.keys().hasAll(['n', 's', 'r', 't'])
+          && request.resource.data.n is string && request.resource.data.n.matches('[A-Z]{3}')
+          && request.resource.data.s is int && request.resource.data.s > 0 && request.resource.data.s <= 9999999
+          && request.resource.data.r is int && request.resource.data.r >= 1 && request.resource.data.r <= 999
+          && request.resource.data.t is timestamp);
+
+      allow update, delete: if false;
+    }
+  }
+}

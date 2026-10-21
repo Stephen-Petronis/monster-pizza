@@ -100,6 +100,30 @@ body.toon .hudbtns button:active{transform:translateY(3px);box-shadow:0 1px 0 va
 body.bw{--tred:#5a3a22}
 body.bw .card{background:#efe5cf}
 body.bw .legend canvas{filter:grayscale(1) sepia(.35)}
+/* ---- high scores ---- */
+.board{width:100%;display:flex;flex-direction:column;gap:8px;text-align:left}
+.board ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.board li{display:grid;grid-template-columns:2.4em 3.6em 1fr auto;align-items:baseline;gap:8px;padding:5px 10px;font-size:11px;line-height:1.5;border:2px solid transparent}
+.board li .rk{opacity:.7}
+.board li .nm{letter-spacing:.12em}
+.board li .rd{opacity:.65;font-size:.85em}
+.board li .sc{text-align:right;font-variant-numeric:tabular-nums}
+.board li.me{border-color:var(--amber);color:var(--amber)}
+.board .empty{margin:0;font-size:10px;line-height:1.8;text-align:center;opacity:.8}
+.hs-status{margin:0;font-size:9px;letter-spacing:.1em;text-align:center;opacity:.75}
+.entry{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.ini{display:flex;gap:14px;justify-content:center}
+.ini .col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ini button{width:48px;height:36px;font-family:inherit;font-size:14px;border-radius:0;border:3px solid var(--white);background:var(--black);color:var(--white);cursor:pointer;touch-action:manipulation}
+.ini .ch{width:48px;text-align:center;font-size:30px;line-height:1.3;border-bottom:4px solid var(--amber);color:var(--amber)}
+.ini .col.on .ch{background:rgba(248,184,0,.15)}
+body.toon .board li{font-family:var(--fs);font-size:15px;color:var(--sepia);border-radius:10px}
+body.toon .board li:nth-child(odd){background:rgba(26,16,8,.06)}
+body.toon .board li.me{border-color:var(--tred);color:var(--tred);background:rgba(200,38,28,.08)}
+body.toon .board .empty,body.toon .hs-status{font-family:var(--fs);color:#4a3520}
+body.toon .ini button{font-family:var(--fs);border-radius:12px;border:3px solid var(--sepia);background:transparent;color:var(--sepia)}
+body.toon .ini .ch{font-family:var(--fl);font-size:40px;color:var(--tred);border-bottom-color:var(--sepia)}
+body.toon .ini .col.on .ch{background:rgba(200,38,28,.1)}
 body.bw .hudbtns button{background:#f3e9d2}
 </style>
 </head>
@@ -124,9 +148,10 @@ body.bw .hudbtns button{background:#f3e9d2}
     <p class="how">Slow ghosts fly at you. Keep a streak for fireworks. Boss every 3 rounds!</p>
     <div class="btns">
       <button class="big" id="btnPlay"><span class="blink">▶</span> PLAY</button>
+      <button class="alt" id="btnScores">HIGH SCORES</button>
       <button class="alt" id="btnFilmT">STYLE: CARTOON B&amp;W</button>
     </div>
-    <p class="best">HI-SCORE <span id="bestTitle">0</span></p>
+    <p class="best">WORLD RECORD <span id="worldTitle">-</span><br>YOUR BEST <span id="bestTitle">0</span></p>
   </div>
 </section>
 
@@ -142,6 +167,16 @@ body.bw .hudbtns button{background:#f3e9d2}
   </div>
 </section>
 
+<section class="screen" id="scrScores" hidden>
+  <div class="card">
+    <p class="eyebrow">EVERYONE WHO PLAYED</p>
+    <h2>HIGH SCORES</h2>
+    <div class="board" id="boardMain"></div>
+    <p class="hs-status" id="statusMain"></p>
+    <div class="btns"><button class="big" id="btnScoresBack">BACK</button></div>
+  </div>
+</section>
+
 <section class="screen" id="scrOver" hidden>
   <div class="card">
     <p class="eyebrow">THE GHOSTS GOT YOU</p>
@@ -151,7 +186,14 @@ body.bw .hudbtns button{background:#f3e9d2}
       <div><b id="ovRound">1</b><span>ROUND</span></div>
     </div>
     <p class="newbest" id="ovNew" hidden>NEW HI-SCORE!</p>
-    <p class="best">HI-SCORE <span id="ovBest">0</span><br>BEST STREAK <span id="ovStreak">0</span></p>
+    <p class="best">YOUR BEST <span id="ovBest">0</span><br>BEST STREAK <span id="ovStreak">0</span></p>
+    <div class="entry" id="ovEntry" hidden>
+      <p class="eyebrow">TOP 10! ENTER YOUR INITIALS</p>
+      <div class="ini" id="iniPick"></div>
+      <button class="big" id="btnSaveIni">SAVE</button>
+    </div>
+    <div class="board" id="boardOver"></div>
+    <p class="hs-status" id="statusOver"></p>
     <div class="btns">
       <button class="big" id="btnAgain">PLAY AGAIN</button>
       <button class="alt" id="btnMenu">MAIN MENU</button>
@@ -1349,7 +1391,7 @@ function newGame(){
   Object.assign(G, { mode: 'play', paused: false, round: 1, score: 0, shown: 0, hearts: CONFIG.startHearts, popped: 0,
     flyers: [], parts: [], flares: [], boss: null, banner: null, hype: null, shake: 0, flash: 0, carved: 0, streak: 0, bestStreak: 0, env: 0, level: 1, lastPerf: 0.5 });
   G.holes = []; layoutHoles(pumpkinsFor(1), false);
-  ['scrTitle', 'scrOver', 'scrPause'].forEach(id => $(id).hidden = true);
+  ['scrTitle', 'scrOver', 'scrPause', 'scrScores'].forEach(id => $(id).hidden = true);
   setHUD(true);
   startMusic(); musicLevel(CONFIG.musicVolume);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch(e){}
@@ -1429,6 +1471,103 @@ function playerHit(x, y){
   SFX.ouch();
   if (G.hearts <= 0) gameOver();
 }
+/* ============ universal high scores (shared Monster Pizza Firebase project, Firestore REST; no SDK) ============ */
+const FIREBASE = { apiKey: 'AIzaSyBSJJ7azwFpZoPEjVgFvU4kvTmGFTWFlpA', projectId: 'monster-pizza-9bc93' };
+const HS_COLL = 'wag', HS_N = 10, LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ONLINE = !!(FIREBASE.apiKey && FIREBASE.projectId);
+const FS_BASE = () => 'https://firestore.googleapis.com/v1/projects/' + FIREBASE.projectId + '/databases/(default)/documents';
+const HS_HIDE = new Set(['ASS','FUK','FUC','FCK','SHT','CUM','DIK','DIC','KKK','FAG','NIG','GAY','SEX','TIT','POO','PEE','WTF','STD','XXX']);
+let HS = [], hsOnline = false, hsLoading = false, hsMine = -1, lastIni = 'AAA', iniSel = 0, iniVal = [0, 0, 0];
+try { const v = JSON.parse(localStorage.getItem('wag.hs') || '[]'); if (Array.isArray(v)) HS = v.slice(0, HS_N); } catch (e) {}
+try { lastIni = localStorage.getItem('wag.ini') || 'AAA'; } catch (e) {}
+function hsSaveLocal(){ try { localStorage.setItem('wag.hs', JSON.stringify(HS)); localStorage.setItem('wag.ini', lastIni); } catch (e) {} }
+async function hsFetch(){
+  const body = { structuredQuery: { from: [{ collectionId: HS_COLL }], orderBy: [{ field: { fieldPath: 's' }, direction: 'DESCENDING' }], limit: HS_N } };
+  const r = await fetch(FS_BASE() + ':runQuery?key=' + FIREBASE.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const rows = await r.json();
+  return rows.filter(x => x.document).map(x => { const f = x.document.fields || {};
+    return { n: String((f.n || {}).stringValue || '???').slice(0, 3), s: +((f.s || {}).integerValue ?? (f.s || {}).doubleValue ?? 0), r: +((f.r || {}).integerValue ?? 1) }; });
+}
+async function hsRefresh(){
+  if (!ONLINE || hsLoading) return;
+  hsLoading = true; renderBoards();
+  try {
+    const rows = await hsFetch();
+    // keep a just-saved score on screen even if the server list hasn't caught up yet
+    const mine = hsMine >= 0 ? HS[hsMine] : null;
+    HS = rows;
+    if (mine) { const i = HS.findIndex(e => e.n === mine.n && e.s === mine.s); if (i >= 0) hsMine = i; else { const r = hsRank(mine.s); if (r >= 0) { HS.splice(r, 0, mine); HS = HS.slice(0, HS_N); hsMine = r; } else hsMine = -1; } }
+    hsOnline = true; hsSaveLocal();
+  } catch (e) { hsOnline = false; try { console.warn('High scores offline:', e); } catch (_) {} }
+  hsLoading = false; renderBoards();
+}
+async function hsPost(e){
+  if (!ONLINE) return;
+  try {
+    const r = await fetch(FS_BASE() + '/' + HS_COLL + '?key=' + FIREBASE.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { n: { stringValue: e.n }, s: { integerValue: String(e.s) }, r: { integerValue: String(e.r) }, t: { timestampValue: new Date().toISOString() } } }) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    hsRefresh();
+  } catch (err) { hsOnline = false; renderBoards(); try { console.warn('Score not sent:', err); } catch (_) {} }
+}
+function hsRank(score){ if (!(score > 0)) return -1; let r = HS.findIndex(e => score > e.s); if (r < 0) r = HS.length; return r < HS_N ? r : -1; }
+function hsName(n){ n = String(n || '').toUpperCase(); return HS_HIDE.has(n) ? '???' : n; }
+function renderBoard(el){
+  el.textContent = '';
+  if (!HS.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = hsLoading ? 'Loading scores...' : 'No scores yet. Be the first!'; el.appendChild(p); return; }
+  const ol = document.createElement('ol');
+  HS.forEach((e, i) => {
+    const li = document.createElement('li'); if (i === hsMine) li.className = 'me';
+    [['rk', (i + 1) + '.'], ['nm', hsName(e.n)], ['rd', 'R' + e.r], ['sc', Number(e.s).toLocaleString()]].forEach(([c, t]) => { const sp = document.createElement('span'); sp.className = c; sp.textContent = t; li.appendChild(sp); });
+    ol.appendChild(li);
+  });
+  el.appendChild(ol);
+}
+function hsStatus(){ return !ONLINE ? 'SCORES ON THIS DEVICE' : hsLoading ? 'LOADING...' : hsOnline ? 'EVERYONE, EVERYWHERE' : 'OFFLINE: SHOWING THIS DEVICE'; }
+function renderBoards(){
+  renderBoard($('boardMain')); renderBoard($('boardOver'));
+  $('statusMain').textContent = hsStatus(); $('statusOver').textContent = hsStatus();
+  $('worldTitle').textContent = HS.length ? `${Number(HS[0].s).toLocaleString()} ${hsName(HS[0].n)}` : '-';
+}
+function renderIni(){
+  const box = $('iniPick'); box.textContent = '';
+  for (let k = 0; k < 3; k++) {
+    const col = document.createElement('div'); col.className = 'col' + (k === iniSel ? ' on' : '');
+    const up = document.createElement('button'); up.type = 'button'; up.textContent = '▲'; up.setAttribute('aria-label', `Letter ${k + 1} up`);
+    const ch = document.createElement('div'); ch.className = 'ch'; ch.textContent = LETTERS[iniVal[k]];
+    const dn = document.createElement('button'); dn.type = 'button'; dn.textContent = '▼'; dn.setAttribute('aria-label', `Letter ${k + 1} down`);
+    up.addEventListener('click', () => { iniSel = k; iniVal[k] = (iniVal[k] + 25) % 26; SFX.thunk(); renderIni(); });
+    dn.addEventListener('click', () => { iniSel = k; iniVal[k] = (iniVal[k] + 1) % 26; SFX.thunk(); renderIni(); });
+    ch.addEventListener('click', () => { iniSel = k; renderIni(); });
+    col.append(up, ch, dn); box.appendChild(col);
+  }
+}
+function showEntry(){
+  iniVal = lastIni.split('').slice(0, 3).map(c => Math.max(0, LETTERS.indexOf(c))); while (iniVal.length < 3) iniVal.push(0);
+  iniSel = 0; renderIni(); $('ovEntry').hidden = false;
+}
+function saveInitials(){
+  if ($('ovEntry').hidden) return;
+  lastIni = iniVal.map(n => LETTERS[n]).join('');
+  const entry = { n: lastIni, s: G.score, r: G.round };
+  const r = hsRank(G.score);
+  if (r >= 0) { HS.splice(r, 0, entry); HS = HS.slice(0, HS_N); hsMine = r; }
+  hsSaveLocal(); $('ovEntry').hidden = true; renderBoards(); hsPost(entry);
+  SFX.heart(); launchFlares(4);
+}
+document.addEventListener('keydown', e => {
+  if ($('ovEntry').hidden || $('scrOver').hidden) return;
+  const k = e.key.toUpperCase();
+  if (k.length === 1 && LETTERS.includes(k)) { iniVal[iniSel] = LETTERS.indexOf(k); iniSel = Math.min(2, iniSel + 1); renderIni(); e.preventDefault(); }
+  else if (e.key === 'Backspace') { iniSel = Math.max(0, iniSel - 1); renderIni(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { iniVal[iniSel] = (iniVal[iniSel] + 25) % 26; renderIni(); e.preventDefault(); }
+  else if (e.key === 'ArrowDown') { iniVal[iniSel] = (iniVal[iniSel] + 1) % 26; renderIni(); e.preventDefault(); }
+  else if (e.key === 'ArrowLeft') { iniSel = Math.max(0, iniSel - 1); renderIni(); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { iniSel = Math.min(2, iniSel + 1); renderIni(); e.preventDefault(); }
+  else if (e.key === 'Enter') { saveInitials(); e.preventDefault(); }
+});
+
 function gameOver(){
   G.mode = 'over'; G.overT = 1.0; irisOut(null, 0.9);
   clearField(false);
@@ -1441,6 +1580,9 @@ function gameOver(){
   $('ovBest').textContent = G.best.toLocaleString();
   $('ovStreak').textContent = G.bestStreak;
   $('ovNew').hidden = !isBest || G.score === 0;
+  hsMine = -1; $('ovEntry').hidden = true;
+  if (hsRank(G.score) >= 0) showEntry();
+  renderBoards(); hsRefresh().then(() => { if ($('ovEntry').hidden && hsMine < 0 && hsRank(G.score) >= 0 && G.mode === 'over') showEntry(); });
   setHUD(false);
 }
 function toTitle(){
@@ -1448,7 +1590,8 @@ function toTitle(){
   G.mode = 'title'; G.paused = false; G.boss = null; G.banner = null; G.hype = null; G.flyers = []; G.round = 1; G.carved = 2;
   G.holes = []; layoutHoles(5, false);
   ['scrOver', 'scrPause'].forEach(id => $(id).hidden = true);
-  $('scrTitle').hidden = false; $('bestTitle').textContent = G.best.toLocaleString();
+  $('scrTitle').hidden = false; $('bestTitle').textContent = G.best.toLocaleString(); $('scrScores').hidden = true;
+  renderBoards();
   setHUD(false); musicLevel(CONFIG.musicVolume*0.6);
 }
 
@@ -2515,6 +2658,9 @@ function setStyle(v){
 }
 const nextStyle = () => setStyle(STYLES[(STYLES.indexOf(STYLE) + 1) % STYLES.length]);
 $('btnFilmT').addEventListener('click', nextStyle);
+$('btnScores').addEventListener('click', () => { unlockAudio(); $('scrTitle').hidden = true; $('scrScores').hidden = false; hsMine = -1; renderBoards(); hsRefresh(); });
+$('btnScoresBack').addEventListener('click', () => { $('scrScores').hidden = true; $('scrTitle').hidden = false; });
+$('btnSaveIni').addEventListener('click', saveInitials);
 $('btnFilmP').addEventListener('click', nextStyle);
 
 // playtest shortcuts from the browser console: __wagBoss(0|1|2) jumps to a boss, __wagStreak(n) sets a streak
@@ -2523,6 +2669,7 @@ window.__wagStreak = n => { G.streak = n - 1; addStreak(W/2, H/2); };
 
 loadArt();
 fetchTrack();
+renderBoards(); hsRefresh();
 paintMute();
 setStyle(STYLE);
 resize();
