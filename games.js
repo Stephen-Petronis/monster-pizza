@@ -97,6 +97,16 @@ window.MONSTER_PIZZA = {
       color: "#d9862b",
     },
     {
+      id: "super-sullivan",
+      title: "Super Sullivan",
+      blurb: "Blow out the candles, pop the cake goblins, backflip the dirt bike, and win the big game.",
+      url: "https://stephen-petronis.github.io/super-sullivan/",
+      cabinet: "games/super-sullivan/cabinet.webp",
+      screen: "games/super-sullivan/screen.gif",
+      screenBox: [20.3, 25.9, 59.4, 25.5],
+      color: "#1d4fd8",
+    },
+    {
       id: "fairy-garden",
       title: "Fairy Garden",
       blurb: "Fly out for seeds, grow a magic garden, brew potions and make bug friends.",
