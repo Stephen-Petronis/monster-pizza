@@ -129,5 +129,13 @@ window.MONSTER_PIZZA = {
       screen: "games/fairy-garden/screen.gif",        // no drawn cabinet yet: uses the built-in one
       color: "#ff6fae",
     },
+    {
+      id: "witchity-witch",
+      title: "Witchity Witch",
+      blurb: "Witch School! Trace letters to zap monsters, brew math potions, fly the Dark Forest and fix the spellbook.",
+      url: "https://stephen-petronis.github.io/witchity-witch/",
+      screen: "games/witchity-witch/screen.gif",      // no drawn cabinet yet: uses the built-in one
+      color: "#7a3fd1",
+    },
   ],
 };
