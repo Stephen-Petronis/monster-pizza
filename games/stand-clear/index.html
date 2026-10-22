@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111111">
+<title>Stand Clear of the Closing Doors</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}</style>
+<style>
+/* Layout: one phone-shaped stage scaled to fit. NYC transit signage look: black signs, white Helvetica, pictogram people, stainless train, red only as the accent */
+:root{
+  --sign:#111111; --white:#ffffff; --steel:#b9bdc0; --tile:#f4f4f2;
+  --red:#ee352e; --red-dk:#a91f1a; --grey:#8a8f93;
+  --f-sign:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+body{height:100%;margin:0;background:var(--sign);color:var(--white);overflow:hidden;touch-action:none;
+  font-family:var(--f-sign);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+#wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;overflow:hidden;border-radius:14px;background:var(--tile)}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block}
+button{font-family:var(--f-sign);cursor:pointer;border:0}
+button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+#poseBtn{position:absolute;right:4%;bottom:11%;width:20%;aspect-ratio:1;max-width:100%;border-radius:50%;
+  background:var(--red);color:var(--white);font-size:clamp(22px,8vw,40px);font-weight:700;box-shadow:0 5px 0 var(--red-dk)}
+#poseBtn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--red-dk)}
+.arrow{position:absolute;top:33%;width:13%;aspect-ratio:1;max-width:100%;border-radius:50%;background:var(--sign);
+  display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 0 0 3px var(--white)}
+.arrow svg{width:55%;height:55%}
+#left{left:2%}
+#right{right:2%}
+#mute{position:absolute;right:2.5%;bottom:2%;background:transparent;color:var(--sign);font-weight:700;letter-spacing:.06em;font-size:clamp(9px,2.6vw,12px);padding:8px}
+.panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:16px;
+  background:rgba(17,17,17,.94);padding:28px;box-sizing:border-box}
+
+.panel h1{border-top:2px solid var(--white);padding-top:14px;align-self:stretch;font-size:clamp(24px,8.4vw,40px);line-height:1.05;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.panel p{font-size:clamp(14px,4.2vw,17px);line-height:1.35;margin:0;max-width:30ch}
+.rules{display:grid;gap:10px}
+.rules p{display:flex;gap:10px;align-items:center}
+.bul{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.9em;height:1.9em;border-radius:50%;
+  background:var(--red);color:var(--white);font-weight:700;font-size:.85em}
+.bul.wht{background:var(--white);color:var(--sign)}
+.go{background:var(--red);color:var(--white);font-weight:700;font-size:clamp(15px,4.6vw,19px);padding:14px 24px;border-radius:999px;box-shadow:0 4px 0 var(--red-dk);margin-top:6px}
+.go:active{transform:translateY(4px);box-shadow:0 0 0 var(--red-dk)}
+.big{font-size:clamp(52px,17vw,80px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.dim{color:var(--grey)}
+.icons{display:flex;gap:10px}
+.ico{width:clamp(58px,19vw,84px);aspect-ratio:1;max-width:100%}
+.title-icons{margin-top:-4px}
+</style>
+</head>
+<body>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+
+<div id="wrap"><div id="stage">
+  <canvas id="c"></canvas>
+  <button class="arrow" id="left" aria-label="Previous door" hidden><svg viewBox="0 0 10 10"><path d="M9 4H5V1.3L.8 5 5 8.7V6H9Z" fill="#fff"/></svg></button>
+  <button class="arrow" id="right" aria-label="Next door" hidden><svg viewBox="0 0 10 10"><path d="M1 4H5V1.3L9.2 5 5 8.7V6H1Z" fill="#fff"/></svg></button>
+  <button id="poseBtn" aria-label="Change pose">P</button>
+  <button id="mute">SOUND ON</button>
+
+  <div class="panel" id="title">
+    <h1>Stand clear of the closing doors, please</h1>
+    <div class="icons title-icons"><canvas class="ico" data-k="hold"></canvas><canvas class="ico" data-k="lean"></canvas><canvas class="ico" data-k="go"></canvas></div>
+    <div class="rules">
+      <p><span class="bul">P</span>Tap to flip through your 3 or 4 poses.</p>
+      <p><span class="bul wht">&#9650;</span>Swipe up to squeeze on the train.</p>
+      <p><span class="bul">1</span>Fit your body into the gap before the doors shut.</p>
+      <p><span class="bul">2</span>Check every door. Only one gap matches a pose you have.</p>
+      <p><span class="bul wht">&#9733;</span>Every 3 trains, finish the chalk mural for bonus points.</p>
+    </div>
+    <button class="go" id="start">Board the train</button>
+  </div>
+
+  <div class="panel" id="over" hidden>
+    <h1>Please</h1>
+    <div class="icons"><canvas class="ico" data-k="hold"></canvas><canvas class="ico" data-k="lean"></canvas><canvas class="ico" data-k="late"></canvas></div>
+    <p class="dim">Doors closed. Your score</p>
+    <div class="big" id="finalScore">0</div>
+    <p id="best">&nbsp;</p>
+    <button class="go" id="again">Ride again</button>
+  </div>
+</div></div>
+
+<script>
+const W=360,H=640, DW=126, DH=216, IX=(360-126)/2, IY=134, PLAT=364;
+const HU=DW/7, HX=IX, HY=IY+DH-8*HU-4;      // hole: pose box 7x8 units at bottom of doorway
+const RU=22, RX=73, RY=402;                  // rider on platform
+const INK='#111111', RED='#ee352e', GREEN='#00933c', FONT='"Helvetica Neue",Helvetica,Arial,sans-serif';
+const f=(w,px)=>`${w} ${px}px ${FONT}`;
+
+/* Pictogram poses in a 7 x 8 unit box. Each limb: [points, width]; torso is thicker. */
+/* Transit-sign pictogram people in a 7 x 8 unit box:
+   round head floating above a solid torso with rounded shoulders, arms set apart from the body, solid legs, flat feet. */
+const AW=.6, LW=.82, HEAD_R=.74;
+const A_LEGS=[[[3.08,4.6],[2.62,7.8]],[[3.92,4.6],[4.38,7.8]]];
+const HANG=[[[2.3,2.95],[2.18,4.95]],[[4.7,2.95],[4.82,4.95]]];
+const POSES=[
+ {name:'Arms Up', head:[3.5,1.5], torso:[2.5,4.85], arms:[[[2.5,2.8],[1.9,1.7],[1.75,.3]],[[4.5,2.8],[5.1,1.7],[5.25,.3]]], legs:A_LEGS},
+ {name:'T-Pose',  head:[3.5,1.5], torso:[2.5,4.85], arms:[[[2.4,2.92],[.35,2.92]],[[4.6,2.92],[6.65,2.92]]], legs:A_LEGS},
+ {name:'Squeeze', head:[3.5,1.5], torso:[2.5,4.85], arms:[[[2.38,2.95],[2.38,4.85]],[[4.62,2.95],[4.62,4.85]]],
+                  legs:[[[3.08,4.6],[3.08,7.8]],[[3.92,4.6],[3.92,7.8]]]},
+ {name:'Squat',   head:[3.5,3.05], torso:[3.95,5.55], arms:[[[2.4,4.3],[.45,4.3]],[[4.6,4.3],[6.55,4.3]]],
+                  legs:[[[3.08,5.4],[1.85,6.15],[1.75,7.8]],[[3.92,5.4],[5.15,6.15],[5.25,7.8]]]},
+ {name:'Disco',   head:[3.5,1.5], torso:[2.5,4.85], arms:[[[4.5,2.8],[5.9,.35]],[[2.4,2.95],[1.15,4.7]]],
+                  legs:[[[3.08,4.6],[2.7,7.8]],[[3.92,4.6],[5.05,6.05],[6.35,7.45]]]},
+ {name:'Flamingo',head:[3.5,1.5], torso:[2.5,4.85], arms:[[[2.4,2.95],[.85,4.45]],[[4.6,2.95],[6.15,4.45]]],
+                  legs:[[[3.2,4.6],[3.2,7.8]],[[3.92,4.6],[4.95,5.95],[4.05,6.7]]]},
+ {name:'Wave',    head:[3.5,1.5], torso:[2.5,4.85], arms:[[[4.5,2.8],[5.1,1.7],[5.25,.3]],HANG[0]], legs:A_LEGS},
+ {name:'Star',    head:[3.5,1.5], torso:[2.5,4.85], arms:[[[2.5,2.85],[.6,.7]],[[4.5,2.85],[6.4,.7]]],
+                  legs:[[[3.08,4.6],[1.2,7.8]],[[3.92,4.6],[5.8,7.8]]]},
+];
+
+const cv=document.getElementById('c'); let ctx=cv.getContext('2d');
+const stage=document.getElementById('stage'), wrap=document.getElementById('wrap');
+const $=id=>document.getElementById(id);
+let PXS=1, SPR=new Map(), SCALE=1;
+function fit(){
+  const r=Math.min(wrap.clientWidth/W, wrap.clientHeight/H);
+  SCALE=r; stage.style.width=W*r+'px'; stage.style.height=H*r+'px';
+  const d=window.devicePixelRatio||1; cv.width=Math.round(W*r*d); cv.height=Math.round(H*r*d);
+  ctx.setTransform(r*d,0,0,r*d,0,0); PXS=r*d; SPR.clear();
+}
+addEventListener('resize',fit); fit();
+
+/* ---------- sound ---------- */
+let AC=null, muted=false;
+function ac(){ if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}} if(AC&&AC.state==='suspended')AC.resume(); return AC; }
+function tone(fq,when,dur,type='sine',vol=.18){
+  const a=ac(); if(!a||muted)return; const o=a.createOscillator(), g=a.createGain();
+  o.type=type;o.frequency.value=fq;g.gain.setValueAtTime(vol,a.currentTime+when);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+when+dur);
+  o.connect(g).connect(a.destination);o.start(a.currentTime+when);o.stop(a.currentTime+when+dur+.05);
+}
+const sfx={
+  pose:()=>tone(880,0,.06,'square',.07),
+  chime:()=>{tone(740,0,.6,'sine',.22);tone(587,.38,.9,'sine',.22)},
+  fit:()=>{[523,659,784,1047].forEach((q,i)=>tone(q,i*.06,.15,'square',.08))},
+  bonk:()=>{tone(140,0,.18,'sawtooth',.12);tone(110,.08,.2,'sawtooth',.1)},
+  miss:()=>{tone(300,0,.2,'triangle',.15);tone(220,.18,.35,'triangle',.15)},
+  door:()=>tone(200,0,.25,'triangle',.06),
+};
+function say(text){ if(muted)return; try{ const u=new SpeechSynthesisUtterance(text); u.rate=1.05; u.pitch=.9; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+
+/* ---------- state ---------- */
+let S={mode:'title'};
+let best=0; try{best=+localStorage.getItem('scod-best')||0}catch(e){}
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function makeCrowd(){
+  const out=[]; let row=0;
+  for(let y=-8;y<DH+34;y+=21,row++){
+    for(let x=-12+(row%2)*10;x<DW+16;x+=20){
+      out.push({x:x+(Math.random()*6-3),y:y+(Math.random()*5-2.5),
+        shade:['#1c1c1c','#2e2e2e','#414141','#565656','#6b6b6b'][rnd(5)], w:20+rnd(6)});
+    }
+  }
+  return out;
+}
+function newGame(){
+  S={mode:'play',round:0,level:1,score:0,lives:3,pose:0,pi:0,set:[0],doors:[-1],crowds:[],view:0,timer:10,timerMax:10,
+     caught:0,phase:'arriving',phaseT:0,carX:W,open:0,slide:0,msg:'',msgWarn:false,msgT:0,announced:false,boarded:false,shake:0,popT:0};
+  nextRound();
+}
+function nextRound(){
+  S.round++;
+  const prev=S.level;
+  S.level=S.round<=6?1:2;
+  // the rider carries 3-4 poses this train; decoy gaps use poses they DON'T have
+  const all=shuffle([...POSES.keys()]), setSize=S.round<=3?3:4;
+  S.set=all.slice(0,setSize); const outside=all.slice(setSize);
+  const tPose=S.set[rnd(setSize)];
+  let nDoors=1, decoys=0;
+  if(S.level===2){const k=S.round-7; nDoors=Math.min(4,3+Math.floor(k/4)); decoys=Math.min(nDoors-1,1+Math.floor(k/2));}
+  const target=rnd(nDoors);
+  S.doors=Array(nDoors).fill(-1); S.doors[target]=tPose;
+  shuffle([...Array(nDoors).keys()].filter(i=>i!==target)).slice(0,decoys).forEach((i,j)=>S.doors[i]=outside[j%outside.length]);
+  S.crowds=S.doors.map(makeCrowd);
+  do{S.pi=rnd(setSize)}while(S.set[S.pi]===tPose);
+  S.pose=S.set[S.pi];
+  S.view=nDoors>1?(target+1+rnd(nDoors-1))%nDoors:0;
+  S.timerMax=S.level===1?Math.max(8,15.6-S.round*.6):Math.max(9,18-(S.round-7)*.5);
+  S.timer=S.timerMax; S.announced=false; S.boarded=false;
+  S.phase='arriving';S.phaseT=0;S.carX=W;S.open=0;
+  if(S.level===2&&prev===1){flash('Level 2: find the right door',false,2.4);say('Level two. Find the right door.')}
+  else if(S.round===1)flash('Level 1: strike a pose',false,2);
+  $('left').hidden=$('right').hidden=nDoors<2;
+}
+function flash(t,warn=false,d=1.1,icon){S.msg=t;S.msgWarn=warn;S.msgT=d;S.msgIcon=icon||(warn?'person':'go')}
+function setPhase(p){S.phase=p;S.phaseT=0}
+
+/* ---------- input ---------- */
+function cyclePose(){
+  if(S.mode!=='play')return;
+  if(!['waiting','bounce','opening','arriving'].includes(S.phase))return;
+  S.pi=(S.pi+1)%S.set.length;S.pose=S.set[S.pi]; S.popT=.18; sfx.pose();
+}
+function board(){ if(S.mode==='play'&&S.phase==='waiting')setPhase('boarding'); }
+function look(dir){
+  if(S.mode!=='play'||S.doors.length<2)return;
+  if(!['waiting','bounce'].includes(S.phase))return;
+  S.view=(S.view+dir+S.doors.length)%S.doors.length; S.slide=dir*150; sfx.door();
+}
+$('poseBtn').addEventListener('click',e=>{e.stopPropagation();ac();cyclePose()});
+$('left').addEventListener('click',e=>{e.stopPropagation();look(-1)});
+$('right').addEventListener('click',e=>{e.stopPropagation();look(1)});
+$('mute').addEventListener('click',e=>{e.stopPropagation();muted=!muted;$('mute').textContent=muted?'SOUND OFF':'SOUND ON';if(muted)try{speechSynthesis.cancel()}catch(_){}});
+let sw=null;
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('button,.panel'))return;sw={x:e.clientX,y:e.clientY}});
+stage.addEventListener('pointerup',e=>{
+  if(!sw)return;const dy=e.clientY-sw.y, dx=e.clientX-sw.x; sw=null;
+  if(dy<-30&&Math.abs(dy)>Math.abs(dx))board();
+  else if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))look(dx<0?1:-1);
+});
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp'||e.key==='w')board();
+  else if(e.key===' '||e.key==='p'||e.key==='P'){e.preventDefault();cyclePose()}
+  else if(e.key==='ArrowLeft')look(-1);
+  else if(e.key==='ArrowRight')look(1);
+});
+$('start').onclick=()=>{ac();$('title').hidden=true;newGame();say('Stand clear of the closing doors, please.')};
+$('again').onclick=()=>{ac();$('over').hidden=true;newGame()};
+
+/* ---------- update ---------- */
+const ease=t=>1-Math.pow(1-Math.min(1,Math.max(0,t)),3);
+function update(dt){
+  if(S.mode!=='play')return;
+  S.phaseT+=dt; S.msgT-=dt; S.popT-=dt; S.slide+=(0-S.slide)*Math.min(1,dt*14); S.shake=Math.max(0,S.shake-dt);
+  if(['waiting','boarding','bounce'].includes(S.phase)){
+    S.timer-=dt;
+    if(S.timer<=3.5&&!S.announced){S.announced=true;sfx.chime();setTimeout(()=>say('Stand clear of the closing doors, please.'),900);flash('Stand clear of the closing doors',true,1.8,'hold')}
+  }
+  switch(S.phase){
+    case 'arriving': S.carX=W*(1-ease(S.phaseT/.7)); if(S.phaseT>=.7){S.carX=0;setPhase('opening');sfx.door()} break;
+    case 'opening': S.open=ease(S.phaseT/.4); if(S.phaseT>=.4)setPhase('waiting'); break;
+    case 'waiting': if(S.timer<=0)miss(); break;
+    case 'boarding':
+      if(S.phaseT>=.28){
+        const d=S.doors[S.view];
+        if(d===S.pose){S.boarded=true;S.caught++;const pts=100+Math.ceil(Math.max(0,S.timer))*10;S.score+=pts;flash('All aboard  +'+pts);sfx.fit();setPhase('fit')}
+        else{S.timer-=1;S.shake=.35;sfx.bonk();flash(d<0?'Too packed. Try another door':S.set.includes(d)?'Wrong pose. Tap P':'None of your poses fit',true,1.1,d<0?'hold':'person');setPhase('bounce')}
+      } break;
+    case 'bounce': if(S.phaseT>=.35){ setPhase('waiting'); if(S.timer<=0)miss(); } break;
+    case 'fit': if(S.phaseT>=.4){setPhase('closing');sfx.door()} break;
+    case 'closing': S.open=1-ease(S.phaseT/.4); if(S.phaseT>=.4){S.open=0;setPhase('departing')} break;
+    case 'departing': S.carX=-W*1.3*Math.pow(Math.min(1,S.phaseT/.9),2);
+      if(S.phaseT>=.9){ if(S.lives<=0)gameOver(); else if(S.round%3===0)startBonus(); else nextRound(); } break;
+  }
+}
+function miss(){S.timer=0;S.lives--;sfx.miss();flash(S.lives>0?'Missed it':'Last train is gone',true,1.4,'late');setPhase('closing')}
+function gameOver(){
+  S.mode='over';
+  if(S.score>best){best=S.score;try{localStorage.setItem('scod-best',best)}catch(e){}}
+  $('finalScore').textContent=S.score;
+  $('best').textContent='Trains caught: '+S.caught+'   \u00b7   Best: '+best;
+  $('over').hidden=false;$('left').hidden=$('right').hidden=true;
+}
+
+/* ---------- draw helpers ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h)}
+// pictogram figure: grow = extra width in units (for the carved gap and its red rim)
+function line(c,pts,x,y,u){c.beginPath();pts.forEach(([a,b],i)=>i?c.lineTo(x+a*u,y+b*u):c.moveTo(x+a*u,y+b*u))}
+function torsoPath(c,P,x,y,u,g=0){
+  const [t0,t1]=P.torso, l=x+(2.62)*u-g, w=1.76*u+2*g, h=(t1-t0)*u+2*g;
+  c.beginPath();c.roundRect?c.roundRect(l,y+t0*u-g,w,h,[.62*u+g,.62*u+g,.12*u+g,.12*u+g]):c.rect(l,y+t0*u-g,w,h);
+}
+function paintFigure(c,P,x,y,u,col){
+  c.strokeStyle=col;c.fillStyle=col;c.lineJoin='round';
+  c.lineCap='round';c.lineWidth=AW*u;
+  for(const a of P.arms){line(c,a,x,y,u);c.stroke()}
+  // gap between arms and body, like the signs
+  c.globalCompositeOperation='destination-out';c.lineWidth=.24*u;torsoPath(c,P,x,y,u,.0);c.stroke();
+  torsoPath(c,P,x,y,u);c.fill();
+  c.globalCompositeOperation='source-over';
+  c.lineCap='butt';c.lineWidth=LW*u;
+  for(const l of P.legs){line(c,l,x,y,u);c.stroke()}
+  torsoPath(c,P,x,y,u);c.fill();
+  c.beginPath();c.arc(x+P.head[0]*u,y+P.head[1]*u,HEAD_R*u,0,7);c.fill();
+}
+// grow > 0 draws the merged outline (for the gap carved in the crowd and the white halo)
+function figure(p,x,y,u,col,grow=0){
+  const P=POSES[p];
+  if(grow>0){
+    ctx.save();ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.lineWidth=(AW+grow)*u;for(const a of P.arms){line(ctx,a,x,y,u);ctx.stroke()}
+    ctx.lineWidth=(LW+grow)*u;for(const l of P.legs){line(ctx,l,x,y,u);ctx.stroke()}
+    torsoPath(ctx,P,x,y,u,grow/2*u);ctx.fill();
+    ctx.beginPath();ctx.arc(x+P.head[0]*u,y+P.head[1]*u,(HEAD_R+grow/2)*u,0,7);ctx.fill();
+    ctx.lineWidth=(.5+grow)*u;line(ctx,[[3.5,P.head[1]],[3.5,P.torso[0]+.3]],x,y,u);ctx.stroke();
+    ctx.restore();return;
+  }
+  const uq=Math.round(u*4)/4, key=p+'|'+uq+'|'+col;
+  let spr=SPR.get(key);
+  if(!spr){
+    if(SPR.size>300)SPR.clear();
+    const pad=1, cw=(7+2*pad)*uq, ch=(8+2*pad)*uq;
+    const c=document.createElement('canvas');c.width=Math.ceil(cw*PXS);c.height=Math.ceil(ch*PXS);
+    const g=c.getContext('2d');g.setTransform(PXS,0,0,PXS,0,0);paintFigure(g,P,pad*uq,pad*uq,uq,col);
+    spr={c,cw,ch,pad};SPR.set(key,spr);
+  }
+  const k=u/uq;
+  ctx.drawImage(spr.c,x-spr.pad*u,y-spr.pad*u,spr.cw*k,spr.ch*k);
+}
+function bullet(x,y,r,txt,bg=RED,fg='#fff'){
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.fillStyle=fg;ctx.font=f(700,r*1.25);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,x,y+r*.06);
+  ctx.textBaseline='alphabetic';
+}
+// tiny white pictogram man, centered at 0,0, height ~2s
+function man(s,col,arms='down'){
+  ctx.fillStyle=col;ctx.strokeStyle=col;ctx.lineCap='butt';
+  ctx.beginPath();ctx.arc(0,-s*.78,s*.2,0,7);ctx.fill();
+  ctx.fillRect(-s*.2,-s*.52,s*.4,s*.62);
+  ctx.lineWidth=s*.17;ctx.beginPath();ctx.moveTo(-s*.1,s*.08);ctx.lineTo(-s*.14,s*.95);ctx.moveTo(s*.1,s*.08);ctx.lineTo(s*.14,s*.95);ctx.stroke();
+  ctx.lineWidth=s*.13;ctx.beginPath();
+  if(arms==='out'){ctx.moveTo(-s*.18,-s*.45);ctx.lineTo(-s*.62,-s*.2);ctx.moveTo(s*.18,-s*.45);ctx.lineTo(s*.62,-s*.2)}
+  else {ctx.moveTo(-s*.26,-s*.48);ctx.lineTo(-s*.3,s*.02);ctx.moveTo(s*.26,-s*.48);ctx.lineTo(s*.3,s*.02)}
+  ctx.stroke();
+}
+// red prohibition circle with a white pictogram (kinds: lean, hold, late, person)
+function noIcon(cx,cy,r,kind){
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle=INK;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  const W_='#ffffff';
+  if(kind==='lean'){
+    ctx.fillStyle=W_;ctx.fillRect(r*.3,-r*.62,r*.14,r*1.24);
+    ctx.save();ctx.translate(-r*.02,r*.02);ctx.rotate(.38);man(r*.52,W_);ctx.restore();
+  } else if(kind==='hold'){
+    ctx.fillStyle=W_;ctx.fillRect(-r*.62,-r*.58,r*.12,r*1.16);ctx.fillRect(r*.5,-r*.58,r*.12,r*1.16);
+    man(r*.5,W_,'out');
+  } else if(kind==='late'){
+    // figure running at closing doors
+    ctx.fillStyle=W_;ctx.fillRect(-r*.08,-r*.6,r*.16,r*1.2);
+    ctx.save();ctx.translate(-r*.38,r*.04);ctx.rotate(.25);man(r*.42,W_,'out');ctx.restore();
+    ctx.fillRect(r*.14,-r*.6,r*.36,r*1.2);
+  } else man(r*.55,W_);
+  ctx.strokeStyle=RED;ctx.lineWidth=r*.17;ctx.lineCap='butt';ctx.beginPath();ctx.arc(0,0,r*.91,0,7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-r*.64,-r*.64);ctx.lineTo(r*.64,r*.64);ctx.stroke();
+  ctx.restore();
+}
+// green circle with a white arrow (the "go this way" sign)
+function goIcon(cx,cy,r){
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle=GREEN;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();
+  [[0,-.62],[.5,-.08],[.18,-.08],[.18,.6],[-.18,.6],[-.18,-.08],[-.5,-.08]].forEach(([a,b],i)=>i?ctx.lineTo(a*r,b*r):ctx.moveTo(a*r,b*r));
+  ctx.fill();ctx.restore();
+}
+// black strip sticker: white rule along the top, icon at left, Helvetica text
+function strip(x,y,w,h,lines,icon){
+  ctx.fillStyle='#ffffff';rr(x-1,y-1,w+2,h+2,h*.2);ctx.fill();
+  ctx.fillStyle=INK;rr(x,y,w,h,h*.2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillRect(x+h*.16,y+h*.17,w-h*.32,Math.max(1,h*.055));
+  const ir=h*.3, icx=x+h*.2+ir, icy=y+h*.6;
+  if(icon==='go')goIcon(icx,icy,ir); else if(icon)noIcon(icx,icy,ir,icon);
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.textBaseline='middle';
+  const fs=lines.length>1?h*.28:h*.42;ctx.font=f(700,fs);
+  const tx=icon?icx+ir+h*.2:x+h*.3;
+  lines.forEach((t,i)=>ctx.fillText(t,tx,icy+(i-(lines.length-1)/2)*fs*1.05));
+  ctx.textBaseline='alphabetic';
+}
+// red octagon STOP sticker
+function stopSign(cx,cy,r){
+  ctx.save();ctx.translate(cx,cy);
+  const oct=k=>{ctx.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;ctx.lineTo(Math.cos(a)*k,Math.sin(a)*k)}ctx.closePath()};
+  ctx.fillStyle='#fff';oct(r);ctx.fill();ctx.fillStyle=RED;oct(r*.9);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font=f(700,r*.42);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('STOP',0,-r*.42);
+  ctx.fillStyle='#1d2a55';ctx.fillRect(-r*.66,-r*.12,r*.44,r*.62);ctx.fillRect(r*.22,-r*.12,r*.44,r*.62);
+  ctx.save();ctx.translate(0,r*.2);ctx.rotate(.3);man(r*.2,'#fff','out');ctx.restore();
+  ctx.font=f(700,r*.13);ctx.fillText('DO NOT MOVE BETWEEN CARS',0,r*.66);
+  ctx.textBaseline='alphabetic';ctx.restore();
+}
+
+/* ---------- scene ---------- */
+function drawWall(){
+  ctx.fillStyle='#f4f4f2';ctx.fillRect(0,0,W,PLAT);
+  ctx.strokeStyle='#d9d9d5';ctx.lineWidth=1;
+  for(let y=104;y<PLAT;y+=12){const off=((y-104)/12)%2?12:0;for(let x=-24;x<W+24;x+=24)ctx.strokeRect(x+off+.5,y+.5,24,12)}
+}
+function drawCar(ox){
+  if(ox>W+40||ox<-W-40)return;
+  const top=112;
+  const g=ctx.createLinearGradient(0,top,0,PLAT);
+  g.addColorStop(0,'#8d9296');g.addColorStop(.06,'#e6e8e9');g.addColorStop(.45,'#c2c6c8');g.addColorStop(.55,'#d8dbdc');g.addColorStop(1,'#8f9498');
+  ctx.fillStyle=g;rr(ox-30,top,W+60,PLAT-top,8);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.07)';for(let x=ox-30;x<ox+W+30;x+=6)ctx.fillRect(x,top+8,1,PLAT-top-24);
+  ctx.fillStyle='#55595c';ctx.fillRect(ox-30,PLAT-16,W+60,3);
+  // side windows with standing riders in silhouette
+  [[18,152],[266,152]].forEach(([wx,wy])=>{
+    ctx.fillStyle='#161718';rr(ox+wx,wy,76,120,6);ctx.fill();
+    ctx.save();rr(ox+wx,wy,76,120,6);ctx.clip();
+    for(let i=0;i<3;i++){const px=ox+wx+16+i*22,py=wy+66+(i%2)*6;ctx.fillStyle=['#4a4d50','#5d6063','#3c3f42'][i];
+      ctx.beginPath();ctx.arc(px,py,9,0,7);ctx.fill();rr(px-11,py+11,22,60,9);ctx.fill()}
+    ctx.fillStyle='rgba(255,255,255,.13)';ctx.beginPath();ctx.moveTo(ox+wx,wy);ctx.lineTo(ox+wx+34,wy);ctx.lineTo(ox+wx,wy+70);ctx.fill();
+    ctx.restore();
+  });
+  stopSign(ox+304,196,20);
+  // route bullet on the car side
+  bullet(ox+56,132,11,String(S.level||1));
+  // door frame + doorway
+  ctx.fillStyle='#2a2c2e';rr(ox+IX-8,IY-8,DW+16,DH+12,6);ctx.fill();
+  const ix=ox+IX;
+  ctx.save();ctx.beginPath();ctx.rect(ix,IY,DW,DH);ctx.clip();
+  if(S.open>0)drawDoorway(ix,IY);
+  const half=DW/2, cover=half*(1-S.open);
+  [[ix,false],[ix+DW-cover,true]].forEach(([px,right])=>{
+    if(cover<1)return;
+    const pg=ctx.createLinearGradient(px,0,px+cover,0);pg.addColorStop(0,'#cfd2d4');pg.addColorStop(1,'#a3a7aa');
+    ctx.fillStyle=pg;ctx.fillRect(px,IY,cover,DH);
+    const cx=right?px+half*.5:px+cover-half*.5;
+    ctx.fillStyle='#161718';rr(cx-20,IY+24,40,84,5);ctx.fill();
+    strip(cx-29,IY+124,58,22,right?['Do not hold','doors']:['Do not lean','on door'],right?'hold':'lean');
+    ctx.fillStyle='#1d1d1d';ctx.fillRect(right?px:px+cover-4,IY,4,DH);
+  });
+  ctx.restore();
+  if(S.doors.length>1){
+    ctx.fillStyle=INK;ctx.font=f(700,10);ctx.textAlign='center';
+    ctx.fillText('DOOR '+(S.view+1)+' OF '+S.doors.length,ox+180,123);
+  }
+}
+function drawDoorway(ix,iy){
+  ctx.save();ctx.translate(S.slide,0);
+  ctx.fillStyle='#e3e5e6';ctx.fillRect(ix-200,iy,DW+400,DH);
+  ctx.fillStyle='#c4c8ca';ctx.fillRect(ix+DW/2-3,iy,6,DH); // pole
+  const d=S.doors[S.view]??-1, crowd=S.crowds[S.view]||[];
+  for(const c of crowd){
+    ctx.fillStyle=c.shade;const x=ix+c.x,y=iy+c.y;
+    ctx.beginPath();ctx.arc(x,y,6.5,0,7);ctx.fill();
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(x-c.w/2,y+9,c.w,34,[7,7,1,1]):ctx.rect(x-c.w/2,y+9,c.w,34);ctx.fill();
+  }
+  if(d>=0){
+    const hx=ix,hy=HY;
+    if(S.boarded){
+      figure(d,hx,hy,HU,'#ffffff',.3);
+      figure(d,hx,hy,HU,INK);
+    } else {
+      const pulse=.55+.45*Math.sin(performance.now()/180);
+      ctx.globalAlpha=pulse;figure(d,hx,hy,HU,RED,.62);ctx.globalAlpha=1;
+      figure(d,hx,hy,HU,'#ffffff',.3);
+    }
+  }
+  ctx.restore();
+}
+function drawPlatform(){
+  ctx.fillStyle='#cfd0cd';ctx.fillRect(0,PLAT,W,H-PLAT);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,PLAT,W,3);
+  ctx.fillStyle='#5a5c5d';ctx.fillRect(0,PLAT+3,W,12);
+  ctx.fillStyle='#8c8e8f';for(let x=4;x<W;x+=8)for(let y=PLAT+5;y<PLAT+14;y+=4)ctx.fillRect(x,y,3,2);
+  ctx.strokeStyle='#bfc0bd';ctx.lineWidth=1;for(let x=0;x<W+80;x+=60){ctx.beginPath();ctx.moveTo(x,PLAT+15);ctx.lineTo(x-60,H);ctx.stroke()}
+}
+function drawRider(){
+  if(S.boarded||S.mode!=='play')return;
+  let t=0;
+  if(S.phase==='boarding')t=ease(S.phaseT/.28);
+  if(S.phase==='bounce')t=.75*(1-ease(S.phaseT/.35));
+  let u=RU+(HU-RU)*t, x=RX+(S.carX+HX-RX)*t, y=RY+(HY-RY)*t;
+  if(S.shake>0)x+=Math.sin(S.shake*80)*5;
+  const pop=S.popT>0?1+S.popT*1.2:1, cx=x+3.5*u, cy=y+8*u;
+  ctx.save();ctx.translate(cx,cy);ctx.scale(pop,pop);ctx.translate(-cx,-cy);
+  if(t<.05){ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(cx,y+8*u+4,64,8,0,0,7);ctx.fill()}
+  if(t>.05)figure(S.pose,x,y,u,'#ffffff',.4);
+  figure(S.pose,x,y,u,INK);
+  ctx.restore();
+}
+function drawHUD(){
+  // black sign band
+  ctx.fillStyle=INK;ctx.fillRect(0,0,W,104);
+  ctx.fillStyle='#fff';ctx.fillRect(12,10,W-24,2);
+  const live=['waiting','boarding','bounce'].includes(S.phase);
+  const hot=live&&S.timer<=3.5, blink=hot&&Math.floor(performance.now()/250)%2;
+  // left: line bullet + score
+  bullet(32,52,17,String(S.level));
+  ctx.textAlign='left';ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('SCORE',58,36);
+  ctx.fillStyle='#fff';ctx.font=f(700,24);ctx.fillText(String(S.score),58,61);
+  ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('TRAIN '+S.round,58,80);
+  // center: countdown
+  const n=live?Math.max(0,Math.ceil(S.timer)):'–';
+  ctx.textAlign='center';ctx.font=f(700,52);ctx.fillStyle=hot&&!blink?RED:'#fff';ctx.fillText(n,W/2,72);
+  if(live){ctx.fillStyle='#333';ctx.fillRect(W/2-46,84,92,4);ctx.fillStyle=hot?RED:'#fff';ctx.fillRect(W/2-46,84,92*Math.max(0,S.timer/S.timerMax),4)}
+  // right: rides left, as little pictograms
+  ctx.textAlign='right';ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('RIDES',W-16,36);
+  for(let i=0;i<3;i++)figure(2,W-44-i*24,44,3.6,i<S.lives?'#fff':'#3a3a3a');
+  // pose readout, right of the rider
+  ctx.textAlign='right';ctx.font=f(700,9);ctx.fillStyle='#55595c';ctx.fillText('YOUR POSE',W-16,430);
+  ctx.font=f(700,22);ctx.fillStyle=INK;ctx.fillText(POSES[S.pose].name,W-16,454);
+  if(S.round<=2&&S.phase==='waiting'){
+    const b=Math.sin(performance.now()/200)*3;ctx.font=f(700,10);
+    ctx.fillText('SWIPE UP',W-34,486);ctx.beginPath();ctx.moveTo(W-26,487+b);ctx.lineTo(W-21,478+b);ctx.lineTo(W-16,487+b);ctx.fill();
+  }
+  // pose deck: the 3-4 poses this rider can make
+  const ts=4.2,tw=7*ts,gap=12,tot=S.set.length*(tw+8)+(S.set.length-1)*gap,sx=RX+3.5*RU-tot/2,sy=594;
+  S.set.forEach((p,i)=>{const on=i===S.pi,x=sx+i*(tw+8+gap);
+    ctx.fillStyle=on?RED:'#ffffff';rr(x,sy-4,tw+8,8*ts+8,6);ctx.fill();
+    figure(p,x+4,sy,ts,on?'#fff':'#8a8f93');});
+  // message strip
+  if(S.msgT>0&&S.msg){
+    const h=30;ctx.font=f(700,h*.42);
+    const w=Math.min(W-16,ctx.measureText(S.msg).width+h*1.25);
+    ctx.globalAlpha=Math.min(1,S.msgT*3);strip(W/2-w/2,PLAT+18,w,h,[S.msg],S.msgIcon);ctx.globalAlpha=1;
+  }
+}
+function setupIdle(){
+  S.carX=0;S.open=1;S.doors=[2];S.view=0;S.slide=0;S.level=1;
+  if(!S.crowds||!S.crowds.length)S.crowds=[makeCrowd()];
+}
+/* ---------- bonus: chalk mural ----------
+   A black ad panel on the station wall holds chalk outlines of figures (some sideways or upside down).
+   Drag each figure from the tray to the outline it fits. One or two tray figures fit nowhere. */
+const PANEL={x:16,y:116,w:328,h:282}, MU=9.4, TU=6.6;
+const LINE_COLORS=['#ee352e','#00933c','#b933ad','#0039a6','#ff6319','#fccc0a','#6cbe45','#996633','#00add0','#a7a9ac'];
+const SYM=new Set([0,1,2,3,7]);
+const sigOf=(p,rot,flip)=>p+'|'+rot+'|'+(SYM.has(p)?0:flip);
+function startBonus(){
+  const n=S.bonusN=(S.bonusN||0)+1;
+  const slotsN=[6,8,9][Math.min(2,n-1)], decoyN=slotsN<9?1:1;
+  // 4 x 3 wall spots, jittered so figures crowd and tangle together
+  const spots=[];for(let r=0;r<3;r++)for(let c=0;c<4;c++)spots.push([PANEL.x+44+c*80+(r%2?6:-6)+rnd(9)-4,PANEL.y+50+r*91+rnd(7)-3]);
+  const slots=shuffle(spots).slice(0,slotsN).map(([x,y])=>{
+    const p=rnd(POSES.length), rot=[0,0,0,90,-90,180][rnd(6)], flip=rnd(2);
+    return {p,rot,flip,x,y,sig:sigOf(p,rot,flip),filled:false};
+  });
+  const sigs=new Set(slots.map(z=>z.sig));
+  const pieces=slots.map(z=>({p:z.p,rot:z.rot,flip:z.flip,sig:z.sig}));
+  for(let i=0;i<decoyN;i++){
+    // decoy: looks close to a real one but fits no outline
+    let d;do{const b=slots[rnd(slots.length)];d={p:rnd(POSES.length),rot:b.rot,flip:b.flip};d.sig=sigOf(d.p,d.rot,d.flip)}while(sigs.has(d.sig));
+    pieces.push(d);
+  }
+  shuffle(pieces);
+  const cols=Math.min(5,Math.ceil(pieces.length/2)), cw=PANEL.w/cols;
+  pieces.forEach((pc,i)=>{const r=Math.floor(i/cols),c=i%cols, rowN=r?pieces.length-cols:cols;
+    const off=(cols-rowN)*cw/2;
+    pc.hx=PANEL.x+off+cw/2+c*cw; pc.hy=470+r*96; pc.x=pc.hx; pc.y=pc.hy; pc.col=LINE_COLORS[i%LINE_COLORS.length]; pc.placed=false; pc.t=0;});
+  S.bonus={slots,pieces,drag:null,timer:[35,45,50][Math.min(2,n-1)],timerMax:[35,45,50][Math.min(2,n-1)],done:0,endT:0,placed:0,pts:0};
+  S.mode='bonus';S.msg='';
+  $('poseBtn').hidden=true;$('left').hidden=$('right').hidden=true;
+  flash('Bonus: finish the mural',false,2.2);say('Bonus round. Finish the mural.');
+}
+function endBonus(){
+  S.mode='play';$('poseBtn').hidden=false;nextRound();
+}
+function updateBonus(dt){
+  const B=S.bonus;S.msgT-=dt;S.popT-=dt;
+  for(const pc of B.pieces){pc.t=Math.max(0,pc.t-dt);if(!pc.placed&&B.drag!==pc){pc.x+=(pc.hx-pc.x)*Math.min(1,dt*14);pc.y+=(pc.hy-pc.y)*Math.min(1,dt*14)}}
+  if(B.done){B.endT-=dt;if(B.endT<=0)endBonus();return}
+  B.timer-=dt;
+  if(B.placed===B.slots.length){
+    const bonus=200+Math.ceil(B.timer)*10;S.score+=bonus;B.done=1;B.endT=1.8;
+    flash('Mural complete  +'+(bonus+B.placed*50),false,1.8);sfx.fit();setTimeout(sfx.fit,250);
+  } else if(B.timer<=0){B.timer=0;B.done=1;B.endT=1.4;B.drag=null;flash('Time is up  +'+B.placed*50,true,1.4,'late');sfx.miss()}
+}
+function toStage(e){const r=stage.getBoundingClientRect();return [(e.clientX-r.left)/SCALE,(e.clientY-r.top)/SCALE]}
+stage.addEventListener('pointerdown',e=>{
+  if(S.mode!=='bonus'||S.bonus.done||e.target.closest('button,.panel'))return;
+  const [x,y]=toStage(e);let best=null,bd=40;
+  for(const pc of S.bonus.pieces){if(pc.placed)continue;const d=Math.hypot(pc.x-x,pc.y-y);if(d<bd){bd=d;best=pc}}
+  if(best){S.bonus.drag=best;best.ox=best.x-x;best.oy=best.y-y-18;sfx.pose();try{stage.setPointerCapture(e.pointerId)}catch(_){}}
+});
+stage.addEventListener('pointermove',e=>{
+  const B=S.bonus;if(S.mode!=='bonus'||!B||!B.drag)return;
+  const [x,y]=toStage(e);B.drag.x=x+B.drag.ox;B.drag.y=y+B.drag.oy;
+});
+stage.addEventListener('pointerup',e=>{
+  const B=S.bonus;if(S.mode!=='bonus'||!B||!B.drag)return;
+  const pc=B.drag;B.drag=null;
+  let near=null,nd=34;for(const z of B.slots){if(z.filled)continue;const d=Math.hypot(z.x-pc.x,z.y-pc.y);if(d<nd){nd=d;near=z}}
+  if(!near)return;
+  const fit=B.slots.filter(z=>!z.filled&&z.sig===pc.sig).sort((a,b)=>Math.hypot(a.x-pc.x,a.y-pc.y)-Math.hypot(b.x-pc.x,b.y-pc.y))[0];
+  if(near.sig===pc.sig||(fit&&Math.hypot(fit.x-pc.x,fit.y-pc.y)<40)){
+    const z=near.sig===pc.sig?near:fit;
+    z.filled=true;pc.placed=true;pc.x=z.x;pc.y=z.y;pc.t=.6;B.placed++;S.score+=50;sfx.fit();
+  } else {sfx.bonk();flash('That one does not fit there',true,1,'person')}
+});
+function muralFig(p,cx,cy,u,rot,flip,mode,col){
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rot*Math.PI/180);if(flip)ctx.scale(-1,1);
+  const x=-3.5*u,y=-4*u;
+  if(mode==='slot'){
+    figure(p,x,y,u,'#d6d6d6',.95);figure(p,x,y,u,'#232323',.5);
+  } else {
+    figure(p,x,y,u,'#ffffff',.95);figure(p,x,y,u,col,.5);
+  }
+  ctx.restore();
+}
+function ticks(cx,cy,u,rot,t){
+  // little action lines around a finished figure
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rot*Math.PI/180);ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineCap='round';ctx.lineWidth=u*.3;
+  const wob=t>0?Math.sin(t*40)*u*.3:0;
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sy])=>{
+    for(let k=0;k<2;k++){const a=Math.atan2(sy*4,sx*4.2)+(k?.22:-.22);const r0=4.7*u+wob,r1=r0+1.1*u;
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*r0,Math.sin(a)*r0);ctx.lineTo(Math.cos(a)*r1,Math.sin(a)*r1);ctx.stroke()}
+  });
+  ctx.restore();
+}
+function drawBonus(){
+  const B=S.bonus;
+  drawWall();
+  ctx.fillStyle='#cfd0cd';ctx.fillRect(0,PLAT+40,W,H);
+  // ad frame on the station wall
+  ctx.fillStyle='#9ea2a5';rr(PANEL.x-6,PANEL.y-6,PANEL.w+12,PANEL.h+12,6);ctx.fill();
+  ctx.fillStyle='#141414';ctx.fillRect(PANEL.x,PANEL.y,PANEL.w,PANEL.h);
+  ctx.fillStyle='rgba(255,255,255,.04)';for(let x=PANEL.x+82;x<PANEL.x+PANEL.w;x+=82)ctx.fillRect(x,PANEL.y,1,PANEL.h);
+  ctx.save();ctx.beginPath();ctx.rect(PANEL.x,PANEL.y,PANEL.w,PANEL.h);ctx.clip();
+  for(const z of B.slots)if(!z.filled)muralFig(z.p,z.x,z.y,MU,z.rot,z.flip,'slot');
+  for(const pc of B.pieces)if(pc.placed){muralFig(pc.p,pc.x,pc.y,MU,pc.rot,pc.flip,'piece',pc.col);ticks(pc.x,pc.y,MU,pc.rot,pc.t)}
+  ctx.restore();
+  // chalk tray
+  ctx.fillStyle=INK;rr(PANEL.x-6,412,PANEL.w+12,214,10);ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillRect(PANEL.x+6,420,PANEL.w-12,2);
+  ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.textAlign='left';ctx.fillText('DRAG EACH FIGURE ONTO THE WALL',PANEL.x+6,436);
+  for(const pc of B.pieces)if(!pc.placed&&pc!==B.drag)muralFig(pc.p,pc.x,pc.y,TU,pc.rot,pc.flip,'piece',pc.col);
+  if(B.drag){const pc=B.drag,inPanel=pc.y<PANEL.y+PANEL.h+20;
+    ctx.save();ctx.globalAlpha=.95;muralFig(pc.p,pc.x,pc.y,inPanel?MU:TU*1.15,pc.rot,pc.flip,'piece',pc.col);ctx.restore()}
+  // header band
+  ctx.fillStyle=INK;ctx.fillRect(0,0,W,104);ctx.fillStyle='#fff';ctx.fillRect(12,10,W-24,2);
+  bullet(32,52,17,'★','#ffffff',INK);
+  ctx.textAlign='left';ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('SCORE',58,36);
+  ctx.fillStyle='#fff';ctx.font=f(700,24);ctx.fillText(String(S.score),58,61);
+  ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('BONUS MURAL',58,80);
+  const hot=!B.done&&B.timer<=5, blink=hot&&Math.floor(performance.now()/250)%2;
+  ctx.textAlign='center';ctx.font=f(700,52);ctx.fillStyle=hot&&!blink?RED:'#fff';ctx.fillText(Math.ceil(B.timer),W/2,72);
+  ctx.fillStyle='#333';ctx.fillRect(W/2-46,84,92,4);ctx.fillStyle=hot?RED:'#fff';ctx.fillRect(W/2-46,84,92*Math.max(0,B.timer/B.timerMax),4);
+  ctx.textAlign='right';ctx.fillStyle='#9a9a9a';ctx.font=f(700,9);ctx.fillText('FIGURES',W-16,36);
+  ctx.fillStyle='#fff';ctx.font=f(700,24);ctx.fillText(B.placed+'/'+B.slots.length,W-16,61);
+  if(S.msgT>0&&S.msg){const h=30;ctx.font=f(700,h*.42);const w=Math.min(W-16,ctx.measureText(S.msg).width+h*1.25);
+    ctx.globalAlpha=Math.min(1,S.msgT*3);strip(W/2-w/2,PANEL.y+PANEL.h/2-h/2,w,h,[S.msg],S.msgIcon);ctx.globalAlpha=1;}
+}
+
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(S.mode==='title')setupIdle();
+  update(dt);
+  if(S.mode!=='bonus'){drawWall();drawCar(S.carX||0);drawPlatform();}
+  if(S.mode==='bonus'){updateBonus(dt);drawBonus()}
+  else if(S.mode==='play'){drawRider();drawHUD()}
+  requestAnimationFrame(frame);
+}
+document.querySelectorAll('.ico').forEach(c=>{
+  const d=2;c.width=84*d;c.height=84*d;const g=c.getContext('2d');const save=ctx;
+  ctx=g;g.setTransform(d,0,0,d,0,0);
+  if(c.dataset.k==='go'){goIcon(42,42,40)}else{g.fillStyle='#fff';g.beginPath();g.arc(42,42,41,0,7);g.fill();noIcon(42,42,40,c.dataset.k)}
+  ctx=save;
+});
+requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>

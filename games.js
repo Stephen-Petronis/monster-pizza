@@ -137,5 +137,13 @@ window.MONSTER_PIZZA = {
       screen: "games/witchity-witch/screen.gif",      // no drawn cabinet yet: uses the built-in one
       color: "#7a3fd1",
     },
+    {
+      id: "stand-clear",
+      title: "Stand Clear of the Closing Doors",
+      blurb: "Strike the right pose and squeeze onto the train before the doors shut. Bonus chalk murals every 3 trains.",
+      url: "games/stand-clear/index.html",           // lives inside this repo
+      screen: "games/stand-clear/screen.gif",         // no drawn cabinet yet: uses the built-in one
+      color: "#ee352e",
+    },
   ],
 };
