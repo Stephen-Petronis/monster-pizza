@@ -200,6 +200,19 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
 .item.soon{cursor:default}
 .item.soon img{filter:drop-shadow(3px 5px 0 rgba(31,21,18,.35)) saturate(.75)}
 @media (max-width:600px){#shop .shelves{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 14px}.item .pic{height:150px}.item img{max-height:140px}.item .tag{font-size:15px}}
+/* ---------- feed-the-monster tip machine ---------- */
+.tipjar{position:absolute;top:calc(25*var(--u));width:calc(18*var(--u));height:calc(60*var(--u));display:block;border-radius:calc(2*var(--u));cursor:pointer}
+.tipjar:hover,.tipjar:focus-visible{background:radial-gradient(ellipse at 50% 45%,rgba(190,140,255,.3),transparent 70%)}
+.tipjar .quarter{position:absolute;left:calc(5.6*var(--u));top:calc(25*var(--u));width:calc(4*var(--u));height:calc(4*var(--u));border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff,#c9c4cf 55%,#8d8896);border:calc(.35*var(--u)) solid var(--ink);box-sizing:border-box;
+  font:700 calc(1.5*var(--u))/calc(3.3*var(--u)) var(--f-arcade);text-align:center;color:var(--ink);opacity:0;pointer-events:none}
+.tipjar .thanks{position:absolute;left:50%;top:calc(-6*var(--u));transform:translateX(-50%) scale(.6);white-space:nowrap;background:var(--paper);color:var(--sauce);
+  border:3px solid var(--ink);border-radius:14px;padding:2px 10px;font-weight:700;font-size:calc(2.6*var(--u));opacity:0;pointer-events:none}
+.tipjar.chomp .quarter{animation:coinIn .55s cubic-bezier(.4,0,.6,1) forwards}
+.tipjar.chomp .thanks{animation:thanks 1.9s ease-out .5s forwards}
+@keyframes coinIn{0%{opacity:1;transform:translate(calc(-12*var(--u)),calc(-16*var(--u))) rotate(0)}60%{opacity:1;transform:translate(calc(-2*var(--u)),calc(-6*var(--u))) rotate(300deg)}
+  100%{opacity:0;transform:translate(0,0) rotate(420deg) scale(.4)}}
+@keyframes thanks{0%{opacity:0;transform:translateX(-50%) scale(.6)}15%{opacity:1;transform:translateX(-50%) scale(1.08)}25%,80%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(calc(-2*var(--u)))}}
 /* ---------- "more games" monster hand ---------- */
 #more{position:absolute;z-index:2;left:calc(50% + 21*var(--u));top:calc(47*var(--u));display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:0;padding:0;cursor:pointer;transition:opacity .45s,transform .45s}
@@ -698,6 +711,37 @@ function drawWall(ctx, w, h, seed, kind, gx, decorOnly) {
         p.shape([[ax, 20.5 * u], [ax + aw, 20.5 * u], [ax + aw, 25.5 * u], [ax + aw / 2, 27.2 * u], [ax, 25.5 * u]], i % 2 ? "#fbf0d6" : "#d6452d", lw * .7);
       }
     }
+    if (CFG.tip) {
+      const x0 = (CFG.shop ? 95 : 44) * u, mw = 15 * u;
+      // sign
+      p.rect(x0 - 1.5 * u, 25.5 * u, mw + 3 * u, 6.5 * u, "#f4b63e", lw);
+      ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      let tfs = 3.6 * u; ctx.font = `700 ${tfs}px "Gaegu", cursive`;
+      const tlab = (CFG.tip.label || "FEED ME").toUpperCase();
+      while (ctx.measureText(tlab).width > mw && tfs > u) { tfs -= u * .1; ctx.font = `700 ${tfs}px "Gaegu", cursive`; }
+      ctx.fillText(tlab, x0 + mw / 2, 28.9 * u);
+      p.line(x0 + 4 * u, 32 * u, x0 + 4 * u, 38 * u, lw * .8); p.line(x0 + mw - 4 * u, 32 * u, x0 + mw - 4 * u, 38 * u, lw * .8);
+      // horns + body
+      p.shape([[x0 + 1.5 * u, 38 * u], [x0 - .5 * u, 33.5 * u], [x0 + 4 * u, 38 * u]], "#fbf0d6", lw * .8);
+      p.shape([[x0 + mw - 1.5 * u, 38 * u], [x0 + mw + .5 * u, 33.5 * u], [x0 + mw - 4 * u, 38 * u]], "#fbf0d6", lw * .8);
+      p.rect(x0, 38 * u, mw, 46 * u, "#7b4bc4", lw * 1.2);
+      p.rect(x0 + mw - 2.2 * u, 38.5 * u, 1.6 * u, 45 * u, "rgba(0,0,0,.18)", 0);
+      // eyes
+      [4.3, 10.7].forEach((ex) => {
+        p.circ(x0 + ex * u, 44 * u, 2.5 * u, 2.5 * u, "#fbf0d6", lw * .8);
+        p.circ(x0 + (ex - .3) * u, 44.6 * u, 1.05 * u, 0, INK, 0);
+      });
+      p.line(x0 + 2 * u, 40.6 * u, x0 + 6.4 * u, 41.6 * u, lw); p.line(x0 + 13 * u, 40.6 * u, x0 + 8.6 * u, 41.6 * u, lw);
+      // mouth = coin slot
+      p.rect(x0 + 2.5 * u, 49 * u, 10 * u, 7 * u, "#160e0c", lw);
+      for (let i = 0; i < 4; i++) p.shape([[x0 + (2.9 + i * 2.4) * u, 49.3 * u], [x0 + (5.1 + i * 2.4) * u, 49.3 * u], [x0 + (4 + i * 2.4) * u, 51.6 * u]], "#fbf0d6", lw * .5);
+      p.rect(x0 + 5.5 * u, 58 * u, 4 * u, 3 * u, "#fbf0d6", lw * .6);
+      ctx.fillStyle = INK; ctx.font = `700 ${2.1 * u}px "Gaegu", cursive`; ctx.fillText("25¢", x0 + 7.5 * u, 59.6 * u);
+      ctx.fillStyle = "#fbf0d6"; ctx.font = `700 ${2.6 * u}px "Gaegu", cursive`; ctx.fillText("TIPS ♥", x0 + 7.5 * u, 65.5 * u);
+      // coin return
+      p.rect(x0 + 4 * u, 70 * u, 7 * u, 5 * u, "#2b1d18", lw * .8);
+      p.line(x0 + 4.5 * u, 70.6 * u, x0 + 10.5 * u, 70.6 * u, u * .5, "#c9c4cf", 1);
+    }
     p.shape([[cx - 15 * u, 84 * u], [cx - 13 * u, 30 * u], [cx - 8 * u, 22 * u], [cx + 9 * u, 21 * u], [cx + 14 * u, 30 * u], [cx + 16 * u, 84 * u],
       [cx + 9 * u, 82 * u], [cx + 3 * u, 85 * u], [cx - 4 * u, 82 * u], [cx - 10 * u, 85 * u]], "#efe7d6", lw * 1.2);
     for (let i = 0; i < 4; i++) p.line(cx - 8 * u + i * 5 * u, 32 * u, cx - 10 * u + i * 6 * u, 80 * u, u * .3, "rgba(31,21,18,.35)", 1);
@@ -831,9 +875,10 @@ function build() {
     seg.id = g.id || ("game-" + (i + 1));
     seg.setAttribute("aria-label", g.title);
   });
-  const right = add("right", CFG.shop ? Math.round(H * .95) : CAP, GAMES.length + 1, CFG.rightCap,
-    CFG.shop ? `<button class="shopdoor" aria-label="Open the gift shop">${(CFG.shop.items || []).slice(0, 3).map((it, k) =>
-      `<img class="wi wi${k}" src="${String(it.image || "").replace(/"/g, "&quot;")}" alt="" draggable="false">`).join("")}</button>` : "");
+  const right = add("right", Math.round(H * ((CFG.shop ? .95 : .6) + (CFG.tip ? .22 : 0))), GAMES.length + 1, CFG.rightCap,
+    (CFG.tip ? tipHTML() : "") + (CFG.shop ? `<button class="shopdoor" aria-label="Open the gift shop">${(CFG.shop.items || []).slice(0, 3).map((it, k) =>
+      `<img class="wi wi${k}" src="${String(it.image || "").replace(/"/g, "&quot;")}" alt="" draggable="false">`).join("")}</button>` : ""));
+  if (CFG.tip) right.querySelector(".tipjar").addEventListener("click", feedMonster);
   if (CFG.shop) right.querySelector(".shopdoor").addEventListener("click", () => openShop());
   const firstSeg = track.children[1]; if (firstSeg && GAMES.length > 1) firstSeg.appendChild($("more"));
   if (tiled) layTiles(gx, H);
@@ -953,6 +998,37 @@ if (CFG.shop) {
   li.innerHTML = `<button id="menuShop"><span class="chip" style="background:var(--cheese)"></span>Gift Shop</button>`;
   $("menuOutside").closest("ol").prepend(li);
   $("menuShop").addEventListener("click", () => { setMenu(false); openShop(); });
+}
+
+function tipHTML() {
+  const url = String(CFG.tip.url || "").replace(/"/g, "&quot;");
+  return `<a class="tipjar" style="left:calc(${CFG.shop ? 93.5 : 42.5}*var(--u))" ${url ? `href="${url}" target="_blank" rel="noopener"` : `href="#"`}
+    aria-label="Feed the monster a quarter: tip Stephen"><span class="quarter">25</span><span class="thanks"></span></a>`;
+}
+function feedMonster(e) {
+  const a = e.currentTarget;
+  if (!CFG.tip.url) e.preventDefault();
+  a.querySelector(".thanks").textContent = CFG.tip.url ? (CFG.tip.thanks || "THANK YOU!") : "COMING SOON";
+  a.classList.remove("chomp"); void a.offsetWidth; a.classList.add("chomp");
+  clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove("chomp"), 2200);
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audio.currentTime;
+    [[1568, .0, .09], [2093, .08, .14], [180, .42, .08], [140, .52, .1]].forEach(([f, d, len], k) => {
+      const o = audio.createOscillator(), g = audio.createGain(); o.type = k < 2 ? "triangle" : "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(.06, t + .35 + d); g.gain.exponentialRampToValueAtTime(.001, t + .35 + d + len);
+      o.connect(g).connect(audio.destination); o.start(t + .35 + d); o.stop(t + .35 + d + len + .02);
+    });
+  } catch (err) { /* no sound */ }
+}
+if (CFG.tip) {
+  const li = document.createElement("li");
+  li.innerHTML = `<button id="menuTip"><span class="chip" style="background:#7b4bc4"></span>Feed the monster (tip)</button>`;
+  $("menuOutside").closest("ol").prepend(li);
+  $("menuTip").addEventListener("click", () => {
+    setMenu(false);
+    hall.scrollTo({ left: hall.scrollWidth, behavior: REDUCED ? "auto" : "smooth" });
+  });
 }
 
 function exitArcade() {

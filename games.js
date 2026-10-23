@@ -33,6 +33,15 @@ window.MONSTER_PIZZA = {
   exitUrl: "https://stephen-petronis.itch.io/syllitown",
   exitLabel: "SYLLI TOWN",
 
+  // The "feed the monster" quarter machine at the end of the hallway.
+  // Paste your tip/donation link in url (Ko-fi, Buy Me a Coffee, PayPal.me, Venmo, Cash App, GoFundMe...).
+  // Leave url empty and the machine says COMING SOON.
+  tip: {
+    url: "",
+    label: "FEED ME",
+    thanks: "THANK YOU!",
+  },
+
   // The gift shop window at the end of the hallway. The first 3 items show up in the window.
   // For each item: a picture, a price, and the link to buy it (Etsy, Shopify, Printful, etc.).
   // soon: true shows it as COMING SOON and doesn't link anywhere.
