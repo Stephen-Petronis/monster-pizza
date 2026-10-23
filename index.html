@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Monster Pizza</title>
+<script data-goatcounter="https://monster-pizza.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Rubik+Doodle+Shadow&family=Silkscreen&display=swap">
@@ -329,6 +330,15 @@ const INK = "#1f1512";
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
 const $ = (id) => document.getElementById(id);
+
+/* analytics (GoatCounter): events show up as paths like play/whack-a-ghost */
+function logEvent(path, title) {
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title: title || path, event: true }); } catch (e) {}
+}
+function bucket(ms) {
+  const m = ms / 60000;
+  return m < 1 ? "under-1-min" : m < 5 ? "1-5-min" : m < 15 ? "5-15-min" : "15-plus-min";
+}
 
 /* ============ hand-drawn pen ============ */
 function seeded(a) {
@@ -956,12 +966,27 @@ track.addEventListener("click", (e) => {
   if (!cab) return;
   if (justDragged) { e.preventDefault(); return; }
   const g = GAMES[+cab.dataset.i];
-  if (!CAN_EMBED || !g || !g.url) return; // falls through to a normal new-tab link
+  if (g) logEvent("play/" + g.id, "Played " + g.title);
+  if (!CAN_EMBED || !g || !g.url) { if (g) logEvent("new-tab/" + g.id, "Opened in its own tab: " + g.title); return; } // falls through to a normal new-tab link
   e.preventDefault();
   $("playerTitle").textContent = g.title; $("playerOpen").href = g.url;
   frameEl.src = g.url; player.hidden = false; $("closePlayer").focus();
+  playing = { id: g.id, title: g.title, start: Date.now(), away: 0, hiddenAt: 0 };
 });
-function closePlayer() { player.hidden = true; frameEl.src = "about:blank"; hall.focus({ preventScroll: true }); }
+let playing = null;
+function endPlay() {
+  if (!playing) return;
+  const ms = Date.now() - playing.start - playing.away;
+  logEvent("time/" + playing.id + "/" + bucket(ms), playing.title + " played " + bucket(ms).replace(/-/g, " "));
+  playing = null;
+}
+document.addEventListener("visibilitychange", () => {
+  if (!playing) return;
+  if (document.hidden) playing.hiddenAt = Date.now();
+  else if (playing.hiddenAt) { playing.away += Date.now() - playing.hiddenAt; playing.hiddenAt = 0; }
+});
+window.addEventListener("pagehide", () => { if (playing && playing.hiddenAt) playing.away += Date.now() - playing.hiddenAt; endPlay(); });
+function closePlayer() { endPlay(); player.hidden = true; frameEl.src = "about:blank"; hall.focus({ preventScroll: true }); }
 $("closePlayer").addEventListener("click", closePlayer);
 
 /* menu */
@@ -981,6 +1006,7 @@ if (CFG.exitUrl) {
 const shopEl = $("shop");
 function openShop() {
   const sh = CFG.shop; if (!sh) return;
+  logEvent("gift-shop", "Opened the gift shop");
   const esc = (t) => String(t || "").replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
   $("shelves").innerHTML = (sh.items || []).map((it) => {
     const live = it.url && !it.soon;
@@ -993,6 +1019,10 @@ function openShop() {
 }
 function closeShop() { shopEl.hidden = true; hall.focus({ preventScroll: true }); }
 $("closeShop").addEventListener("click", closeShop);
+$("shelves").addEventListener("click", (e) => {
+  const it = e.target.closest("a.item"); if (!it) return;
+  logEvent("shop-item/" + (it.querySelector("img").alt || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-"), "Clicked shop item: " + it.querySelector("img").alt);
+});
 if (CFG.shop) {
   const li = document.createElement("li");
   li.innerHTML = `<button id="menuShop"><span class="chip" style="background:var(--cheese)"></span>Gift Shop</button>`;
@@ -1007,6 +1037,7 @@ function tipHTML() {
 }
 function feedMonster(e) {
   const a = e.currentTarget;
+  logEvent("tip-machine", CFG.tip.url ? "Fed the monster (tip link)" : "Fed the monster (no link yet)");
   if (!CFG.tip.url) e.preventDefault();
   a.querySelector(".thanks").textContent = CFG.tip.url ? (CFG.tip.thanks || "THANK YOU!") : "COMING SOON";
   a.classList.remove("chomp"); void a.offsetWidth; a.classList.add("chomp");
@@ -1033,7 +1064,8 @@ if (CFG.tip) {
 
 function exitArcade() {
   if (!CFG.exitUrl) return leave();
-  try { (window.top || window).location.href = CFG.exitUrl; } catch (e) { location.href = CFG.exitUrl; }
+  logEvent("exit/" + (CFG.exitLabel || "exit").toLowerCase().replace(/\s+/g, "-"), "Left through the door to " + (CFG.exitLabel || "the exit"));
+  setTimeout(() => { try { (window.top || window).location.href = CFG.exitUrl; } catch (e) { location.href = CFG.exitUrl; } }, 250);
 }
 $("logoBtn").addEventListener("click", () => leave());
 document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target)) setMenu(false); });
@@ -1050,6 +1082,7 @@ function showHall(on) {
 let built = false;
 function enter(target) {
   if (!shutterUp) liftShutter(false);
+  logEvent("enter-arcade", "Walked into the arcade");
   const go = () => tilesReady.then(() => {
     stopTown(); showHall(true);
     if (!built) { build(); built = true; }
