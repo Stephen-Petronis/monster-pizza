@@ -6,6 +6,8 @@ command -v node >/dev/null || { echo "First install Node.js: https://nodejs.org 
 xcode-select -p >/dev/null 2>&1 || { echo "First install Xcode from the Mac App Store and open it once, then run this again."; exit 1; }
 echo "== Installing Capacitor =="
 npm install
+echo "== Bundling the pixel font =="
+node scripts/localize-font.js
 echo "== Making the Xcode project =="
 [ -d ios ] || npx cap add ios
 echo "== Icons + launch screen (from the assets folder) =="
