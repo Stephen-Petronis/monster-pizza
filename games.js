@@ -49,6 +49,7 @@ window.MONSTER_PIZZA = {
     storeUrl: "",            // link to the whole store, shown at the top of the shop
     items: [
       { name: "Monster Pizza Tee",        image: "art/logo.webp",                      price: "", url: "", soon: true },
+      { name: "Monster Ice Poster",       image: "games/monster-ice/cabinet.webp",     price: "", url: "", soon: true },
       { name: "Hoofbeat Hills Sticker",   image: "games/hoofbeat-hills/cabinet.webp",  price: "", url: "", soon: true },
       { name: "Whack-A-Ghost Poster",     image: "games/whack-a-ghost/cabinet.webp",   price: "", url: "", soon: true },
       { name: "Nothing But Net Sticker",  image: "games/nothin-but-net/cabinet.webp",  price: "", url: "", soon: true },
@@ -59,6 +60,16 @@ window.MONSTER_PIZZA = {
   rightCap: "",  // the "more games coming" end
 
   games: [
+    {
+      id: "monster-ice",
+      title: "Monster Ice",
+      blurb: "3-on-3 monster hockey. Bites, frenzies, finishers, one big fight a game, and a Zamboni to cruise.",
+      url: "games/monster-ice/index.html",            // lives inside this repo
+      cabinet: "games/monster-ice/cabinet.webp",
+      screen: "games/monster-ice/screen.gif",         // vertical screen, like an old Galaga cabinet
+      screenBox: [28.12, 19.49, 43.75, 33.39],
+      color: "#3a9ae8",
+    },
     {
       id: "whack-a-ghost",
       title: "Whack-A-Ghost",
