@@ -2353,8 +2353,9 @@ function gameScene(){
   function guestDown(p){
     const q = { x: p.x, y: p.y }, j = P[1].joy; p.pl = 1;
     if (inBox(q, PILL.x - 3, PILL.y - 3, PILL.w + 6, PILL.h + 6)){ gsend('S+'); p.ui = true; return; }
-    if (onBtn(q, BTN_A)){ gA = p.id; gsend('A+'); p.ui = true; return; }
-    if (onBtn(q, BTN_B)){ gB = p.id; gsend('B+'); p.ui = true; return; }
+    // A and B need their release too (hold B = power shot, hold A = block), so don't mark them as one-tap UI
+    if (onBtn(q, BTN_A)){ gA = p.id; gsend('A+'); return; }
+    if (onBtn(q, BTN_B)){ gB = p.id; gsend('B+'); return; }
     if (joyZone(q) && j.id === null){ j.id = p.id; j.ox = q.x; j.oy = q.y; j.ux = j.uy = j.kx = j.ky = 0; }
   }
   function guestUp(p){
@@ -2392,7 +2393,7 @@ function gameScene(){
     if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
     else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
-  S._debug = () => ({ startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, set clock(v){ clock = v; } });
+  S._debug = () => ({ P, get CUR(){ return CUR; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, set clock(v){ clock = v; } });
   return S;
 }
 
