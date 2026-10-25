@@ -98,6 +98,8 @@ Stephen's songs, looped, from files in the same folder as `index.html`:
 - `fight-fight-fight.mp3`: when the gloves come off (the game song picks back up where it left off after the KO).
 - `skating-groove.mp3` (optional): menus and the Zamboni. Until it's added, the game song plays there too. The built-in chiptune only plays if no song file loads.
 
+Sound cues: in the **last 5 seconds** of every period the music dips and the clock beeps each second (the last beep is higher), and every **goal** sets off a Bride-of-Frankenstein scream siren (a rising, wobbling wail over a siren, ending in her hiss) while the music dips under it. Online, the guest hears all of it too.
+
 File names are in `CFG.music.tracks`; game-time volume is `CFG.music.gameVolume`.
 
 ## Tuning
