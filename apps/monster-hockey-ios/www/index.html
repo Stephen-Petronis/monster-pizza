@@ -103,7 +103,7 @@ const CFG = {
    and either reuse an existing special id in `sp` or add a new case in special(). */
 const ROSTER = [
   { id: 'vamp', name: 'VAMPIRE', short: 'VAMP', spd: 3, chk: 3, sht: 3, pas: 4, size: 1, sp: 'BITE', power: 'vamp',
-    desc: 'BITE: A FOE JOINS\nYOUR TEAM FOR 15S',
+    desc: 'BITE: A FOE JOINS\nYOUR TEAM (5-15S)',
     head: ['.kkkkk.', 'kkkkkkk', 'ksskssk', 'srsssrs', 'sssssss', '.swmws.', 'c.sss.c'],
     pal: { k: '#141018', s: '#e8e4f2', r: '#ff2a3a', w: '#ffffff', m: '#5a0a18', c: '#b0102a' }, arm: '#141018', legs: null },
   { id: 'wolf', name: 'WEREWOLF', short: 'WOLF', spd: 5, chk: 2, sht: 2, pas: 2, size: 1, sp: 'FRENZY', power: 'wolf',
@@ -398,6 +398,9 @@ const TINY = {
   0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'], 3: ['111', '001', '111', '001', '111'],
   4: ['101', '101', '111', '001', '001'], 5: ['111', '100', '111', '001', '111'], 6: ['111', '100', '111', '101', '111'], 7: ['111', '001', '010', '010', '010'],
   8: ['111', '101', '111', '101', '111'], 9: ['111', '101', '111', '001', '111'],
+  '.': ['000', '000', '000', '000', '010'], ',': ['000', '000', '000', '010', '100'], "'": ['010', '010', '000', '000', '000'], '+': ['000', '010', '111', '010', '000'],
+  '/': ['001', '001', '010', '100', '100'], '?': ['110', '001', '010', '000', '010'], '(': ['010', '100', '100', '100', '010'], ')': ['010', '001', '001', '001', '010'],
+  '=': ['000', '111', '000', '111', '000'], '%': ['101', '001', '010', '100', '101'],
 };
 function tiny(text, x, y, col, align = 'center', sh = '#000'){
   text = String(text).toUpperCase(); const w = text.length * 4 - 1;
@@ -971,7 +974,8 @@ function titleScene(){
   S.enter = () => { bs = [
     btn(36, 226, 108, 20, '1 PLAYER', () => { G.twoP = false; G.online = null; go(diffScene()); }),
     btn(36, 250, 108, 20, 'PLAY ONLINE', () => go(onlineScene()), '#5cc8ff'),
-    btn(36, 274, 108, 20, '2P ON IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
+    btn(8, 274, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
+    btn(92, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
     btn(8, 298, 80, 18, 'ZOMBONI', () => go(zamboniScene({ timed: CFG.zamboni.time })), '#b6ff4a'),
     btn(92, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
   ]; };
@@ -998,6 +1002,96 @@ function titleScene(){
       drawMonster(m, x, y, 1.6 * (m.size > 1 ? 1.15 : 1), TEAM[k % 2], { fx: 1, fy: 0.2, anim: TT * 2 + k, moving: true });
     });
     T('3 ON 3 SPOOKY HOCKEY', 90, 138, '#c9a0ff', 8);
+    bs.forEach(drawBtn);
+  };
+  return S;
+}
+
+/* ---------- THE MONSTERS: player cards (stats, special, fight style, pros + cons) ---------- */
+const CARDS = {
+  vamp: { role: 'THE TRICKSTER', fin: 'BLOOD MOON', fsp: 'BAT BITE', style: 'BLOODSUCKER', bite: 5,
+    sp: 'TURNS INTO A BAT, FLIES TO A FOE (THE PUCK CARRIER IF CLOSE) AND BITES. THAT PLAYER SKATES FOR YOU FOR A WHILE.',
+    fight: 'EVERY PUNCH THAT LANDS HEALS HIM. HIS BAT BITE HEALS HIM TOO.',
+    pros: ['BEST PASSER ON THE ICE', 'BITE STEALS A PLAYER: 4 ON 2!', 'NO REAL WEAK SPOT'],
+    cons: ['NOTHING ELITE BUT PASSING', 'BITES ON A VAMPIRE ONLY LAST 5S'] },
+  wolf: { role: 'THE SPEEDSTER', fin: 'HOWL SPIN', fsp: 'CLAW FURY', style: 'FLURRY', bite: 15,
+    sp: 'RIPS OUT OF HIS JERSEY AND GROWS: 5 SECONDS OF SUPER SPEED. CAN\'T BE CHECKED. ANYONE HE TOUCHES GOES FLYING AND LOSES THE PUCK. STAYS YOURS UNTIL YOU HIT SWAP.',
+    fight: 'FASTEST PUNCHES AND THE MOST STAMINA, BUT A WEAK GUARD AND HE TAKES EXTRA DAMAGE.',
+    pros: ['FASTEST SKATER', 'FRENZY WRECKS A DEFENSE', 'NEVER RUNS OUT OF GAS IN FIGHTS'],
+    cons: ['EASY TO KNOCK OVER', 'WEAK SHOT AND PASS', 'FRENZY CAN\'T TOPPLE FRANKENSTEIN'] },
+  gill: { role: 'THE SNIPER', fin: 'TIDAL WAVE', fsp: 'WATER CANNON', style: 'SLIPPERY', bite: 15,
+    sp: 'SWIMS UNDER THE ICE. WITH THE PUCK: POPS UP IN THE SLOT RIGHT IN FRONT OF THE NET. WITHOUT IT: POPS UP UNDER THE CARRIER AND STEALS IT.',
+    fight: 'A BIGGER COUNTER WINDOW, AND HIS FIGHT SPECIAL FILLS FASTER.',
+    pros: ['QUICK, WITH A GOOD SHOT', 'DIVE = INSTANT CHANCE ON NET', 'EASIEST COUNTERS IN FIGHTS'],
+    cons: ['LIGHT: EASY TO CHECK', 'JUST AN OK PASSER'] },
+  mummy: { role: 'THE DEFENDER', fin: 'TOMB SHOT', fsp: 'BANDAGE LASH', style: 'IRON GUARD', bite: 12,
+    sp: 'THROWS BANDAGES AT THE PUCK CARRIER (OR THE CLOSEST FOE). THEY\'RE STUCK FOR ABOUT 3 SECONDS AND DROP THE PUCK.',
+    fight: 'BLOCKING BARELY COSTS HIM STAMINA, AND HE TAKES LESS DAMAGE.',
+    pros: ['BIG CHECKER, HARD TO STRIP', 'WRAP SHUTS DOWN ANY RUSH', 'TOUGHEST BLOCKER IN FIGHTS'],
+    cons: ['SLOW', 'POOR PASSER'] },
+  frank: { role: 'THE WALL', fin: 'THUNDER SLAM', fsp: 'THUNDER PUNCH', style: 'HEAVY HITTER', bite: 8,
+    sp: 'LIGHTNING STRIKE + SHOCKWAVE KNOCKS DOWN EVERYONE NEARBY. THEN 5 SECONDS OF LIGHTNING SHOTS THAT GO RIGHT THROUGH THE GOALIE.',
+    fight: 'HUGE PUNCHES THAT CRUSH A GUARD, BUT HE TIRES FAST.',
+    pros: ['HARDEST SHOT', 'ONLY A FRANKENSTEIN CAN KNOCK HIM DOWN', 'BEST CHECKER'],
+    cons: ['SLOWEST SKATER', 'WORST PASSER', 'GASSES OUT FAST IN FIGHTS'] },
+};
+const TIPS = [
+  'NO GOALS FROM BEFORE THE BLUE LINE. GET IN CLOSE.',
+  'HOLD SHOOT TO MAX PAST THE BLUE LINE = FINISHER. IT ALWAYS SCORES.',
+  'TAP SHOOT AS A PASS ARRIVES (GOLD RING) = ONE-TIMER.',
+  'DEFENSE: TAP SHOOT = STEAL. TAP TWICE = BODY CHECK. SMALL GUYS BOUNCE OFF BIG GUYS.',
+  'PASS BACK TO YOUR GOALIE AND HE CATCHES IT.',
+  'THE SPECIAL BAR FILLS OVER TIME AND FROM BIG HITS.',
+  '3 KNOCKDOWNS (OR ONE LATE) START THE FIGHT. THE LOSER SITS 3 SECONDS.',
+  'FIGHTS: WATCH YOUR STAMINA. TAP BLOCK ON THE GOLD RING TO COUNTER A SPECIAL.',
+];
+function wrapTiny(text, max = 39){ const out = []; let line = ''; for (const w of text.split(' ')){ if ((line + ' ' + w).trim().length > max){ out.push(line); line = w; } else line = (line + ' ' + w).trim(); } if (line) out.push(line); return out; }
+function monstersScene(opts = {}){   // opts.page = which card to open on, opts.back = scene to return to (the team pick)
+  const S = { quit: true }; let page = opts.page || 0, bs, swipe = null;
+  const back = () => go(opts.back || titleScene());
+  const N = ROSTER.length + 1;   // one card per monster + a tips card
+  const turn = d => { page = (page + d + N) % N; SFX.tap(); };
+  S.enter = () => { bs = [btn(8, 296, 40, 18, '<', () => turn(-1), '#c9a0ff'), btn(62, 296, 56, 18, 'BACK', back, '#ffd23f'), btn(132, 296, 40, 18, '>', () => turn(1), '#c9a0ff')]; };
+  S.down = p => { if (hitBtn(bs, p)) return; swipe = { x: p.x, id: p.id }; };
+  S.up = p => { if (swipe && swipe.id === p.id){ const dx = p.x - swipe.x; if (Math.abs(dx) > 28) turn(dx < 0 ? 1 : -1); } swipe = null; };
+  S.key = (c, dn) => { if (!dn) return; if (c === 'ArrowLeft' || c === 'KeyA') turn(-1); else if (c === 'ArrowRight' || c === 'KeyD' || c === 'Space' || c === 'KeyZ') turn(1); else if (c === 'Escape' || c === 'Enter') back(); };
+  const para = (text, y, col) => { for (const l of wrapTiny(text)) { tiny(l, 14, y, col, 'left', null); y += 7; } return y; };
+  function stat(lbl, v, x, y, col){ tiny(lbl, x, y, '#c9b8f0', 'left', null); for (let i = 0; i < 5; i++) R(x + 15 + i * 9, y - 1, 8, 7, i < v ? col : '#2a1a4a'); }
+  S.draw = () => {
+    nightSky(12);
+    for (let k = 0; k < N; k++) C(90 - (N - 1) * 5 + k * 10, 290 - 0, k === page ? 3 : 2, k === page ? '#ffd23f' : '#4a3a6a');
+    if (page === ROSTER.length){ // tips card
+      R(7, 21, 166, 264, '#000'); R(8, 22, 164, 262, '#22143e'); R(8, 22, 164, 2, '#ffd23f');
+      T('HOW TO WIN', 90, 30, '#ffd23f', 12);
+      let y = 52; for (const t of TIPS){ R(14, y + 1, 3, 3, '#ff9a3a'); for (const l of wrapTiny(t, 37)){ tiny(l, 21, y, '#f7efe0', 'left', null); y += 7; } y += 6; }
+      T('NOW GO WIN!', 90, 268, '#b6ff4a', 8);
+      bs.forEach(drawBtn); return;
+    }
+    const m = ROSTER[page], c = CARDS[m.id] || CARDS.vamp, th = PLATE[m.power] || PLATE.frank;
+    // the card
+    R(7, 21, 166, 264, '#000'); R(8, 22, 164, 262, th.bg); R(8, 22, 164, 2, th.hi); R(8, 282, 164, 2, th.hi);
+    R(10, 25, 160, 20, th.fill); T(m.name, 90, 28, '#ffffff', 12);
+    tiny(c.role, 90, 48, th.hi, 'center', null);
+    // portrait + stats
+    R(13, 56, 52, 52, '#000'); R(14, 57, 50, 50, shade(th.bg, 1.5));
+    if (!drawHeadArt(m, HV.big, 39, 82, 46)) spr(m.head, m.pal, 22, 65, 5);
+    stat('SPD', m.spd, 72, 60, '#b6ff4a'); stat('CHK', m.chk, 72, 72, '#ff9a3a'); stat('SHT', m.sht, 72, 84, '#ff5d73'); stat('PAS', m.pas, 72, 96, '#9ce8ff');
+    // on the ice
+    R(12, 112, 156, 1, th.hi);
+    tiny('SPECIAL', 14, 116, '#c9b8f0', 'left', null); T(m.sp, 50, 115, '#ffd23f', 8, 'left', null);
+    let y = para(c.sp, 126, '#f7efe0');
+    tiny('FINISHER: ' + c.fin, 14, y + 1, th.hi, 'left', null); y += 11;
+    // fight style
+    R(12, y, 156, 1, th.hi); y += 4;
+    tiny('FIGHT', 14, y + 1, '#c9b8f0', 'left', null); T(c.style, 42, y, '#ffd23f', 8, 'left', null); y += 10;
+    y = para(c.fight, y, '#f7efe0');
+    tiny('FIGHT SPECIAL: ' + c.fsp, 14, y + 1, th.hi, 'left', null); y += 8;
+    tiny('IF BITTEN, PLAYS FOR THE VAMPIRE ' + c.bite + 'S', 14, y + 1, th.hi, 'left', null); y += 11;
+    // pros + cons
+    R(12, y, 156, 1, th.hi); y += 5;
+    for (const t of c.pros){ tiny('+', 14, y, '#b6ff4a', 'left', null); tiny(t, 21, y, '#c9f0a0', 'left', null); y += 7; }
+    y += 2;
+    for (const t of c.cons){ tiny('-', 14, y, '#ff5d73', 'left', null); tiny(t, 21, y, '#ffb0c0', 'left', null); y += 7; }
     bs.forEach(drawBtn);
   };
   return S;
@@ -1054,11 +1148,12 @@ function pickScene(stage = 0){
   const S = { quit: true }; let team = G[key] ? G[key].slice() : [], focus = team.length ? team[team.length - 1] : ROSTER[0].id, bs;
   const ROWY = k => 76 + k * 34, SLOTX = k => 14 + k * 56;
   function mk(){ bs = [
-    btn(12, 286, 72, 24, 'RANDOM', () => { team = []; while (team.length < 3) team.push(pick(ROSTER).id); focus = team[2]; mk(); }, '#c9a0ff'),
-    btn(96, 286, 72, 24, G.online ? 'READY!' : G.twoP && !stage ? 'NEXT' : 'PLAY!', () => { if (team.length < 3) return; G[key] = team.slice(); if (!stage) saveTeam();
+    btn(6, 286, 58, 24, 'RANDOM', () => { team = []; while (team.length < 3) team.push(pick(ROSTER).id); focus = team[2]; mk(); }, '#c9a0ff'),
+    btn(68, 286, 44, 24, 'INFO', () => go(monstersScene({ page: ROSTER.findIndex(m => m.id === focus), back: S })), '#ff5d73'),
+    btn(116, 286, 58, 24, G.online ? 'READY!' : G.twoP && !stage ? 'NEXT' : 'PLAY!', () => { if (team.length < 3) return; G[key] = team.slice(); if (!stage) saveTeam();
       if (G.online){ if (G.online === 'guest') netSend({ t: 'team', team: G[key] }); go(netWaitScene()); return; }
       go(G.twoP && !stage ? pickScene(1) : vsScene()); }),
-  ]; bs[1].dim = team.length < 3; }
+  ]; bs[2].dim = team.length < 3; }
   S.enter = mk;
   function add(id){ focus = id; if (team.length < 3){ team.push(id); SFX.pick(); } else SFX.nope(); mk(); }
   S.down = p => {
@@ -1072,7 +1167,8 @@ function pickScene(stage = 0){
     else if (c === 'ArrowUp' || c === 'KeyW'){ focus = ROSTER[(i + ROSTER.length - 1) % ROSTER.length].id; SFX.tap(); }
     else if (c === 'Space' || c === 'KeyZ') add(focus);
     else if (c === 'Backspace' || c === 'KeyX'){ if (team.length){ team.pop(); SFX.tap(); mk(); } }
-    else if (c === 'Enter' && team.length === 3) bs[1].fn();
+    else if (c === 'Enter' && team.length === 3) bs[2].fn();
+    else if (c === 'KeyI') bs[1].fn();
   };
   function stat(lbl, v, x, y){ T(lbl, x, y, '#8a7ab8', 8, 'left', null); for (let i = 0; i < 5; i++) R(x + 26 + i * 4, y, 3, 7, i < v ? '#b6ff4a' : '#3a2a5a'); }
   S.draw = () => {
@@ -2851,7 +2947,7 @@ function frame(now){
   if (netToast){ const w = Math.min(CW - 16, netToast.text.length * 8 + 16), x = (CW - w) / 2; R(x, 40, w, 20, '#000'); R(x + 1, 41, w - 2, 18, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(netToast.text, CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, NET, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { CFG, NET, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();

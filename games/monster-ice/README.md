@@ -36,6 +36,8 @@ Menus: arrows + Enter/Space (controller: d-pad + A or START). As soon as you pre
 **Passing back to your goalie:** he catches it, holds it a beat, then fires it out to your most open teammate. Opponents' shots still bounce off him.
 
 ## The monsters
+**MONSTERS** on the title screen (or **INFO** on the team pick) opens a player card for each monster: stats, what the special does, the finisher, the fight style, how long a bite lasts, pros and cons, plus a HOW TO WIN card with the hidden rules (blue line, finishers, one-timers, body checks, fights). Swipe or tap the arrows to flip. The card text lives in `CARDS` and `TIPS`.
+
 | Monster | SPD | CHK | SHT | PAS | Special |
 |---|---|---|---|---|---|
 | Vampire | 3 | 3 | 3 | 4 | **Bite** – turns into a bat, flies to a foe (the puck carrier if close) and bites. That player joins your team for a while, depending on who got bitten: Frankenstein 8 seconds, Mummy 12, Werewolf and Creature 15, another Vampire only 5 (`CFG.special.biteTimes`). |
