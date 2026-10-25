@@ -1,8 +1,10 @@
-# Monster Ice
+# Monster Hockey: "Ice Scream!"
+
+(Folder and repo name: monster-ice.)
 
 NES-style 3-on-3 hockey with classic monsters. Spun off from Rec Center Hockey in Super Sullivan. Part of the Monster Pizza arcade.
 
-**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **2 PLAYERS:** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZAMBONI:** just drive.
+**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **2 PLAYERS (iPad only for now):** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZAMBONI:** just drive.
 
 Games are **3 one-minute periods**. Tied after the third? **Sudden death:** the next goal wins.
 
