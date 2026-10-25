@@ -66,8 +66,8 @@ window.MONSTER_PIZZA = {
       blurb: "3-on-3 monster hockey. Bites, frenzies, finishers, one big fight a game, and a Zamboni to cruise.",
       url: "games/monster-ice/index.html",            // lives inside this repo
       cabinet: "games/monster-ice/cabinet.webp",
-      screen: "games/monster-ice/screen.gif",         // vertical screen, like an old Galaga cabinet
-      screenBox: [28.12, 19.49, 43.75, 33.39],
+      screen: "games/monster-ice/screen.gif",
+      screenBox: [19.04, 25.26, 61.91, 29.56],
       color: "#3a9ae8",
     },
     {

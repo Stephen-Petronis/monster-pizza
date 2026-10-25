@@ -1893,7 +1893,16 @@ function gameScene(){
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? 66 : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
     drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
-    if (L === 'L'){ drawPanel(P[0]); return; }
+    if (L === 'L'){
+      if (G.demo && rinkArt()){ // attract mode: fill the sides with more of the crowd instead of controls
+        const f = [0, 1, 2, 1][Math.floor(TT * 5) % 4];
+        for (let x = 0; x < 110; x += 22) ctx.drawImage(RINK_IMG, 0, f * 267 + 30, 22, 237, x, 8, 22, 237);
+        for (let x = 290; x < 400; x += 21) ctx.drawImage(RINK_IMG, 157, f * 267 + 30, 21, 237, x, 8, 21, 237);
+        R(0, 0, 110, 8, '#120a22'); R(290, 0, 110, 8, '#120a22'); R(0, 245, 110, 9, '#120a22'); R(290, 245, 110, 9, '#120a22');
+        return;
+      }
+      drawPanel(P[0]); return;
+    }
     ctx.save(); ctx.translate(0, 66); drawPanel(P[0]); ctx.restore();
     ctx.save(); ctx.translate(W, 320); ctx.rotate(Math.PI); drawPanel(P[1]); ctx.restore();
   };
