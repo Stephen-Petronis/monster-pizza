@@ -38,7 +38,7 @@ Menus: arrows + Enter/Space (controller: d-pad + A or START). As soon as you pre
 ## The monsters
 | Monster | SPD | CHK | SHT | PAS | Special |
 |---|---|---|---|---|---|
-| Vampire | 3 | 3 | 3 | 4 | **Bite** – turns into a bat, flies to a foe (the puck carrier if close) and bites. That player joins your team for 15 seconds. |
+| Vampire | 3 | 3 | 3 | 4 | **Bite** – turns into a bat, flies to a foe (the puck carrier if close) and bites. That player joins your team for a while, depending on who got bitten: Frankenstein 8 seconds, Mummy 12, Werewolf and Creature 15, another Vampire only 5 (`CFG.special.biteTimes`). |
 | Werewolf | 5 | 2 | 2 | 2 | **Frenzy** – rips out of his jersey and grows. 5 seconds of super speed; stays your player (even after a pass) until you hit SWAP; can't be checked, and anyone he touches goes flying (and loses the puck). |
 | Creature | 4 | 2 | 4 | 3 | **Dive** – swims under the ice. With the puck: pops up in the slot in front of the goal. Without: pops up under the puck carrier and steals it. |
 | Mummy | 2 | 4 | 3 | 2 | **Wrap** – throws bandages at the carrier (or nearest foe); they're stuck for ~3 seconds and drop the puck. |

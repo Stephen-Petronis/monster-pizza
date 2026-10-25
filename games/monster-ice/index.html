@@ -68,7 +68,8 @@ const CFG = {
     fill: 1 / 20,      // meter per second (1/20 = full in 20 seconds)
     oppFill: 0.8,      // CPU meters fill at this fraction of yours
     checkBonus: 0.12,  // meter boost for a good check
-    biteTime: 15,      // VAMPIRE: seconds a bitten player plays for you
+    biteTime: 15,      // VAMPIRE: seconds a bitten player plays for you...
+    biteTimes: { frank: 8, mummy: 12, wolf: 15, gill: 15, vamp: 5 },   // ...depending on who got bitten (Frankenstein shakes it off fast; a vampire barely feels it)
     frenzyTime: 5,     // WEREWOLF: seconds of frenzy
     frenzyBoost: 1.7,  // WEREWOLF: speed multiplier in frenzy
     diveTime: 1.1,     // CREATURE: seconds under the ice
@@ -1520,8 +1521,8 @@ function gameScene(){
     if (!t || gone(t) || t.team === s.team) return;
     burst(parts, t.x, t.y - 10, 14, ['#2a1a3a', '#5a2a7a', '#ff3a3a'], 70, 40, 0.7, 2); SFX.bite();
     if (teamOf(t.team).length <= 1){ t.stun = 1.2; return; }
-    moveTeam(t, s.team); t.conv = SP.biteTime; t.stun = 0.5; t.cool = 0.4; t.frenzy = 0; t.fy = s.team === 0 ? -1 : 1;
-    floater(floats, t.x, t.y - 26, 'BITTEN!', '#ff5d73');
+    moveTeam(t, s.team); t.conv = (SP.biteTimes && SP.biteTimes[t.m.power]) || SP.biteTime; t.stun = 0.5; t.cool = 0.4; t.frenzy = 0; t.fy = s.team === 0 ? -1 : 1;
+    floater(floats, t.x, t.y - 26, 'BITTEN! ' + Math.round(t.conv) + 'S', '#ff5d73');
     fixAll();
   }
   function revert(s){
