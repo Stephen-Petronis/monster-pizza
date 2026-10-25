@@ -35,5 +35,19 @@ service cloud.firestore {
 
       allow update, delete: if false;
     }
+
+    // Monster Hockey online: a 4-letter room code holds the host's hello (o); the guest writes its reply (a) once.
+    // Nothing else is stored, and nobody can list the rooms.
+    match /mi_rooms/{code} {
+      allow get: if code.matches('[A-HJ-NP-Z]{4}');
+      allow create: if code.matches('[A-HJ-NP-Z]{4}')
+        && request.resource.data.keys().hasOnly(['o', 't'])
+        && request.resource.data.o is string && request.resource.data.o.size() < 20000
+        && request.resource.data.t is timestamp;
+      allow update: if !('a' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['a'])
+        && request.resource.data.a is string && request.resource.data.a.size() < 20000;
+      allow list, delete: if false;
+    }
   }
 }

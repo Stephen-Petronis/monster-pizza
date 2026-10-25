@@ -4,11 +4,19 @@
 
 NES-style 3-on-3 hockey with classic monsters. Spun off from Rec Center Hockey in Super Sullivan. Part of the Monster Pizza arcade.
 
-**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **2 PLAYERS (iPad only for now):** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZOMBONI:** 15 seconds to clean up the rink in the zombie Zamboni (also offered as a break between periods).
+**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **PLAY ONLINE:** two devices, see below. **2P ON IPAD:** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZOMBONI:** 15 seconds to clean up the rink in the zombie Zamboni (also offered as a break between periods).
 
 Games are **3 one-minute periods**. Tied after the third? **Sudden death:** the next goal wins.
 
 **Turn your phone sideways** and the game switches to a controller layout: stick on the left, buttons and special on the right, rink in the middle. (2-player stays portrait.)
+
+## Play online (2 devices)
+**PLAY ONLINE** on the title screen. One player taps **HOST A GAME** and gets a 4-letter room code; the other taps **JOIN A GAME** and types it. The host picks the game speed, you each pick 3 monsters on your own device, a VS screen counts down 3-2-1, and you're on. The host is P1 (bottom net, shooting up), the guest is P2 (top net, shooting down). Specials, finishers and the fight all work; after the game, **PLAY AGAIN** keeps you connected and goes back to picking teams. If someone leaves mid-game, the CPU takes over their team.
+
+How it works (all free): the two devices connect straight to each other (WebRTC). The `monster-pizza` Firebase project only passes the hello messages under the room code (collection `mi_rooms`; it stores nothing else). The host's device runs the game; the guest's sends its stick and buttons and draws the ~20-a-second snapshots the host sends back, sounds included.
+- **Switch it on once:** paste `firestore.rules` into Firebase console > Firestore Database > Rules and Publish (it adds `mi_rooms`). Until then HOST says "ONLINE ISN'T SWITCHED ON YET".
+- **Wi-Fi works best.** Some cell networks block direct connections; when that happens JOIN says it couldn't connect. Fixing that for every network needs a paid relay (TURN) server, or Apple's Game Center in an App Store version.
+- Testing on one computer: open the game in two tabs with `#netlocal` at the end of the address (the hello goes through the browser instead of Firebase).
 
 ## Controls
 | Touch | Keyboard (1 player) | Controller | What it does |

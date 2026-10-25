@@ -505,7 +505,7 @@ function drawPlate(m, frac, label, P_, key){
 /* ---------- STORAGE ---------- */
 const KEY = 'monster-ice-v1';
 let muted = false; try { muted = localStorage.getItem(KEY + '-mute') === '1'; } catch (e) {}
-const G = { team: null, cpu: null, cpuName: '', diff: 'hard' };
+const G = { team: null, cpu: null, cpuName: '', diff: 'hard', online: null };   // online: 'host' | 'guest' | null
 try { const d = localStorage.getItem('monster-ice-v1-diff'); if (d === 'easy' || d === 'hard') G.diff = d; } catch (e) {}
 try { const t = JSON.parse(localStorage.getItem(KEY + '-team') || 'null'); if (Array.isArray(t) && t.length === 3 && t.every(id => MON[id])) G.team = t; } catch (e) {}
 function saveTeam(){ try { localStorage.setItem(KEY + '-team', JSON.stringify(G.team)); } catch (e) {} }
@@ -588,11 +588,13 @@ function setMusic(name, restart = true){
 }
 function musicDuck(v){ if (musicVol === v) return; musicVol = v; musicApply(0.4); }
 function tone(f, d, type = 'square', v = 0.25, slide = 0, delay = 0){
+  if (NET.rec) NET.sfx.push([0, f, d, type, v, slide, delay]);
   if (!AC) return; const t = AC.currentTime + delay; const o = AC.createOscillator(), g = AC.createGain();
   o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
   g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0008, t + d); o.connect(g); g.connect(MG); o.start(t); o.stop(t + d + 0.05);
 }
 function noise(d, v = 0.25, freq = 1500, delay = 0){
+  if (NET.rec) NET.sfx.push([1, d, v, freq, delay]);
   if (!AC) return;
   if (!NB){ NB = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const a = NB.getChannelData(0); for (let i = 0; i < a.length; i++) a[i] = Math.random() * 2 - 1; }
   const t = AC.currentTime + delay; const s = AC.createBufferSource(); s.buffer = NB; const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq;
@@ -634,7 +636,7 @@ const KEYMAP = {
 };
 const KEYNAME = { one: { a: 'Z', b: 'SPACE', sp: 'C' }, p1: { a: 'F', b: 'G', sp: 'H' }, p2: { a: 'J', b: 'K', sp: 'L' } };
 let INPUT = 'touch';   // 'touch' | 'keys' | 'pad' — the on-screen buttons show key names when you're on a keyboard
-const keyNames = team => INPUT === 'pad' ? { a: 'A', b: 'B', sp: 'Y' } : G.twoP ? (team ? KEYNAME.p2 : KEYNAME.p1) : KEYNAME.one;
+const keyNames = team => INPUT === 'pad' ? { a: 'A', b: 'B', sp: 'Y' } : G.twoP && !G.online ? (team ? KEYNAME.p2 : KEYNAME.p1) : KEYNAME.one;
 /* controllers: polled every frame, turned into the same key presses the keyboard makes */
 const PADS = [];
 function pollPads(){
@@ -661,7 +663,7 @@ stage.addEventListener('pointerdown', e => {
   const p = loc(e); p.id = e.pointerId; p.px = p.x; p.py = p.y; ptrs.set(e.pointerId, p);
   try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   if (inBox(p, CW - 20, CHROME_Y, 20, 20)){ p.ui = true; toggleMute(); return; }
-  if (scene && scene.quit && inBox(p, 0, CHROME_Y, 20, 20)){ p.ui = true; SFX.tap(); go(titleScene()); return; }
+  if (scene && scene.quit && inBox(p, 0, CHROME_Y, 20, 20)){ p.ui = true; SFX.tap(); if (G.online || NET.role) netClose(); go(titleScene()); return; }
   scene && scene.down && scene.down(p);
 });
 stage.addEventListener('pointermove', e => { const p = ptrs.get(e.pointerId); if (!p || p.ui) return; const q = loc(e); p.px = p.x; p.py = p.y; p.x = q.x; p.y = q.y; scene && scene.move && scene.move(p); });
@@ -735,6 +737,213 @@ async function hsPost(e){
   } catch (err) {}
 }
 hsRefresh();
+/* =========================================================
+   ONLINE (2 players, 2 devices). Free: the phones talk straight to each other (WebRTC);
+   the monster-pizza Firebase project only swaps the hello messages under a 4-letter room code
+   (collection mi_rooms). The HOST runs the real game; the GUEST sends stick + buttons and
+   draws the snapshots the host streams back (~20 a second, plus sound cues).
+   ========================================================= */
+const ROOM_LET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';   // no I or O (they look like 1 and 0)
+const NETLOCAL = /netlocal/.test(location.hash);   // testing: two tabs on one computer swap hellos through localStorage
+const NET = { role: null, code: '', pc: null, ctl: null, snap: null, up: false, dropped: false, closing: false, status: '', err: '',
+  inputs: [], sfx: [], rec: false, last: null, peerTeam: null, start: null, end: null, again: false };
+let netToast = null;   // { text, t } shown on top of any screen for a few seconds
+function toast(text){ netToast = { text, t: 3.5 }; }
+const SIG = {
+  async create(code, o){
+    if (NETLOCAL){ if (localStorage.getItem('mi-room-' + code)) return false; localStorage.setItem('mi-room-' + code, JSON.stringify({ o, t: Date.now() })); return true; }
+    const r = await fetch(FS_BASE() + '/mi_rooms?documentId=' + code + '&key=' + FIREBASE.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { o: { stringValue: o }, t: { timestampValue: new Date().toISOString() } } }) });
+    if (r.status === 409) return false;
+    if (!r.ok) throw new Error('rooms ' + r.status);
+    return true;
+  },
+  async get(code){
+    if (NETLOCAL){ const v = localStorage.getItem('mi-room-' + code); return v ? JSON.parse(v) : null; }
+    const r = await fetch(FS_BASE() + '/mi_rooms/' + code + '?key=' + FIREBASE.apiKey);
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('rooms ' + r.status);
+    const f = (await r.json()).fields || {};
+    return { o: f.o && f.o.stringValue, a: f.a && f.a.stringValue, t: f.t ? Date.parse(f.t.timestampValue) : 0 };
+  },
+  async answer(code, a){
+    if (NETLOCAL){ const v = JSON.parse(localStorage.getItem('mi-room-' + code)); v.a = a; localStorage.setItem('mi-room-' + code, JSON.stringify(v)); return; }
+    const r = await fetch(FS_BASE() + '/mi_rooms/' + code + '?updateMask.fieldPaths=a&key=' + FIREBASE.apiKey, { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { a: { stringValue: a } } }) });
+    if (!r.ok) throw new Error('rooms ' + r.status);
+  },
+};
+function netReset(){
+  Object.assign(NET, { role: null, code: '', pc: null, ctl: null, snap: null, up: false, dropped: false, closing: false, status: '', err: '',
+    inputs: [], sfx: [], rec: false, last: null, peerTeam: null, start: null, end: null, again: false, rx: 0, tx: 0 });
+}
+addEventListener('pagehide', () => { if (NET.up) netSend({ t: 'bye' }); });
+function netClose(){
+  if (NET.pc){ NET.closing = true; netSend({ t: 'bye' }); const pc = NET.pc; setTimeout(() => { try { pc.close(); } catch (e) {} }, 150); }
+  netReset(); G.online = null; G.twoP = false;
+}
+const netPC = () => new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] });
+function iceDone(pc){ return new Promise(res => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete'){ clearTimeout(t); res(); } }); }); }
+function netLost(){ const sc = scene, pc = NET.pc; netReset(); try { pc && pc.close(); } catch (e) {} if (sc && sc.netDrop) sc.netDrop(); else { G.online = null; G.twoP = false; toast('LOST THE OTHER PLAYER'); go(titleScene()); } }
+function netDrop(){ if (NET.role && !NET.closing && !NET.dropped){ NET.dropped = true; NET.up = false; } }
+function netWire(ch){
+  if (ch.label === 'snap') NET.snap = ch; else NET.ctl = ch;
+  ch.onopen = () => { if (NET.ctl && NET.ctl.readyState === 'open') NET.up = true; };
+  ch.onclose = () => { if (ch.label === 'ctl') netDrop(); };
+  ch.onmessage = e => { NET.rx = performance.now(); let m; try { m = JSON.parse(e.data); } catch (err) { return; } netRecv(m); };
+}
+function netSend(m, fast){ const ch = fast ? NET.snap : NET.ctl; if (ch && ch.readyState === 'open') try { ch.send(JSON.stringify(m)); } catch (e) {} }
+function netRecv(m){
+  if (m.t === 'snap'){ if (!NET.last || m.n > NET.last.n) NET.last = m; return; }
+  if (m.t === 'in' || m.t === 'j') NET.inputs.push(m);
+  else if (m.t === 'team') NET.peerTeam = m.team;
+  else if (m.t === 'start') NET.start = m;
+  else if (m.t === 'end'){ NET.end = m.res; NET.peerTeam = null; NET.start = null; }
+  else if (m.t === 'bye') netDrop();
+}
+async function netHost(){
+  netReset(); NET.role = 'host'; NET.status = 'MAKING A ROOM...';
+  try {
+    const pc = NET.pc = netPC();
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') netDrop(); };
+    netWire(pc.createDataChannel('ctl')); netWire(pc.createDataChannel('snap', { ordered: false, maxRetransmits: 0 }));
+    await pc.setLocalDescription(await pc.createOffer()); await iceDone(pc);
+    if (NET.pc !== pc) return;
+    let code = '';
+    for (let k = 0; k < 6 && !code; k++){ const c = Array.from({ length: 4 }, () => pick([...ROOM_LET])).join(''); if (await SIG.create(c, pc.localDescription.sdp)) code = c; }
+    if (!code) throw new Error('no code');
+    NET.code = code; NET.status = 'WAITING FOR PLAYER 2...';
+    const t0 = Date.now();
+    while (NET.pc === pc && !NET.up){
+      const d = await SIG.get(code);
+      if (d && d.a && !pc.remoteDescription){ NET.status = 'CONNECTING...'; await pc.setRemoteDescription({ type: 'answer', sdp: d.a }); }
+      if (Date.now() - t0 > 15 * 60e3){ NET.err = 'NOBODY CAME. TRY AGAIN!'; return; }
+      await new Promise(r => setTimeout(r, NETLOCAL ? 300 : 1200));
+    }
+  } catch (e) { console.warn(e); if (NET.role === 'host') NET.err = String(e).includes('rooms 403') ? 'ONLINE ISN\'T SWITCHED ON YET' : 'COULDN\'T MAKE A ROOM'; }
+}
+async function netJoin(code){
+  netReset(); NET.role = 'guest'; NET.code = code; NET.status = 'LOOKING FOR ROOM ' + code + '...';
+  try {
+    const d = await SIG.get(code);
+    if (!d || !d.o || Date.now() - d.t > 60 * 60e3){ NET.err = 'NO ROOM CALLED ' + code; return; }
+    if (d.a){ NET.err = 'ROOM ' + code + ' IS ALREADY PLAYING'; return; }
+    const pc = NET.pc = netPC();
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') netDrop(); };
+    pc.ondatachannel = e => netWire(e.channel);
+    NET.status = 'CONNECTING...';
+    await pc.setRemoteDescription({ type: 'offer', sdp: d.o });
+    await pc.setLocalDescription(await pc.createAnswer()); await iceDone(pc);
+    if (NET.pc !== pc) return;
+    await SIG.answer(code, pc.localDescription.sdp);
+    const t0 = Date.now();
+    while (NET.pc === pc && !NET.up){ if (Date.now() - t0 > 20e3){ NET.err = 'COULDN\'T CONNECT. SAME WIFI WORKS BEST!'; return; } await new Promise(r => setTimeout(r, 200)); }
+  } catch (e) { console.warn(e); if (NET.role === 'guest') NET.err = String(e).includes('403') ? 'ONLINE ISN\'T SWITCHED ON YET' : 'COULDN\'T CONNECT'; }
+}
+
+/* ---------- ONLINE MENU ---------- */
+function onlineScene(){
+  const S = { quit: true }; let bs;
+  S.enter = () => { netClose(); bs = [
+    btn(24, 120, 132, 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff'),
+    btn(24, 196, 132, 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a'),
+    btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff'),
+  ]; };
+  S.down = p => hitBtn(bs, p);
+  S.key = (c, dn) => { if (!dn) return; if (c === 'KeyH' || c === 'Digit1') bs[0].fn(); else if (c === 'KeyJ' || c === 'Digit2') bs[1].fn(); else if (c === 'Escape') bs[2].fn(); };
+  S.draw = () => {
+    nightSky(9); moon(150, 30, 10);
+    T('PLAY ONLINE', 90, 40, '#5cc8ff', 12);
+    T('2 PHONES OR IPADS,\nEACH WITH THE GAME OPEN', 90, 66, '#c9b8f0', 8);
+    T('YOU GET A ROOM CODE\nTO GIVE YOUR FRIEND', 90, 158, '#c9e8a0', 8);
+    T('TYPE THEIR\nROOM CODE', 90, 234, '#c9e8a0', 8);
+    tiny('WORKS BEST ON WIFI', 90, 270, '#8a7ab8');
+    bs.forEach(drawBtn);
+  };
+  return S;
+}
+function hostScene(){
+  const S = { quit: true }; let bs;
+  S.enter = () => { bs = [btn(46, 286, 88, 22, 'CANCEL', () => go(onlineScene()), '#c9a0ff')]; netHost(); };
+  S.update = () => { if (NET.up && NET.role === 'host'){ G.online = 'host'; G.twoP = true; SFX.win(); go(diffScene()); } };
+  S.down = p => { if (NET.err) go(onlineScene()); else hitBtn(bs, p); };
+  S.key = (c, dn) => { if (dn && (c === 'Escape' || NET.err)) go(onlineScene()); };
+  S.draw = () => {
+    nightSky(10);
+    T('YOUR ROOM CODE', 90, 40, '#ffd23f', 8);
+    if (NET.code){
+      for (let k = 0; k < 4; k++){ const x = 27 + k * 34, y = 62 + Math.sin(TT * 3 + k) * 2; R(x - 1, y - 1, 30, 38, '#000'); R(x, y, 28, 36, '#22143e'); R(x, y, 28, 2, '#5cc8ff'); fancy(NET.code[k], x + 14, y + 8, 16, 'blue'); }
+      T('TELL PLAYER 2:\nTAP PLAY ONLINE,\nJOIN A GAME,\nTHEN TYPE THIS CODE', 90, 120, '#f7efe0', 8);
+    } else if (!NET.err){ for (let k = 0; k < 4; k++) R(27 + k * 34, 62, 28, 36, (Math.floor(TT * 4) + k) % 4 ? '#22143e' : '#3a2266'); }
+    if (NET.err){ T(NET.err, 90, 200, '#ff5d73', 8); T('TAP TO GO BACK', 90, 220, '#c9b8f0', 8); }
+    else { T(NET.status, 90, 200, '#c9a0ff', 8); const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 232, 3, k < g ? '#5cc8ff' : '#2a1a4a'); }
+    if (!NET.err) bs.forEach(drawBtn);
+  };
+  S.exit = () => { if (!G.online) netClose(); };
+  return S;
+}
+function joinScene(){
+  const S = { quit: true }; let code = '', bs, busy = false;
+  const KX = k => 12 + (k % 6) * 27, KY = k => 116 + Math.floor(k / 6) * 27;
+  const type = ch => { if (busy || code.length >= 4) return; code += ch; SFX.tap(); if (code.length === 4) join(); };
+  const del = () => { if (busy) return; code = code.slice(0, -1); SFX.tap(); };
+  function join(){ busy = true; netJoin(code); }
+  S.enter = () => { bs = [btn(12, 228, 72, 22, 'DELETE', del, '#c9a0ff'), btn(96, 228, 72, 22, 'JOIN!', () => { if (code.length === 4 && !busy) join(); }, '#b6ff4a'), btn(46, 286, 88, 22, 'BACK', () => go(onlineScene()), '#c9a0ff')]; };
+  S.update = () => {
+    bs[1].dim = code.length < 4 || busy;
+    if (NET.up && NET.role === 'guest'){ G.online = 'guest'; G.twoP = true; SFX.win(); go(pickScene(1)); }
+    if (busy && NET.err){ busy = false; toast(NET.err); code = ''; netClose(); }
+  };
+  S.down = p => {
+    if (!busy) for (let k = 0; k < ROOM_LET.length; k++) if (inBox(p, KX(k), KY(k), 24, 24)){ type(ROOM_LET[k]); return; }
+    hitBtn(bs, p);
+  };
+  S.key = (c, dn) => {
+    if (!dn) return;
+    const m = /^Key([A-Z])$/.exec(c); if (m && ROOM_LET.includes(m[1])){ type(m[1]); return; }
+    if (c === 'Backspace') del(); else if (c === 'Enter') bs[1].fn(); else if (c === 'Escape') bs[2].fn();
+  };
+  S.draw = () => {
+    nightSky(11);
+    T('TYPE THE ROOM CODE', 90, 24, '#ffd23f', 8);
+    for (let k = 0; k < 4; k++){ const x = 27 + k * 34, on = k === code.length && !busy; R(x - 1, 41, 30, 38, on && Math.floor(TT * 3) % 2 ? '#ffd23f' : '#000'); R(x, 42, 28, 36, '#22143e'); if (code[k]) fancy(code[k], x + 14, 50, 16, 'green'); }
+    if (busy){ T(NET.status, 90, 160, '#c9a0ff', 8); const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 180, 3, k < g ? '#b6ff4a' : '#2a1a4a'); }
+    else for (let k = 0; k < ROOM_LET.length; k++){ const x = KX(k), y = KY(k); R(x, y + 2, 24, 24, '#000'); R(x, y, 24, 24, '#3a2266'); R(x, y, 24, 2, '#5a4a8a'); T(ROOM_LET[k], x + 12, y + 8, '#f7efe0', 8, 'center', null); }
+    bs.forEach(drawBtn);
+  };
+  S.exit = () => { if (!G.online) netClose(); };
+  return S;
+}
+/* both players picked: show the matchup, count down, go */
+function netWaitScene(){
+  const S = { quit: true }; let t = 0, cd = -1;
+  const host = () => G.online === 'host';
+  S.enter = () => { t = 0; cd = -1; };
+  S.update = dt => {
+    t += dt;
+    if (cd < 0){
+      if (host() && NET.peerTeam){ G.team2 = NET.peerTeam.slice(); G.cpu = G.team2.slice(); G.cpuName = 'PLAYER 2'; netSend({ t: 'start', team: G.team, team2: G.team2, diff: G.diff }); cd = 3; SFX.pick(); }
+      if (!host() && NET.start){ const s = NET.start; G.team = s.team.slice(); G.cpu = G.team2.slice(); G.diff = s.diff; G.cpuName = 'PLAYER 2'; cd = 3; SFX.pick(); }
+    } else { const was = Math.ceil(cd); cd -= dt; if (Math.ceil(cd) < was && cd > 0) tone(660, 0.1, 'square', 0.12); if (cd <= 0){ NET.peerTeam = null; NET.start = null; NET.end = null; go(gameScene()); } }
+  };
+  S.draw = () => {
+    nightSky(7);
+    const mine = host() ? G.team : G.team2, theirs = cd >= 0 ? (host() ? G.team2 : G.team) : null;
+    T(host() ? 'YOU (P1)' : 'P1', 90, 22, '#ff9a3a', 8);
+    const top = host() ? mine : theirs, bot = host() ? theirs : mine;
+    if (top) top.forEach((id, k) => { const m = MON[id], x = 34 + k * 56; drawMonster(m, x, 78, 2.4 * (m.size > 1 ? 1.1 : 1), TEAM[0], { fx: 0.8, fy: 0.4 }); T(m.short, x, 84, '#f7efe0', 8); });
+    else T('STILL PICKING...', 90, 60, '#8a7ab8', 8);
+    fancy('VS', 90, 100, 16, 'gold');
+    T(host() ? 'P2' : 'YOU (P2)', 90, 126, '#c9a0ff', 8);
+    if (bot) bot.forEach((id, k) => { const m = MON[id], x = 34 + k * 56; drawMonster(m, x, 180, 2.4 * (m.size > 1 ? 1.1 : 1), TEAM[1], { fx: -0.8, fy: 0.4 }); T(m.short, x, 186, '#f7efe0', 8); });
+    else T('STILL PICKING...', 90, 160, '#8a7ab8', 8);
+    if (cd > 0) fancy(String(Math.ceil(cd)), 90, 230, 24, 'orange');
+    else T(host() ? 'WAITING FOR P2...' : 'WAITING FOR P1...', 90, 236, '#c9b8f0', 8);
+    T(host() ? 'YOU: BOTTOM NET\nSHOOT UP THE ICE' : 'YOU: TOP NET\nSHOOT DOWN THE ICE', 90, 270, '#c9e8a0', 8);
+  };
+  return S;
+}
+
 function hsRank(key){ let r = HS.findIndex(e => key < e.k); if (r < 0) r = HS.length; return r < 5 ? r : -1; }
 
 function drawChrome(){
@@ -756,13 +965,14 @@ function tomb(x, y){ R(x - 5, y - 10, 10, 10, '#3a2e52'); C(x, y - 10, 5, '#3a2e
 function titleScene(){
   const S = {}; let bs;
   S.enter = () => { bs = [
-    btn(36, 228, 108, 20, '1 PLAYER', () => { G.twoP = false; go(diffScene()); }),
-    btn(36, 252, 108, 20, '2P ON IPAD', () => { G.twoP = true; go(diffScene()); }, '#ff8a3a'),
-    btn(36, 276, 108, 20, 'ZOMBONI', () => go(zamboniScene({ timed: CFG.zamboni.time })), '#b6ff4a'),
-    btn(36, 300, 108, 18, 'HIGH SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
+    btn(36, 226, 108, 20, '1 PLAYER', () => { G.twoP = false; G.online = null; go(diffScene()); }),
+    btn(36, 250, 108, 20, 'PLAY ONLINE', () => go(onlineScene()), '#5cc8ff'),
+    btn(36, 274, 108, 20, '2P ON IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
+    btn(8, 298, 80, 18, 'ZOMBONI', () => go(zamboniScene({ timed: CFG.zamboni.time })), '#b6ff4a'),
+    btn(92, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
   ]; };
   S.down = p => hitBtn(bs, p);
-  S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; go(diffScene()); } };
+  S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; G.online = null; go(diffScene()); } };
   S.draw = () => {
     nightSky(2); moon(140, 40, 16);
     for (let k = 0; k < 3; k++){ const t = TT * 0.6 + k * 2.1; drawBat(((t * 40) % 220) - 20, 30 + k * 18 + Math.sin(t * 3) * 6, 1, k); }
@@ -800,8 +1010,10 @@ function diffScene(){
     nightSky(8); moon(150, 30, 10);
     T(G.twoP ? 'GAME SPEED?' : 'HOW SPOOKY?', 90, 44, '#ffd23f', 12);
     bs.forEach(drawBtn);
-    if (G.twoP){ T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8);
+    if (G.twoP && G.online) T('ONLINE: YOU PICK\nTHE GAME SPEED', 90, 262, '#5cc8ff', 8);
+    if (G.twoP && !G.online){ T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8);
       R(8, 262, 164, 40, '#2a1446'); tiny('2 PLAYER IS FOR IPAD FOR NOW', 90, 268, '#ffd23f'); tiny('LAY IT FLAT BETWEEN YOU', 90, 278, '#c9b8f0'); tiny('ONE PLAYER AT EACH END', 90, 288, '#c9b8f0'); }
+    else if (G.twoP) { T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8); }
     else { T('SLOWER GAME.\nCPU SHOOTS SOFT,\nYOU SCORE MORE.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nTHE CPU PLAYS\nTO WIN.', 90, 224, '#ffb0c0', 8); }
     for (const [y, d] of [[92, 'easy'], [186, 'hard']]) if (G.diff === d) T('LAST TIME', 90, y - 12, '#8a7ab8', 8);
     // a little baby ghost vs a big scary one
@@ -818,7 +1030,9 @@ function pickScene(stage = 0){
   const ROWY = k => 76 + k * 34, SLOTX = k => 14 + k * 56;
   function mk(){ bs = [
     btn(12, 286, 72, 24, 'RANDOM', () => { team = []; while (team.length < 3) team.push(pick(ROSTER).id); focus = team[2]; mk(); }, '#c9a0ff'),
-    btn(96, 286, 72, 24, G.twoP && !stage ? 'NEXT' : 'PLAY!', () => { if (team.length < 3) return; G[key] = team.slice(); if (!stage) saveTeam(); go(G.twoP && !stage ? pickScene(1) : vsScene()); }),
+    btn(96, 286, 72, 24, G.online ? 'READY!' : G.twoP && !stage ? 'NEXT' : 'PLAY!', () => { if (team.length < 3) return; G[key] = team.slice(); if (!stage) saveTeam();
+      if (G.online){ if (G.online === 'guest') netSend({ t: 'team', team: G[key] }); go(netWaitScene()); return; }
+      go(G.twoP && !stage ? pickScene(1) : vsScene()); }),
   ]; bs[1].dim = team.length < 3; }
   S.enter = mk;
   function add(id){ focus = id; if (team.length < 3){ team.push(id); SFX.pick(); } else SFX.nope(); mk(); }
@@ -838,7 +1052,7 @@ function pickScene(stage = 0){
   function stat(lbl, v, x, y){ T(lbl, x, y, '#8a7ab8', 8, 'left', null); for (let i = 0; i < 5; i++) R(x + 26 + i * 4, y, 3, 7, i < v ? '#b6ff4a' : '#3a2a5a'); }
   S.draw = () => {
     nightSky(5);
-    T(G.twoP ? 'PLAYER ' + (stage + 1) + ': PICK 3' : 'PICK 3 MONSTERS', 90, 22, stage ? '#c9a0ff' : '#ffd23f', 8);
+    T(G.online ? 'YOU (P' + (stage + 1) + '): PICK 3' : G.twoP ? 'PLAYER ' + (stage + 1) + ': PICK 3' : 'PICK 3 MONSTERS', 90, 22, stage ? '#c9a0ff' : '#ffd23f', 8);
     for (let k = 0; k < 3; k++){
       const x = SLOTX(k), id = team[k];
       R(x - 1, 33, 42, 38, '#000'); R(x, 34, 40, 36, id ? '#3a1c10' : '#22143e'); R(x, 34, 40, 1, id ? '#ff7a1a' : '#4a3a6a');
@@ -952,6 +1166,7 @@ function gameScene(){
     us = G.team.map((id, i) => mk(0, i, id)); them = G.cpu.map((id, i) => mk(1, i, id)); all = us.concat(them);
     gU = { team: 0, x: 90, y: RK.gb - 4 }; gT = { team: 1, x: 90, y: RK.gt + 6 };
     clock = CFG.periodMinutes * 60; period = 1; score = [0, 0]; opening = true; parts = []; floats = []; flash = 0; load(P[0]); faceoff();
+    ALL0.length = 0; ALL0.push(...all); NET.rec = G.online === 'host'; NET.sfx = []; NET.last = null; gApplied = null;
   };
 
   /* ---------- controls ---------- */
@@ -962,16 +1177,17 @@ function gameScene(){
   const GY = () => PT === 0 ? RK.gt - 8 : RK.gb + 8;       // the net you shoot at
   const foeG = () => PT === 0 ? gT : gU;
   const myF = () => fight && (PT === 0 ? fight.me : fight.cpu);
-  S.layout = () => G.twoP ? '2P' : wantsLandscape() ? 'L' : 'P';
+  S.layout = () => G.twoP && !G.online ? '2P' : wantsLandscape() ? 'L' : 'P';
   S.relayout = () => { for (const pl of P){ pl.joy.id = null; pl.joy.ux = pl.joy.uy = 0; pl.bHold = null; pl.blockId = null; } load(CUR); };
   // touch -> which player, and where on that player's own control panel
   function route(p){
     if (LAYOUT === '2P'){ if (p.y >= 320) return [0, { x: p.x, y: p.y - 66 }]; if (p.y < 66) return [1, { x: W - p.x, y: 320 - p.y }]; return [-1, null]; }
     return [0, { x: p.x, y: p.y }];
   }
-  const localFor = (k, p) => k === 1 ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
+  const localFor = (k, p) => k === 1 && !G.online ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
   const joyZone = q => LAYOUT === 'L' ? q.x < 110 : LAYOUT === '2P' ? q.x < 88 && q.y >= 254 : q.x < 88 && q.y > 34;
   S.down = p => {
+    if (G.online === 'guest'){ guestDown(p); return; }
     if (state === 'inter' && offer){ p.ui = true; hitBtn([OFFER.drive, OFFER.skip], toWorld(p)); return; }
     const [k, q] = route(p); if (k < 0) return; p.pl = k; const pl = P[k];
     withP(pl, () => {
@@ -996,6 +1212,7 @@ function gameScene(){
     j.kx = d ? dx / d * m : 0; j.ky = d ? dy / d * m : 0; j.ux = j.kx * flip; j.uy = j.ky * flip;
   };
   S.up = p => {
+    if (G.online === 'guest'){ guestUp(p); return; }
     if (p.pl === undefined) return; const pl = P[p.pl];
     withP(pl, () => {
       if (p.id === pl.blockId){ pl.blockId = null; const f = myF(); if (f) fBlock(f, false); return; }
@@ -1006,7 +1223,7 @@ function gameScene(){
   // keyboard: see KEYMAP at the top (1 player: arrows/WASD + SPACE shoot, Z pass, C special)
   const KEYS = [KEYMAP.one, KEYMAP.p2];
   const KEYS2P0 = KEYMAP.p1;
-  const keyMap = k => G.twoP ? (k === 0 ? KEYS2P0 : KEYS[1]) : KEYS[0];
+  const keyMap = k => G.twoP && !G.online ? (k === 0 ? KEYS2P0 : KEYS[1]) : KEYS[0];
   S.key = (code, dn, rep) => {
     if (state === 'inter' && offer){
       if (!dn || rep) return;
@@ -1016,7 +1233,8 @@ function gameScene(){
       else if (code === 'Escape') takeOffer(1);
       return;
     }
-    const k = G.twoP && KEYS[1].up.concat(KEYS[1].down, KEYS[1].left, KEYS[1].right, KEYS[1].a, KEYS[1].b, KEYS[1].sp).includes(code) ? 1 : 0;
+    if (G.online === 'guest'){ guestKey(code, dn, rep); return; }
+    const k = G.twoP && !G.online && KEYS[1].up.concat(KEYS[1].down, KEYS[1].left, KEYS[1].right, KEYS[1].a, KEYS[1].b, KEYS[1].sp).includes(code) ? 1 : 0;
     const M = keyMap(k), pl = P[k], has = n => M[n].includes(code);
     withP(pl, () => {
       if (state === 'fight'){
@@ -1574,7 +1792,7 @@ function gameScene(){
     SFX.horn();
     if (period < CFG.periods || score[0] === score[1]){   // next period, or sudden death if tied
       state = 'inter'; stT = 2.8; offer = null;
-      if (CFG.zamboni.offer && !G.demo){ offer = { sel: 0 }; stT = CFG.zamboni.offerTime; }   // ...with an optional Zomboni break
+      if (CFG.zamboni.offer && !G.demo && !G.online){ offer = { sel: 0 }; stT = CFG.zamboni.offerTime; }   // ...with an optional Zomboni break
     }
     else end();
   }
@@ -1588,6 +1806,7 @@ function gameScene(){
   }
   const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
   function finish(){
+    if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
     const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
     if (res.win && !res.twoP && hsRank(res.key) >= 0) go(initialsScene(res)); else go(resultScene(res));
   }
@@ -1977,7 +2196,7 @@ function gameScene(){
     if (whiteT > 0) R(0, 0, W, H, 'rgba(255,255,240,' + (whiteT * 5).toFixed(2) + ')');
   }
   function drawHUD(){
-    const n0 = G.twoP ? 'P1' : 'YOU', n1 = G.twoP ? 'P2' : 'CPU';
+    const n0 = G.online === 'host' ? 'YOU' : G.twoP ? 'P1' : 'YOU', n1 = G.online === 'guest' ? 'YOU' : G.twoP ? 'P2' : 'CPU';
     const ot = period > CFG.periods, m = Math.floor(Math.ceil(clock) / 60), sec = Math.ceil(clock) % 60, clk = ot ? 'OT' : m + ':' + String(sec).padStart(2, '0');
     const outS = all.find(o => o.out > 0), own = puck.owner;
     const status = outS ? outS.m.short + ' OUT ' + Math.ceil(outS.out) : G.twoP ? (own ? (own.team === 0 ? 'P1 PUCK' : 'P2 PUCK') : 'LOOSE PUCK') : (own ? (own.team === 0 ? 'ATTACK!' : 'DEFEND') : 'LOOSE PUCK');
@@ -2033,7 +2252,7 @@ function gameScene(){
     else R(0, 254, W, 66, '#120a22');
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.kx * 14, joy.oy + joy.ky * 14, 7, pl.team === 1 ? 'rgba(74,176,255,.85)' : 'rgba(255,122,26,.85)'); }
     else if (state !== 'fight') T('DRAG\nTO SKATE', g.hint[0], g.hint[1], '#5a4a7a', 8);
-    if (G.twoP) tiny(pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, 257, TEAM[pl.team].text, 'left', null);
+    if (G.twoP) tiny(G.online ? (pl.team === 0 ? 'YOU: P1' : 'YOU: P2') : pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, 257, TEAM[pl.team].text, 'left', null);
     if (state === 'fight' && fight){ panelFight(g); return; }
     if (ctrl) drawPlate(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp);
     const atk = weHave();
@@ -2041,7 +2260,8 @@ function gameScene(){
   }); }
   S.draw = () => {
     const L = LAYOUT, fighting = state === 'fight' && fight;
-    if (L === 'P'){ drawGame(); drawHUD(); if (fighting) drawFight(); drawPanel(P[0]); return; }
+    const ME = P[G.online === 'guest' ? 1 : 0];
+    if (L === 'P'){ drawGame(); drawHUD(); if (fighting) drawFight(); drawPanel(ME); return; }
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? 66 : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
     drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
@@ -2053,10 +2273,124 @@ function gameScene(){
         R(0, 0, 110, 8, '#120a22'); R(290, 0, 110, 8, '#120a22'); R(0, 245, 110, 9, '#120a22'); R(290, 245, 110, 9, '#120a22');
         return;
       }
-      drawPanel(P[0]); return;
+      drawPanel(ME); return;
     }
     ctx.save(); ctx.translate(0, 66); drawPanel(P[0]); ctx.restore();
     ctx.save(); ctx.translate(W, 320); ctx.rotate(Math.PI); drawPanel(P[1]); ctx.restore();
+  };
+  /* ---------- ONLINE: the host streams snapshots, the guest draws them and sends its stick + buttons ---------- */
+  const ALL0 = [];   // fixed skater order so snapshots can point at skaters
+  let netN = 0, netJn = 0, netJs = 0, gA = null, gB = null, gApplied = null;
+  const netJ = { x: 0, y: 0, t: 0 };
+  function netEnc(v, memo, root){
+    if (v === undefined) return undefined;
+    if (v === null) return null;
+    const ty = typeof v;
+    if (ty === 'number') return Number.isFinite(v) ? Math.round(v * 100) / 100 : 0;
+    if (ty === 'string' || ty === 'boolean') return v;
+    if (ty !== 'object') return undefined;
+    if (!root){
+      const si = ALL0.indexOf(v); if (si >= 0) return { $s: si };
+      if (v === gU) return { $g: 0 }; if (v === gT) return { $g: 1 }; if (v === puck) return { $p: 1 };
+      if (v.id && MON[v.id] === v) return { $m: v.id };
+    }
+    if (v instanceof Set || v instanceof Map || ArrayBuffer.isView(v) || v instanceof HTMLElement) return undefined;
+    if (memo.has(v)) return { $r: memo.get(v) };
+    if (Array.isArray(v)) return v.map(x => { const e = netEnc(x, memo); return e === undefined ? null : e; });
+    const id = memo.size; memo.set(v, id); const o = { $i: id };
+    for (const k in v){ const e = netEnc(v[k], memo); if (e !== undefined) o[k] = e; }
+    return o;
+  }
+  function netDec(v, memo){
+    if (v === null || typeof v !== 'object') return v;
+    if (Array.isArray(v)) return v.map(x => netDec(x, memo));
+    if (v.$s !== undefined) return ALL0[v.$s];
+    if (v.$g !== undefined) return v.$g ? gT : gU;
+    if (v.$p) return puck;
+    if (v.$m) return MON[v.$m];
+    if (v.$r !== undefined) return memo[v.$r];
+    const o = {}; if (v.$i !== undefined) memo[v.$i] = o;
+    for (const k in v) if (k !== '$i') o[k] = netDec(v[k], memo);
+    return o;
+  }
+  function netFill(target, v, memo){ if (v.$i !== undefined) memo[v.$i] = target; for (const k in v) if (k !== '$i') target[k] = netDec(v[k], memo); }
+  function netSnap(){
+    save();
+    const memo = new Map(), e = v => netEnc(v, memo);
+    const m = { t: 'snap', n: ++netN, TT: Math.round(TT * 1000) / 1000, mus: musWant,
+      S: ALL0.map(s => netEnc(s, memo, true)), gU: netEnc(gU, memo, true), gT: netEnc(gT, memo, true), pk: netEnc(puck, memo, true),
+      v: e([us, them, all, clock, score, state, stT, parts.slice(-140), floats, scorer, scorerName, flash, opening, period, bands, rings, bolts, whiteT, shake, hmsg, hsub, hcol, hmsgT, fin, netTip, bats, ptrail, fight, fightDone, knockCount]),
+      P: P.map(pl => e({ ctrl: pl.ctrl, bHold: pl.bHold, tapPend: pl.tapPend, chkPend: pl.chkPend, otArm: pl.otArm, recvT: pl.recvT, swT: pl.swT })),
+      fx: NET.sfx };
+    NET.sfx = [];
+    return m;
+  }
+  function netApply(m){
+    const memo = {};
+    m.S.forEach((o, i) => { if (ALL0[i]) netFill(ALL0[i], o, memo); });
+    netFill(gU, m.gU, memo); netFill(gT, m.gT, memo); netFill(puck, m.pk, memo);
+    [us, them, all, clock, score, state, stT, parts, floats, scorer, scorerName, flash, opening, period, bands, rings, bolts, whiteT, shake, hmsg, hsub, hcol, hmsgT, fin, netTip, bats, ptrail, fight, fightDone, knockCount] = netDec(m.v, memo);
+    netDec(m.P, memo).forEach((o, k) => Object.assign(P[k], o)); load(CUR);
+    TT = m.TT;
+    if (m.mus !== musWant) setMusic(m.mus, m.mus !== 'game');
+    for (const f of m.fx) if (f[0]) noise(f[1], f[2], f[3], f[4]); else tone(f[1], f[2], f[3], f[4], f[5], f[6]);
+  }
+  const gsend = k => netSend({ t: 'in', k });
+  function guestStep(rdt){
+    if (NET.end){ const r = NET.end; NET.end = null; go(resultScene({ ...r, me: 1 })); return; }
+    const m = NET.last;
+    if (m && m !== gApplied){ gApplied = m; netApply(m); }
+    else { // between snapshots keep things gliding
+      const dt = rdt * D.speed; stepParts(parts, dt); stepFloat(floats, dt);
+      if (state === 'play'){ for (const s of all) if (!gone(s)){ s.x += s.vx * dt; s.y += s.vy * dt; } if (!puck.owner){ puck.x += puck.vx * dt; puck.y += puck.vy * dt; } }
+    }
+    // my stick -> host (re-sent now and then in case one got lost)
+    const pl = P[1], j = pl.joy;
+    if (j.id === null){ const M = KEYMAP.one, on = n => M[n].some(c => pl.keys.has(c)); const kx = (on('right') ? 1 : 0) - (on('left') ? 1 : 0), ky = (on('down') ? 1 : 0) - (on('up') ? 1 : 0); const mm = Math.hypot(kx, ky) || 1; j.ux = kx / mm; j.uy = ky / mm; }
+    netJ.t -= rdt;
+    if (Math.abs(j.ux - netJ.x) > 0.04 || Math.abs(j.uy - netJ.y) > 0.04 || netJ.t <= 0){ netJ.x = j.ux; netJ.y = j.uy; netJ.t = 0.2; netSend({ t: 'j', n: ++netJs, x: Math.round(j.ux * 100) / 100, y: Math.round(j.uy * 100) / 100 }, true); }
+  }
+  function guestDown(p){
+    const q = { x: p.x, y: p.y }, j = P[1].joy; p.pl = 1;
+    if (inBox(q, PILL.x - 3, PILL.y - 3, PILL.w + 6, PILL.h + 6)){ gsend('S+'); p.ui = true; return; }
+    if (onBtn(q, BTN_A)){ gA = p.id; gsend('A+'); p.ui = true; return; }
+    if (onBtn(q, BTN_B)){ gB = p.id; gsend('B+'); p.ui = true; return; }
+    if (joyZone(q) && j.id === null){ j.id = p.id; j.ox = q.x; j.oy = q.y; j.ux = j.uy = j.kx = j.ky = 0; }
+  }
+  function guestUp(p){
+    const j = P[1].joy;
+    if (p.id === gA){ gA = null; gsend('A-'); }
+    if (p.id === gB){ gB = null; gsend('B-'); }
+    if (p.id === j.id){ j.id = null; j.ux = j.uy = j.kx = j.ky = 0; }
+  }
+  function guestKey(code, dn, rep){
+    const M = KEYMAP.one, pl = P[1];
+    if (['up', 'down', 'left', 'right'].some(n => M[n].includes(code))){ dn ? pl.keys.add(code) : pl.keys.delete(code); return; }
+    if (rep) return;
+    if (M.a.includes(code)) gsend(dn ? 'A+' : 'A-'); else if (M.b.includes(code)) gsend(dn ? 'B+' : 'B-'); else if (M.sp.includes(code) && dn) gsend('S+');
+  }
+  function hostInputs(){
+    const pl = P[1];
+    for (const m of NET.inputs.splice(0)){
+      if (m.t === 'j'){ if (m.n > netJn){ netJn = m.n; pl.joy.id = 'net'; pl.joy.ux = m.x; pl.joy.uy = m.y; } continue; }
+      withP(pl, () => {
+        if (state === 'fight'){ const f = myF(); if (!f) return;
+          if (m.k === 'A+') fBlock(f, true); else if (m.k === 'A-') fBlock(f, false); else if (m.k === 'B+') fPunch(f); else if (m.k === 'S+') fSpecial(f); return; }
+        if (m.k === 'A+') actA(); else if (m.k === 'B+') bDown('net'); else if (m.k === 'B-') bUp('net'); else if (m.k === 'S+') trySpecial();
+      });
+    }
+  }
+  { const upd = S.update; let snapT = 0;
+    S.update = rdt => {
+      if (G.online === 'guest'){ guestStep(rdt); return; }
+      if (G.online === 'host') hostInputs();
+      upd(rdt);
+      if (G.online === 'host' && scene === S){ snapT -= rdt; if (snapT <= 0){ snapT = 0.05; netSend(netSnap(), true); } }
+    };
+  }
+  S.netDrop = () => {
+    if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
+    else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
   S._debug = () => ({ startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, set clock(v){ clock = v; } });
   return S;
@@ -2389,6 +2723,14 @@ function scoresScene(back){
 function resultScene(res){
   const S = { quit: false }; let bs, parts = [], t = 0;
   S.enter = () => {
+    if (res.online){
+      const mine = res.me ? res.them : res.us, theirs = res.me ? res.us : res.them; res.mine = mine; res.theirs = theirs;
+      if (mine >= theirs) SFX.win(); else SFX.lose();
+      bs = G.online ? [btn(36, 222, 108, 24, 'PLAY AGAIN', () => { if (G.online) go(pickScene(G.online === 'host' ? 0 : 1)); else go(titleScene()); }), btn(36, 252, 108, 22, 'QUIT ONLINE', () => { netClose(); go(titleScene()); }, '#c9a0ff')]
+                   : [btn(36, 252, 108, 22, 'MENU', () => go(titleScene()), '#c9a0ff')];
+      for (let k = 0; k < 3; k++) burst(parts, 90, 100, 20, CONF, 90, 80, 1.6);
+      return;
+    }
     if (res.win || res.twoP) SFX.win(); else SFX.lose();
     bs = [
       btn(36, 222, 108, 24, 'REMATCH', () => go(vsScene())),
@@ -2403,7 +2745,7 @@ function resultScene(res){
   S.draw = () => {
     nightSky(6); moon(30, 36, 10);
     const p2won = res.twoP && res.them > res.us;
-    T(res.twoP ? (p2won ? 'P2 WINS!' : 'P1 WINS!') : res.win ? 'YOU WIN!' : res.tie ? 'TIE GAME!' : 'CPU WINS', 90, 26, res.win ? '#ffd23f' : res.twoP ? '#c9a0ff' : res.tie ? '#ff9a3a' : '#c9a0ff', 16);
+    T(res.online ? (res.mine > res.theirs ? 'YOU WIN!' : res.mine < res.theirs ? 'THEY WIN!' : 'TIE GAME!') : res.twoP ? (p2won ? 'P2 WINS!' : 'P1 WINS!') : res.win ? 'YOU WIN!' : res.tie ? 'TIE GAME!' : 'CPU WINS', 90, 26, res.win ? '#ffd23f' : res.twoP ? '#c9a0ff' : res.tie ? '#ff9a3a' : '#c9a0ff', 16);
     T(res.us + ' - ' + res.them + (res.ot ? ' OT' : ''), 90, 56, '#ffffff', 12);
     T(res.twoP ? '' : G.cpuName ? 'VS ' + G.cpuName : '', 90, 80, '#8a7ab8', 8);
     R(0, 164, W, 40, '#cfdcf2'); R(0, 164, W, 2, '#ffffff');
@@ -2424,12 +2766,20 @@ let last = performance.now();
 function frame(now){
   pollPads();
   const dt = Math.min(1 / 30, Math.max(0, (now - last) / 1000)); last = now; TT += dt;
+  if (NET.up){   // heartbeat: a ping every second; nothing heard for 6 seconds = they're gone
+    const t = performance.now(); if (!NET.rx) NET.rx = t;
+    if (t - (NET.tx || 0) > 1000){ NET.tx = t; netSend({ t: 'ping' }); }
+    if (t - NET.rx > 6000) netDrop();
+  }
+  if (NET.dropped) netLost();
+  if (netToast && (netToast.t -= dt) <= 0) netToast = null;
   try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt); scene.draw(); } } catch (err) { console.error(err); }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   drawChrome();
+  if (netToast){ const w = Math.min(CW - 16, netToast.text.length * 8 + 16), x = (CW - w) / 2; R(x, 40, w, 20, '#000'); R(x + 1, 41, w - 2, 18, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(netToast.text, CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { CFG, NET, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();
