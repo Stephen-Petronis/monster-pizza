@@ -4,7 +4,7 @@
 
 NES-style 3-on-3 hockey with classic monsters. Spun off from Rec Center Hockey in Super Sullivan. Part of the Monster Pizza arcade.
 
-**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **2 PLAYERS (iPad only for now):** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZAMBONI:** just drive.
+**1 PLAYER:** choose **EASY** or **HARD**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. Tune both in `CFG.difficulty` (a MEDIUM can be added there later). **2 PLAYERS (iPad only for now):** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZOMBONI:** drive the zombie Zamboni (also offered as a 15-second break between periods).
 
 Games are **3 one-minute periods**. Tied after the third? **Sudden death:** the next goal wins.
 
@@ -50,11 +50,12 @@ Hold SHOOT for 1 second without getting the puck stolen (you skate slowly while 
 
 PAS (passing) makes passes faster, more accurate and better led into your teammate's stride, and a good passer makes the one-timer window bigger.
 
-## Drive the Zamboni
-A no-pressure mode: cruise **the Rat Rod** (a rusty, flame-painted hot-rod Zamboni with a chrome blower and a little rat hood ornament) around a rink trashed after a night of monster hockey: snow, skate grooves, pumpkin guts, goo. The towel at the back lays down fresh glassy ice.
-- Drag (or arrows) to drive; it turns gently toward where you point. **A / Z = HONK** (each monster has its own: AWOOOO!, BLEH BLEH!, BLUB BLUB!...). **B / SPACE = BOOST** (backfire, flames). **C** or tap the bar = swap driver.
-- Tap the driver bar to swap which monster drives. Find the 4 lost things on the ice (an eyeball, a stinky sock...). A ghost drifts around saying BOO; honk to scare it off.
-- Get it 97% clean for **SPOTLESS!**, then tap the bar to mess it up again.
+## The Zomboni
+Stephen's zombie Zamboni (`art/zamboni-sheet.png`, cut into a 64x36 sprite atlas in `index.html`): it drives on the side view (4 wheel frames, flipped for going left, a spray frame on hard turns and boosts), the rear view going up the rink and the front view coming down. The rink it cleans is trashed after a night of monster hockey: snow, skate grooves, blood splats and smears, skulls, eyeballs, pumpkin guts. The towel at the back lays down fresh glassy ice.
+- **Between periods (optional):** when a period ends you get a **ZOMBONI BREAK?** card. Pick **DRIVE 15 SEC** to clean as much as you can in 15 seconds (CLEAN % and a rating at the end), then tap to play on: same game, next period. **SKIP** (or wait 8 seconds) goes straight on. The game song keeps playing. Turn the offer off with `CFG.zamboni.offer = false`.
+- **From the title (ZOMBONI):** free drive, no clock. Get it 97% clean for **SPOTLESS!**, then tap the bar to mess it up again.
+- Drag (or arrows) to drive. **A / Z = HONK** (BRAAAINS!). **B / SPACE = BOOST** (backfire, flames). Find the lost things on the ice. A ghost drifts around saying BOO; honk to scare it off.
+- Speed, turning, boost, the timer and the offer time are in `CFG.zamboni`.
 
 ## Fight!
 The fight switches to 16-bit fighters: bigger, shaded monsters in full gear (numbered jerseys, gloves, breezers, striped socks, skates).
