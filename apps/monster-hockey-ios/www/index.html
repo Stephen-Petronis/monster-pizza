@@ -1355,25 +1355,32 @@ function gameScene(){
 
   /* ---------- KNOCKDOWNS (double-tap CHECK) ---------- */
   const BONKS = ['WHAM!', 'BONK!', 'SPLAT!', 'KABOOM!', 'OOF!'];
-  function knockDown(s, dx, dy, t, push = 90){
-    if (gone(s)) return;
+  function knockDown(s, dx, dy, t, push = 90, by = null){
+    if (gone(s)) return false;
     const d = Math.hypot(dx, dy) || 1;
+    if (s.m.wall && !(by && by.m.wall)){ // nothing puts Frankenstein on the ice except another Frankenstein (the puck can still come loose)
+      s.vx = dx / d * push * 0.15; s.vy = dy / d * push * 0.15;
+      if (puck.owner === s){ puck.owner = null; puck.vx = dx / d * 60 + rnd(-20, 20); puck.vy = dy / d * 60 + rnd(-20, 20); s.cool = Math.max(s.cool, 0.6); }
+      if (!(TT - (s.nopeT || -9) < 0.8)){ s.nopeT = TT; floater(floats, s.x, s.y - 26, pick(['TOO BIG!', 'NOPE!', 'NOT BUDGING']), '#9ce8ff'); tone(70, 0.15, 'square', 0.14); }
+      return false;
+    }
     s.fall = t; s.fallDur = t; s.fallDir = dx >= 0 ? 1 : -1; s.stun = Math.max(s.stun, t); s.frenzy = 0;
     s.vx = dx / d * push; s.vy = dy / d * push; s.cool = Math.max(s.cool, 0.5);
     if (puck.owner === s){ puck.owner = null; puck.vx = dx / d * 60 + rnd(-20, 20); puck.vy = dy / d * 60 + rnd(-20, 20); s.cool = Math.max(s.cool, 0.8); }
     burst(parts, s.x, s.y - 2, 10, ['#ffffff', '#dbe6f8', '#bfe6ff'], 50, 60, 0.5, 1);
     noise(0.18, 0.35, 400); tone(110, 0.2, 'square', 0.18, -50);
+    return true;
   }
   function bodyCheck(a, v){
-    if (gone(v) || v.frenzy > 0 || !canCheck(a, v)){ knockDown(a, a.x - v.x, a.y - v.y, CFG.knockdown * 0.8); floater(floats, a.x, a.y - 26, 'BOING!', '#c9a0ff'); return; }
+    if (gone(v) || v.frenzy > 0 || !canCheck(a, v)){ knockDown(a, a.x - v.x, a.y - v.y, CFG.knockdown * 0.8, 90, v); floater(floats, a.x, a.y - 26, 'BOING!', '#c9a0ff'); return; }
     const win = Math.random() < clamp(0.6 + 0.1 * (chkOf(a) - v.m.chk), 0.2, 0.97);
     if (win){
-      knockDown(v, v.x - a.x, v.y - a.y, CFG.knockdown * (0.8 + 0.08 * chkOf(a)), 70 + 12 * chkOf(a));
+      if (!knockDown(v, v.x - a.x, v.y - a.y, CFG.knockdown * (0.8 + 0.08 * chkOf(a)), 70 + 12 * chkOf(a), a)) return;
       a.sp = Math.min(1, a.sp + SP.checkBonus); a.cool = 0;
       floater(floats, v.x, v.y - 24, pick(BONKS), a.team === 0 ? '#ffd23f' : '#ff9aa8'); if (chkOf(a) >= 5) shake = 0.2;
       noteKnock(a, v);
     } else { // bounced off someone bigger
-      knockDown(a, a.x - v.x, a.y - v.y, CFG.knockdown * 0.8);
+      knockDown(a, a.x - v.x, a.y - v.y, CFG.knockdown * 0.8, 90, v);
       floater(floats, a.x, a.y - 24, 'OOF!', '#c9a0ff');
     }
   }
@@ -1438,7 +1445,7 @@ function gameScene(){
       if (f.kind === 'gill' && Math.random() < 0.8) burst(parts, s.x + rnd(-8, 8), s.y, 2, F.cols, 70, 200, 0.6, 2);
       if (f.kind === 'frank' && !f.stomp && f.t > FIN_WIND * 0.6){ // the stomp: everybody goes down
         f.stomp = true; rings.push({ x: s.x, y: s.y, r: 4, max: 90, life: 0.6 }); shake = 0.4; SFX.thunder();
-        for (const o of all) if (o !== s && !gone(o)) knockDown(o, o.x - s.x || 1, o.y - s.y, 1.6, 120);
+        for (const o of all) if (o !== s && !gone(o)) knockDown(o, o.x - s.x || 1, o.y - s.y, 1.6, 120, s);
       }
       return;
     }
@@ -1505,7 +1512,7 @@ function gameScene(){
           if (gone(f)) continue; const d = dist(f, s);
           if (d < SP.stompRadius){
             const n = d || 1, had = puck.owner === f;
-            knockDown(f, f.x - s.x, f.y - s.y, SP.stompStun * (1 - d / SP.stompRadius * 0.4), 130);
+            knockDown(f, f.x - s.x, f.y - s.y, SP.stompStun * (1 - d / SP.stompRadius * 0.4), 130, s);
             if (had){ puck.vx = (f.x - s.x) / n * 90; puck.vy = (f.y - s.y) / n * 90; }
           }
         }
@@ -1760,8 +1767,8 @@ function gameScene(){
         }
         if (dist(w, f) < radOf(w) + radOf(f) + 2){
           const had = puck.owner === f, d = dist(w, f) || 1;
-          knockDown(f, f.x - w.x + rnd(-6, 6), f.y - w.y + rnd(-6, 6), 1.5, 175); shake = Math.max(shake, 0.15); burst(parts, f.x, f.y - 10, 10, ['#ff3d1e', '#ffd23f', '#ffffff'], 90, 60, 0.6, 2);
-          noteKnock(w, f);
+          const fell = knockDown(f, f.x - w.x + rnd(-6, 6), f.y - w.y + rnd(-6, 6), 1.5, 175, w); shake = Math.max(shake, 0.15); burst(parts, f.x, f.y - 10, 10, ['#ff3d1e', '#ffd23f', '#ffffff'], 90, 60, 0.6, 2);
+          if (fell) noteKnock(w, f);
           if (had){ puck.owner = w; puck.zap = false; puck.passTo = null; w.cool = 0; }
           SFX.check(); burst(parts, f.x, f.y - 8, 8, ['#ffffff', '#ff7a1a', '#ffd23f'], 50, 40, 0.5, 2); floater(floats, f.x, f.y - 26, 'WHAM!', '#ff9a3a');
         }

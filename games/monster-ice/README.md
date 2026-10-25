@@ -44,7 +44,7 @@ Menus: arrows + Enter/Space (controller: d-pad + A or START). As soon as you pre
 | Mummy | 2 | 4 | 3 | 2 | **Wrap** – throws bandages at the carrier (or nearest foe); they're stuck for ~3 seconds and drop the puck. |
 | Frankenstein | 1 | 5 | 5 | 1 | **Stomp** – lightning strike + shockwave knocks down everyone nearby; for 5 seconds after, his shots are lightning shots that go through the goalie. |
 
-**Frankenstein is a wall:** he can only be checked by another Frankenstein or a Werewolf in frenzy (anyone else bounces off and goes down). A frenzied Werewolf can't be checked by anyone and hits wildly: bigger launches, longer knockdowns. Two frenzied Werewolves cancel each other out, and if they touch they go straight into a fight (even if there's already been one this game).
+**Frankenstein is a wall:** only another Frankenstein can knock him down: body checks, a frenzied Werewolf, stomps and finishers from anyone else leave him standing ("TOO BIG!"). You can still steal the puck from him, and anyone but a Frankenstein or a frenzied Werewolf who body checks him bounces off and goes down. A frenzied Werewolf can't be checked by anyone and hits wildly: bigger launches, longer knockdowns. Two frenzied Werewolves cancel each other out, and if they touch they go straight into a fight (even if there's already been one this game).
 
 Stats work like NES Ice Hockey: high CHK strips the puck more easily and is harder to knock off it; Frankenstein is big and slow, the Werewolf is fast and easy to knock over. Every skater's special meter fills over time (~20s) and gets a boost from good checks. The CPU uses its specials too.
 
