@@ -52,8 +52,9 @@ const CFG = {
   difficulty: {
     easy: { label: 'EASY', speed: 0.62, cpuSpeed: 0.75, cpuShot: 0.7, cpuShootRate: 0.45, cpuSteal: 0.45, cpuHit: 0.25, cpuSpecial: 0.5, mySteal: 1.7, myScore: 0.35, cpuGoalie: 30, myGoalie: 70 },
     hard: { label: 'HARD', speed: 1, cpuSpeed: 1, cpuShot: 1, cpuShootRate: 1, cpuSteal: 1, cpuHit: 1, cpuSpecial: 1, mySteal: 1, myScore: 0, cpuGoalie: 44, myGoalie: 54 },
-    // NIGHTMARE: a step past HARD. Faster CPU that shoots harder and more often, steals and hits more, fills its specials faster; its goalie is quicker, yours a bit slower.
-    nightmare: { label: 'NIGHTMARE', speed: 1.06, cpuSpeed: 1.14, cpuShot: 1.15, cpuShootRate: 1.6, cpuSteal: 1.5, cpuHit: 1.8, cpuSpecial: 1.6, mySteal: 0.8, myScore: 0, cpuGoalie: 56, myGoalie: 48 },
+    // NIGHTMARE: a step past HARD. Faster CPU that shoots harder and more often, steals and hits more; its goalie is quicker, yours a bit slower.
+    // Special meters fill slower here (yours to 55%, the CPU's to 90%; fight specials to 60%), so you have to pick your moment.
+    nightmare: { label: 'NIGHTMARE', speed: 1.06, cpuSpeed: 1.14, cpuShot: 1.15, cpuShootRate: 1.6, cpuSteal: 1.5, cpuHit: 1.8, cpuSpecial: 0.9, mySpecial: 0.55, fightSp: 0.6, mySteal: 0.8, myScore: 0, cpuGoalie: 56, myGoalie: 48 },
   },
   playerScale: 0.82,   // how big the skaters draw on the rink
   bodySprites: false,  // true = Stephen's full-body sprites on the rink; false = the drawn bodies + head art. Add #sprites to the link to try them.
@@ -1710,7 +1711,7 @@ function gameScene(){
     for (const s of all){
       s.cool = Math.max(0, s.cool - dt); s.stun = Math.max(0, s.stun - dt); s.wrap = Math.max(0, s.wrap - dt);
       s.frenzy = Math.max(0, s.frenzy - dt); s.zap = Math.max(0, s.zap - dt); s.fall = Math.max(0, s.fall - dt);
-      if (!gone(s)){ const was = s.sp; s.sp = Math.min(1, s.sp + dt * SP.fill * (P[s.team].human ? 1 : SP.oppFill * D.cpuSpecial)); if (was < 1 && s.sp >= 1 && P[s.team].human) SFX.ready(); }
+      if (!gone(s)){ const was = s.sp; s.sp = Math.min(1, s.sp + dt * SP.fill * (P[s.team].human ? (D.mySpecial || 1) : SP.oppFill * D.cpuSpecial)); if (was < 1 && s.sp >= 1 && P[s.team].human) SFX.ready(); }
       if (s.conv > 0){ s.conv -= dt; if (s.conv <= 0) revert(s); }
       if (s.out > 0){ s.out -= dt; if (s.out <= 0){ s.out = 0; s.x = RK.x1 - 8; s.y = RK.cy + (s.team === 0 ? 26 : -26); s.vx = -50; s.vy = 0; s.stun = 0; s.fall = 0;
         burst(parts, s.x, s.y - 8, 12, CONF, 60, 60, 0.6, 2); floater(floats, s.x - 20, s.y - 26, 'BACK IN!', TEAM[s.team].text); SFX.ready(); fixAll(); } }
@@ -1849,6 +1850,18 @@ function gameScene(){
   let fight = null, fightDone = false, knockCount = 0, blockId = null;
   const FSP = { frank: 'THUNDER PUNCH', vamp: 'BAT BITE', gill: 'WATER CANNON', wolf: 'CLAW FURY', mummy: 'BANDAGE LASH' };
   const fspOf = s => FSP[s.m.power] || 'MONSTER PUNCH';
+  /* Each monster fights differently. en = stamina; cost = per punch; guard = stamina per second while holding block;
+     chip = stamina lost when you block a punch; dmg = punch power; takes = damage taken; rec = extra punch recovery time. */
+  const FSTYLE = {
+    frank: { name: 'HEAVY HITTER', note: 'HUGE PUNCHES. TIRES FAST.',   en: 80,  regen: 15, cost: 26, guard: 20, chip: 10, dmg: 1.3,  takes: 0.95, rec: 0.06 },
+    wolf:  { name: 'FLURRY',       note: 'FAST, ENDLESS. WEAK GUARD.',  en: 130, regen: 36, cost: 13, guard: 30, chip: 14, dmg: 0.85, takes: 1.1,  rec: -0.04 },
+    mummy: { name: 'IRON GUARD',   note: 'BLOCKING IS CHEAP. TOUGH.',   en: 100, regen: 20, cost: 20, guard: 5,  chip: 3,  dmg: 0.95, takes: 0.85, rec: 0 },
+    vamp:  { name: 'BLOODSUCKER',  note: 'PUNCHES HEAL HIM.',           en: 100, regen: 24, cost: 18, guard: 14, chip: 8,  dmg: 1.0,  takes: 1.0,  rec: 0, drain: 3 },
+    gill:  { name: 'SLIPPERY',     note: 'EASY COUNTERS. FAST SPECIAL.', en: 105, regen: 30, cost: 17, guard: 14, chip: 8,  dmg: 0.95, takes: 1.0,  rec: 0, counter: 0.05, spGain: 1.4 },
+  };
+  const sty = f => FSTYLE[f.s.m.power] || FSTYLE.vamp;
+  const spGain = (f, v) => v * (sty(f).spGain || 1) * (D.fightSp || 1);
+  function guardBreak(f){ f.block = false; f.en = 0; f.restT = 0.7; hurt(f, 0, 0.6); fMsg('GUARD BREAK!', f === fight.me ? '#ff5d73' : '#b6ff4a'); noise(0.25, 0.35, 700); tone(160, 0.25, 'square', 0.14, -60); }
   const FY = 206;   // fighters' feet on screen
   function noteKnock(a, v){
     if (fightDone || fight || state !== 'play' || !FC.enabled || fin) return;
@@ -1856,7 +1869,7 @@ function gameScene(){
     if (a.team === v.team || a.out > 0 || v.out > 0) return;
     if (knockCount >= FC.after || lateGame()) startFight(a.team === 0 ? a : v, a.team === 0 ? v : a);
   }
-  const mkF = (s, side) => ({ s, side, hp: 100, st: 'idle', t: 0, dur: 0, block: false, blockT: 0, pressT: -9, sp: 0.35, hitT: 0, cpuT: rnd(0.8, 1.2), hitDone: false, beeps: 0 });
+  const mkF = (s, side) => { const y = FSTYLE[s.m.power] || FSTYLE.vamp; return { s, side, hp: 100, st: 'idle', t: 0, dur: 0, block: false, blockT: 0, pressT: -9, sp: 0.35, hitT: 0, cpuT: rnd(0.8, 1.2), hitDone: false, beeps: 0, en: y.en, enMax: y.en, restT: 0, tiredT: 0 }; };
   function startFight(mine, cpu){
     // bitten players go home first, so you never end up fighting (and sending off) your own monster
     for (const o of [mine, cpu]) if (o.conv > 0 || o.team !== o.home){ moveTeam(o, o.home); o.conv = 0; }
@@ -1874,7 +1887,12 @@ function gameScene(){
   const fx0 = f => 90 + f.side * 34;
   const fsc = f => 2.6 * f.s.m.size;
   function fMsg(t, c){ fight.msg = t; fight.msgT = 1.1; fight.msgC = c || '#ffd23f'; }
-  function fPunch(f){ if (fight.phase !== 'fight' || f.st !== 'idle' || (humanF(f) && f.block)) return; f.st = 'punch'; f.t = 0; f.hitDone = false; noise(0.05, 0.12, 2500); }
+  function fPunch(f){
+    if (fight.phase !== 'fight' || f.st !== 'idle' || (humanF(f) && f.block)) return;
+    const y = sty(f);
+    if (f.en < y.cost){ f.tiredT = 0.6; if (humanF(f)) SFX.nope(); return; }   // too tired to throw one
+    f.en -= y.cost; f.restT = 0.45; f.st = 'punch'; f.t = 0; f.hitDone = false; noise(0.05, 0.12, 2500);
+  }
   function fSpecial(f){
     if (fight.phase !== 'fight' || f.st !== 'idle' || f.sp < 1){ if (humanF(f)) SFX.nope(); return; }
     f.st = 'special'; f.t = 0; f.t0 = TT; f.sp = 0; f.hitDone = false; f.beeps = 0; f.block = false;
@@ -1890,37 +1908,45 @@ function gameScene(){
     const sc = fsc(o), hx = fx0(o), hy = FY - 10 * sc;
     if (o.block && o.st !== 'special'){
       o.hp = Math.max(0, o.hp - 1); burst(fight.parts, hx - o.side * 6, hy, 6, ['#ffffff', '#bfe6ff'], 50, 0, 0.3, 2); tone(220, 0.06, 'square', 0.12);
-      o.sp = Math.min(1, o.sp + 0.06); return;
+      o.sp = Math.min(1, o.sp + spGain(o, 0.06));
+      o.en -= sty(o).chip * (f.s.m.power === 'frank' ? 1.5 : 1); o.restT = 0.4;   // Frankenstein's punches crush a guard
+      if (o.en <= 0) guardBreak(o);
+      return;
     }
-    hurt(o, 5 + 1.6 * f.s.m.chk, 0.22);
-    f.sp = Math.min(1, f.sp + 0.2); o.sp = Math.min(1, o.sp + 0.12);
+    hurt(o, (5 + 1.6 * f.s.m.chk) * sty(f).dmg * sty(o).takes, 0.22);
+    if (sty(f).drain) f.hp = Math.min(100, f.hp + sty(f).drain);
+    f.sp = Math.min(1, f.sp + spGain(f, 0.2)); o.sp = Math.min(1, o.sp + spGain(o, 0.12));
     burst(fight.parts, hx, hy, 10, ['#ffffff', '#ffd23f', '#ff7a1a'], 70, 60, 0.4, 2); SFX.check(); shake = 0.08;
   }
   function landSpecial(f, o){
     const impact = f.t0 + FC.specialWind;
-    const countered = !humanF(o) ? o.cpuCounter : o.pressT >= impact - FC.counterWindow && o.pressT <= impact + 0.03;
+    const countered = !humanF(o) ? o.cpuCounter : o.pressT >= impact - FC.counterWindow - (sty(o).counter || 0) && o.pressT <= impact + 0.03 + (sty(o).counter || 0) * 0.5;
     const cols = finOf(f.s).cols;
     if (countered){
-      hurt(f, FC.specialDmg, 0.7); o.sp = Math.min(1, o.sp + 0.35);
+      hurt(f, FC.specialDmg * sty(f).takes, 0.7); o.sp = Math.min(1, o.sp + spGain(o, 0.35));
       fight.fx = { on: f, by: o, t: 0.6 }; fMsg('COUNTER!', o === fight.me ? '#b6ff4a' : '#ff5d73');
       burst(fight.parts, fx0(f), FY - 10 * fsc(f), 26, cols, 110, 60, 0.7, 2); jingle([660, 990, 1320], 0.05); shake = 0.3;
     } else if (o.block){
-      hurt(o, FC.specialDmg * 0.4, 0.3); fMsg('BLOCKED!', '#c9b8f0');
+      hurt(o, FC.specialDmg * 0.4 * sty(o).takes, 0.3); fMsg('BLOCKED!', '#c9b8f0'); o.en -= sty(o).chip * 2.5; o.restT = 0.5; if (o.en <= 0) guardBreak(o);
       burst(fight.parts, fx0(o) - o.side * 6, FY - 10 * fsc(o), 14, cols, 70, 40, 0.5, 2); noise(0.2, 0.3, 900);
     } else {
-      hurt(o, FC.specialDmg, 0.55); fight.fx = { on: o, by: f, t: 0.6 };
+      hurt(o, FC.specialDmg * sty(o).takes, 0.55); fight.fx = { on: o, by: f, t: 0.6 };
       burst(fight.parts, fx0(o), FY - 10 * fsc(o), 30, cols, 120, 80, 0.8, 2); noise(0.4, 0.45, 400); tone(90, 0.3, 'square', 0.2, -40); shake = 0.3;
       if (f.s.m.power === 'vamp') f.hp = Math.min(100, f.hp + 8);   // the bite heals him a little
     }
   }
   function stepF(f, dt){
     const o = foeF(f);
-    f.hitT = Math.max(0, f.hitT - dt);
+    f.hitT = Math.max(0, f.hitT - dt); f.tiredT = Math.max(0, f.tiredT - dt);
+    // stamina: holding block drains it, resting refills it
+    const y = sty(f);
+    if (f.block && f.st !== 'special'){ f.en -= y.guard * dt; f.restT = 0.3; if (f.en <= 0) guardBreak(f); }
+    else if (f.st === 'idle'){ f.restT -= dt; if (f.restT <= 0) f.en = Math.min(f.enMax, f.en + y.regen * dt); }
     if (f.st === 'idle') return;
     f.t += dt;
     if (f.st === 'hit'){ if (f.t >= f.dur) f.st = 'idle'; return; }
     if (f.st === 'punch'){
-      const wind = 0.1, rec = 0.3 - 0.03 * f.s.m.spd;
+      const wind = 0.1, rec = Math.max(0.1, 0.3 - 0.03 * f.s.m.spd + sty(f).rec);
       if (!f.hitDone && f.t >= wind){ f.hitDone = true; landPunch(f, o); }
       if (f.t >= wind + rec) f.st = 'idle';
       return;
@@ -1940,10 +1966,10 @@ function gameScene(){
       if (c.cpuCounter && !c.flashed && m.t >= FC.specialWind - 0.05){ c.flashed = true; c.pressT = TT; }
     } else { c.decided = false; c.flashed = false; c.cpuCounter = false; }
     if (c.st !== 'idle') return;
-    if (m.st === 'punch' && m.t < 0.06){ if (!c.reacted){ c.reacted = true; if (Math.random() < FC.cpuBlock){ c.block = true; c.blockT = 0.4; } } } else if (m.st !== 'punch') c.reacted = false;
+    if (m.st === 'punch' && m.t < 0.06){ if (!c.reacted){ c.reacted = true; if (c.en > 20 && Math.random() < FC.cpuBlock){ c.block = true; c.blockT = 0.4; } } } else if (m.st !== 'punch') c.reacted = false;
     if (c.block){ c.blockT -= dt; if (c.blockT <= 0) c.block = false; return; }
     c.cpuT -= dt;
-    if (c.cpuT <= 0){ c.cpuT = rnd(FC.cpuPunch[0], FC.cpuPunch[1]) * (1.15 - 0.05 * c.s.m.spd); if (c.sp >= 1 && Math.random() < 0.5) fSpecial(c); else fPunch(c); }
+    if (c.cpuT <= 0){ c.cpuT = rnd(FC.cpuPunch[0], FC.cpuPunch[1]) * (1.15 - 0.05 * c.s.m.spd); if (c.sp >= 1 && Math.random() < 0.5) fSpecial(c); else if (c.en >= sty(c).cost + 4) fPunch(c); else c.cpuT = 0.25; }   // catches its breath when tired
   }
   function stepFight(dt){
     const F = fight; F.t += dt; stepParts(F.parts, dt); F.msgT = Math.max(0, F.msgT - dt); if (F.fx){ F.fx.t -= dt; if (F.fx.t <= 0) F.fx = null; }
@@ -2060,11 +2086,16 @@ function gameScene(){
     const bar = (f, x, alignR) => {
       const w = 76, hpw = Math.round(w * f.hp / 100), col = f.hp > 50 ? '#b6ff4a' : f.hp > 25 ? '#ffd23f' : '#ff3d1e';
       R(x - 1, 33, w + 2, 9, '#000'); R(x, 34, w, 7, '#3a1020'); R(alignR ? x + w - hpw : x, 34, hpw, 7, col); R(alignR ? x + w - hpw : x, 34, hpw, 1, 'rgba(255,255,255,.5)');
-      R(x, 44, w, 3, '#2a1446'); R(alignR ? x + w - w * f.sp : x, 44, w * f.sp, 3, f.sp >= 1 ? (Math.floor(TT * 8) % 2 ? '#ffffff' : '#ff7a1a') : '#7a3ab8');
-      T(f.s.m.short, alignR ? x + w : x, 50, TEAM[f.s.team].text, 8, alignR ? 'right' : 'left');
+      const ef = Math.max(0, f.en) / (f.enMax || 100), ew = Math.round(w * ef), low = f.en < sty(f).cost;
+      R(x, 43, w, 3, '#10202a'); R(alignR ? x + w - ew : x, 43, ew, 3, low ? (Math.floor(TT * 6) % 2 ? '#ff5d73' : '#7a2a3a') : '#5cc8ff');
+      R(x, 48, w, 3, '#2a1446'); R(alignR ? x + w - w * f.sp : x, 48, w * f.sp, 3, f.sp >= 1 ? (Math.floor(TT * 8) % 2 ? '#ffffff' : '#ff7a1a') : '#7a3ab8');
+      T(f.s.m.short, alignR ? x + w : x, 54, TEAM[f.s.team].text, 8, alignR ? 'right' : 'left');
+      if (F.phase === 'intro'){ tiny(sty(f).name, alignR ? x + w : x, 65, '#ffd23f', alignR ? 'right' : 'left', null); }
     };
     bar(me, 8, false); bar(cpu, 96, true);
-    T('VS', 90, 50, '#8a7ab8', 8);
+    T('VS', 90, 54, '#8a7ab8', 8);
+    if (F.phase === 'intro'){ R(6, 128, W - 12, 20, 'rgba(18,10,34,.75)'); tiny(sty(me).note, 90, 131, TEAM[me.s.team].text, 'center', null); tiny(sty(cpu).note, 90, 140, TEAM[cpu.s.team].text, 'center', null); }
+    for (const f of [me, cpu]) if (f.tiredT > 0 && F.phase === 'fight') T('TIRED!', fx0(f), FY - 22 * fsc(f) / 2.6 - 34, '#ff5d73', 8);
     if (F.phase === 'intro'){ fancy('FIGHT!', 90, 82, 24, 'red'); T('THE GLOVES ARE OFF', 90, 116, '#ffffff', 8);
       for (let i = 0; i < 2; i++){ const gx = 90 + (i ? 30 : -30) + (i ? 1 : -1) * F.t * 30, gy = 150 + F.t * F.t * 60; R(gx - 4, Math.min(gy, FY - 4), 8, 6, TEAM[i].jersey); } }
     if (F.phase === 'ko'){ fancy('K.O.!', 90, 78, 24, F.win === me ? 'gold' : 'purple'); T(F.win.s.m.name + '\nWINS THE FIGHT!', 90, 112, '#ffffff', 8); }
@@ -2074,7 +2105,8 @@ function gameScene(){
     const me = myF(); if (!me) return;
     drawPlate(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp);
     btnDraw(BTN_A, 'BLOCK', '#c9a0ff', me.block); btnDraw(BTN_B, 'PUNCH', '#ff9a3a', me.st === 'punch');
-    T('HOLD A\nTO BLOCK\nTAP A ON\nGOLD RING', g.fhint[0], g.fhint[1], '#8a7ab8', 8);
+    T('HOLD A\nTO BLOCK\nGOLD RING\n=COUNTER', g.fhint[0], g.fhint[1], '#8a7ab8', 8);
+    { const f = myF(); if (f) tiny('STAMINA ' + Math.max(0, Math.round(f.en)), g.fhint[0], g.fhint[1] - 9, f.en < sty(f).cost ? '#ff5d73' : '#5cc8ff', 'center', null); }
   }
   function btnDraw(b, label, col, on){
     C(b.x + 1, b.y + 2, b.r, '#000'); C(b.x, b.y + (on ? 1 : 0), b.r, col); C(b.x - 4, b.y - 5, 3, 'rgba(255,255,255,.4)');
@@ -2082,7 +2114,7 @@ function gameScene(){
     const kn = INPUT === 'touch' ? null : keyNames(PT)[b === BTN_A ? 'a' : 'b'];
     if (kn) keyCap(kn, b.x, b.y - 3); else T(b === BTN_A ? 'A' : 'B', b.x, b.y - 4, '#2a1446', 8, 'center', null);
   }
-  function fBlock(m, dn){ if (!fight || !m) return; if (dn){ m.block = true; m.pressT = TT; } else m.block = false; }
+  function fBlock(m, dn){ if (!fight || !m) return; if (dn){ m.pressT = TT; if (m.en > 4) m.block = true; else m.tiredT = 0.6; } else m.block = false; }   // a counter tap still works when you're out of gas
 
   /* ---------- DRAW ---------- */
   function drawSkater(s){

@@ -4,7 +4,7 @@
 
 NES-style 3-on-3 hockey with classic monsters. Spun off from Rec Center Hockey in Super Sullivan. Part of the Monster Pizza arcade.
 
-**1 PLAYER:** choose **EASY**, **HARD** or **NIGHTMARE**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. **NIGHTMARE** is a step past HARD: the CPU skates faster, shoots harder and more often, steals and body checks more, and fills its specials faster; its goalie is quicker and yours a bit slower (wins show " NM" on the high score board). Tune all three in `CFG.difficulty`. **PLAY ONLINE:** two devices, see below. **2P ON IPAD:** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZOMBONI:** 15 seconds to clean up the rink in the zombie Zamboni (also offered as a break between periods).
+**1 PLAYER:** choose **EASY**, **HARD** or **NIGHTMARE**, pick 3 monsters (repeats allowed), face a random CPU team. EASY slows the whole game way down (the clock still runs in real time) so a younger kid can follow it; the CPU skates slower, shoots softer and less often, steals and hits less, and its goalie is slower, while you steal more and your shots sneak in more. HARD is full speed. **NIGHTMARE** is a step past HARD: the CPU skates faster, shoots harder and more often, steals and body checks more, and fills its specials faster; its goalie is quicker and yours a bit slower (wins show " NM" on the high score board). Special meters fill slower on NIGHTMARE (yours to 55%, the CPU's to 90%, fight specials to 60%), so pick your moment. Tune all three in `CFG.difficulty`. **PLAY ONLINE:** two devices, see below. **2P ON IPAD:** pick EASY (slow) or HARD (full speed); in 2-player it only changes the game speed. One iPad lying flat, Player 1 at the bottom, Player 2 at the top (their controls face them). **ZOMBONI:** 15 seconds to clean up the rink in the zombie Zamboni (also offered as a break between periods).
 
 Games are **3 one-minute periods**. Tied after the third? **Sudden death:** the next goal wins.
 
@@ -74,6 +74,14 @@ The fight switches to 16-bit fighters: bigger, shaded monsters in full gear (num
 Once per game, the gloves come off: after 3 knockdowns (or the first one in the last 40 seconds), the next big hit starts a fight between the hitter and the one who got hit.
 - **B = PUNCH.** Big monsters hit harder, fast ones punch quicker.
 - **Hold A = BLOCK.** Blocked punches barely hurt.
+- **STAMINA** (the blue bar under health): every punch costs some, holding block drains it, and each punch you block chips at it. Rest and it refills. Too tired = no punch (TIRED!); if blocking runs it dry your guard breaks and you're dazed for a moment. No spamming.
+- **Every monster fights differently:**
+  - Frankenstein, *Heavy Hitter*: huge punches that crush a guard, but he tires fast.
+  - Werewolf, *Flurry*: fast punches and the most stamina, but a weak guard and he takes extra damage.
+  - Mummy, *Iron Guard*: blocking barely costs him anything, and he's tough to hurt.
+  - Vampire, *Bloodsucker*: every punch that lands heals him a little.
+  - Creature, *Slippery*: a bigger counter window and a faster special meter.
+  The styles are in `FSTYLE` in the fight code (stamina, punch cost, block drain, damage...).
 - **SPECIAL** (bar fills as you land and take hits): Thunder Punch, Bat Bite, Water Cannon, Claw Fury, Bandage Lash. It winds up for a second; in the last half second a ring appears on the defender with one blip and shrinks fast. **Tap BLOCK at the exact moment it turns gold (a ~0.06s window) to COUNTER** and the special hits the attacker instead. Just holding block cuts the damage.
 - The winner finishes the loser monster-style: Frankenstein zaps him to an x-ray and a pile of ash, the Vampire drains him into a cloud of bats, the Creature drags him under the ice, the Werewolf spin-launches him into the stars, the Mummy wraps him up and slams a sarcophagus on him.
 - The loser's team plays a man down for 3 seconds, then he skates back in.
