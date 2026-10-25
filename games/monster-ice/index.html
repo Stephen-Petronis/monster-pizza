@@ -52,6 +52,8 @@ const CFG = {
   difficulty: {
     easy: { label: 'EASY', speed: 0.62, cpuSpeed: 0.75, cpuShot: 0.7, cpuShootRate: 0.45, cpuSteal: 0.45, cpuHit: 0.25, cpuSpecial: 0.5, mySteal: 1.7, myScore: 0.35, cpuGoalie: 30, myGoalie: 70 },
     hard: { label: 'HARD', speed: 1, cpuSpeed: 1, cpuShot: 1, cpuShootRate: 1, cpuSteal: 1, cpuHit: 1, cpuSpecial: 1, mySteal: 1, myScore: 0, cpuGoalie: 44, myGoalie: 54 },
+    // NIGHTMARE: a step past HARD. Faster CPU that shoots harder and more often, steals and hits more, fills its specials faster; its goalie is quicker, yours a bit slower.
+    nightmare: { label: 'NIGHTMARE', speed: 1.06, cpuSpeed: 1.14, cpuShot: 1.15, cpuShootRate: 1.6, cpuSteal: 1.5, cpuHit: 1.8, cpuSpecial: 1.6, mySteal: 0.8, myScore: 0, cpuGoalie: 56, myGoalie: 48 },
   },
   playerScale: 0.82,   // how big the skaters draw on the rink
   bodySprites: false,  // true = Stephen's full-body sprites on the rink; false = the drawn bodies + head art. Add #sprites to the link to try them.
@@ -506,7 +508,7 @@ function drawPlate(m, frac, label, P_, key){
 const KEY = 'monster-ice-v1';
 let muted = false; try { muted = localStorage.getItem(KEY + '-mute') === '1'; } catch (e) {}
 const G = { team: null, cpu: null, cpuName: '', diff: 'hard', online: null };   // online: 'host' | 'guest' | null
-try { const d = localStorage.getItem('monster-ice-v1-diff'); if (d === 'easy' || d === 'hard') G.diff = d; } catch (e) {}
+try { const d = localStorage.getItem('monster-ice-v1-diff'); if (d === 'easy' || d === 'hard' || d === 'nightmare') G.diff = d; } catch (e) {}
 try { const t = JSON.parse(localStorage.getItem(KEY + '-team') || 'null'); if (Array.isArray(t) && t.length === 3 && t.every(id => MON[id])) G.team = t; } catch (e) {}
 function saveTeam(){ try { localStorage.setItem(KEY + '-team', JSON.stringify(G.team)); } catch (e) {} }
 
@@ -1001,24 +1003,45 @@ function titleScene(){
 
 /* ---------- DIFFICULTY ---------- */
 function diffScene(){
-  const S = { quit: true }; let bs;
+  const S = { quit: true }; let bs, opts, sel = 0;
   const choose = d => { G.diff = d; try { localStorage.setItem('monster-ice-v1-diff', d); } catch (e) {} go(pickScene(0)); };
-  S.enter = () => { bs = [btn(24, 92, 132, 30, 'EASY', () => choose('easy'), '#b6ff4a'), btn(24, 186, 132, 30, 'HARD', () => choose('hard'), '#ff5d73')]; };
+  const NAMES = { easy: ['EASY', '#b6ff4a'], hard: ['HARD', '#ff5d73'], nightmare: ['NIGHTMARE', '#b45aff'] };
+  S.enter = () => {
+    // 1 player: EASY / HARD / NIGHTMARE. 2 players (only the game speed changes): EASY / HARD.
+    opts = G.twoP ? [['easy', 92], ['hard', 186]] : [['easy', 66], ['hard', 138], ['nightmare', 210]];
+    bs = opts.map(([d, y]) => btn(24, y, 132, 28, NAMES[d][0], () => choose(d), NAMES[d][1]));
+    sel = Math.max(0, opts.findIndex(o => o[0] === G.diff));
+  };
   S.down = p => hitBtn(bs, p);
-  S.key = (c, dn) => { if (!dn) return; if (c === 'ArrowUp' || c === 'KeyW' || c === 'Digit1') choose('easy'); else if (c === 'ArrowDown' || c === 'KeyS' || c === 'Digit2') choose('hard'); else if (c === 'Enter' || c === 'Space') choose(G.diff); };
+  S.key = (c, dn) => {
+    if (!dn) return;
+    const n = { Digit1: 0, Digit2: 1, Digit3: 2 }[c]; if (n !== undefined && opts[n]){ choose(opts[n][0]); return; }
+    if (c === 'ArrowUp' || c === 'KeyW'){ sel = (sel + opts.length - 1) % opts.length; SFX.tap(); }
+    else if (c === 'ArrowDown' || c === 'KeyS'){ sel = (sel + 1) % opts.length; SFX.tap(); }
+    else if (c === 'Enter' || c === 'Space' || c === 'KeyZ'){ SFX.tap(); choose(opts[sel][0]); }
+  };
+  const ghost = (x, y, r, eyes, mouth) => { E(x, y, r, r, '#ffffff'); const e = Math.max(2, Math.round(r / 2.4)); R(x - r * 0.65, y - r * 0.3, e, e, eyes); R(x + r * 0.65 - e, y - r * 0.3, e, e, eyes); if (mouth) R(x - r * 0.55, y + r * 0.35, r * 1.1, Math.max(1, r * 0.28), '#111'); };
   S.draw = () => {
     nightSky(8); moon(150, 30, 10);
-    T(G.twoP ? 'GAME SPEED?' : 'HOW SPOOKY?', 90, 44, '#ffd23f', 12);
+    T(G.twoP ? 'GAME SPEED?' : 'HOW SPOOKY?', 90, G.twoP ? 44 : 34, '#ffd23f', 12);
     bs.forEach(drawBtn);
-    if (G.twoP && G.online) T('ONLINE: YOU PICK\nTHE GAME SPEED', 90, 262, '#5cc8ff', 8);
-    if (G.twoP && !G.online){ T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8);
-      R(8, 262, 164, 40, '#2a1446'); tiny('2 PLAYER IS FOR IPAD FOR NOW', 90, 268, '#ffd23f'); tiny('LAY IT FLAT BETWEEN YOU', 90, 278, '#c9b8f0'); tiny('ONE PLAYER AT EACH END', 90, 288, '#c9b8f0'); }
-    else if (G.twoP) { T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8); }
-    else { T('SLOWER GAME.\nCPU SHOOTS SOFT,\nYOU SCORE MORE.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nTHE CPU PLAYS\nTO WIN.', 90, 224, '#ffb0c0', 8); }
-    for (const [y, d] of [[92, 'easy'], [186, 'hard']]) if (G.diff === d) T('LAST TIME', 90, y - 12, '#8a7ab8', 8);
-    // a little baby ghost vs a big scary one
-    const by = 100 + Math.sin(TT * 3) * 2; E(166, by, 4, 4, '#ffffff'); R(163, by - 1, 2, 2, '#111'); R(167, by - 1, 2, 2, '#111');
-    const hy = 196 + Math.sin(TT * 4) * 2; E(166, hy, 7, 7, '#ffffff'); R(161, hy - 2, 3, 3, '#ff3d1e'); R(168, hy - 2, 3, 3, '#ff3d1e'); R(162, hy + 3, 8, 2, '#111');
+    if (INPUT !== 'touch'){ const b = bs[sel]; T('>', b.x - 12, b.y + b.h / 2 - 4, '#ffd23f', 8, 'left', null); }
+    if (G.twoP){
+      T('SLOWER GAME.\nEASIER TO FOLLOW\nFOR LITTLE ONES.', 90, 130, '#c9e8a0', 8); T('FULL SPEED.\nGLOVES OFF.', 90, 224, '#ffb0c0', 8);
+      if (G.online) T('ONLINE: YOU PICK\nTHE GAME SPEED', 90, 262, '#5cc8ff', 8);
+      else { R(8, 262, 164, 40, '#2a1446'); tiny('2 PLAYER IS FOR IPAD FOR NOW', 90, 268, '#ffd23f'); tiny('LAY IT FLAT BETWEEN YOU', 90, 278, '#c9b8f0'); tiny('ONE PLAYER AT EACH END', 90, 288, '#c9b8f0'); }
+    } else {
+      T('SLOWER GAME.\nCPU SHOOTS SOFT.', 90, 99, '#c9e8a0', 8);
+      T('FULL SPEED.\nTHE CPU PLAYS TO WIN.', 90, 171, '#ffb0c0', 8);
+      T('FASTER, MEANER CPU.\nBIG HITS, HOT GOALIE.', 90, 243, '#d8b0ff', 8);
+      T('GOOD LUCK...', 90, 272, Math.floor(TT * 2) % 2 ? '#b45aff' : '#6a3a9a', 8);
+    }
+    for (const [d, y] of opts) if (G.diff === d && INPUT === 'touch') T('LAST TIME', 90, y - 10, '#8a7ab8', 8);
+    // a little baby ghost, a scary one... and a nightmare
+    const gy = k => opts[k][1] + 14;
+    ghost(166, gy(0) + Math.sin(TT * 3) * 2, 4, '#111', false);
+    ghost(166, gy(1) + Math.sin(TT * 4) * 2, 7, '#ff3d1e', true);
+    if (!G.twoP){ const fl = Math.random() < 0.08; ctx.save(); ctx.globalAlpha = fl ? 0.4 : 1; ghost(165 + rnd(-0.6, 0.6), gy(2) + Math.sin(TT * 6) * 2, 10, Math.floor(TT * 4) % 2 ? '#ff3d1e' : '#b45aff', true); ctx.restore(); }
   };
   return S;
 }
@@ -1807,7 +1830,7 @@ function gameScene(){
   const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
   function finish(){
     if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
-    const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
+    const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : D === CFG.difficulty.nightmare ? ' NM' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
     if (res.win && !res.twoP && hsRank(res.key) >= 0) go(initialsScene(res)); else go(resultScene(res));
   }
 
@@ -2208,14 +2231,14 @@ function gameScene(){
       box(80, 21, 18, 7); tiny(clk, 89, 22, ot || clock < 10 ? '#ff5d73' : '#ffffff', 'center', null);
       box(84, 28, 10, 6); tiny(ot ? 'OT' : String(period), 89, 28, '#ffd23f', 'center', null);
       R(0, 0, W, 9, 'rgba(18,10,34,.85)');
-      tiny(D.label, 22, 2, D.label === 'EASY' ? '#b6ff4a' : '#ff5d73', 'left', null);
+      tiny(D.label, 22, 2, D.label === 'EASY' ? '#b6ff4a' : D.label === 'NIGHTMARE' ? '#c46aff' : '#ff5d73', 'left', null);
       tiny(status, 96, 2, outS ? (outS.team === 0 ? '#ff9aa8' : '#b6ff4a') : '#c9b8f0', 'center', null);
     } else {
       R(0, 0, W, 29, '#120a22');
       T(n0, 24, 6, TEAM[0].text, 8, 'left'); T(score[0] + '', 54, 6, '#f7efe0', 8, 'left');
       T(score[1] + '', W - 52, 6, '#f7efe0', 8, 'right'); T(n1, W - 22, 6, TEAM[1].text, 8, 'right');
       T(clk, 90, 6, ot || clock < 10 ? '#ff5d73' : '#ffd23f', 8);
-      T(perName(), 22, 19, '#ffd23f', 8, 'left'); tiny(D.label, W - 22, 21, D.label === 'EASY' ? '#b6ff4a' : '#ff5d73', 'right', null);
+      T(perName(), 22, 19, '#ffd23f', 8, 'left'); tiny(D.label, W - 22, 21, D.label === 'EASY' ? '#b6ff4a' : D.label === 'NIGHTMARE' ? '#c46aff' : '#ff5d73', 'right', null);
       T(status, 96, 19, '#8a7ab8', 8);
     }
     if (state === 'face' && opening){
