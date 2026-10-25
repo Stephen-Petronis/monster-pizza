@@ -2222,7 +2222,8 @@ function gameScene(){
       R(0, 34, W, 220, 'rgba(18,10,34,.6)');
       T('MONSTERS TAKE\nTHE ICE!', 90, 60, '#ff9a3a', 12, 'center');
       const u = clamp((2.6 - stT) / 0.5, 0, 1);
-      us.forEach((s, k) => drawMonster(s.m, lerp(-40, 40 + k * 50, u), 180, 2.2 * (s.m.size > 1 ? 1.1 : 1), TEAM[0], { fx: 1, fy: 0.2, anim: TT * 2, moving: u < 1 }));
+      const mineT = G.online === 'guest' ? 1 : 0;   // online, each player sees their own monsters skate out
+      (mineT ? them : us).forEach((s, k) => drawMonster(s.m, lerp(-40, 40 + k * 50, u), 180, 2.2 * (s.m.size > 1 ? 1.1 : 1), TEAM[mineT], { fx: 1, fy: 0.2, anim: TT * 2, moving: u < 1 }));
     }
     else if (state === 'face') T(ot ? 'SUDDEN\nDEATH!' : 'FACE OFF', 90, 92, ot ? '#ff5d73' : '#ffd23f', 12, 'center');
     if (state === 'inter'){
