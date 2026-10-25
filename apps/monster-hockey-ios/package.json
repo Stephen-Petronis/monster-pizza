@@ -1,0 +1,19 @@
+{
+  "name": "monster-hockey-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monster Hockey: Ice Scream! as an iPhone/iPad app (Capacitor wraps the web game).",
+  "scripts": {
+    "setup": "bash scripts/setup-mac.sh",
+    "update-game": "bash scripts/update-game.sh",
+    "open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "latest",
+    "@capacitor/ios": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest",
+    "@capacitor/assets": "latest"
+  }
+}

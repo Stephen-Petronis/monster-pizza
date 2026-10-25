@@ -1,0 +1,12 @@
+{
+  "appId": "com.stephenpetronis.monsterhockey",
+  "appName": "Monster Hockey",
+  "webDir": "www",
+  "backgroundColor": "#120a22",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#120a22",
+    "scrollEnabled": false,
+    "allowsLinkPreview": false
+  }
+}
