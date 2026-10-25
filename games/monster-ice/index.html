@@ -1825,7 +1825,8 @@ function gameScene(){
     if (fin){ stepFin(dt); return; }
     if (period <= CFG.periods){ clock -= rdt; if (clock <= 0){ clock = 0; endPeriod(); return; }
       const sec = Math.ceil(clock);   // last 5 seconds: beep... beep... BEEP
-      if (sec <= 5 && sec < lastBeep){ lastBeep = sec; if (sec === 1) tone(1320, 0.3, 'square', 0.2); else tone(880, 0.13, 'square', 0.18); }
+      if (sec <= 5 && sec < lastBeep){ lastBeep = sec;   // loud, two layers so it cuts through
+        if (sec === 1){ tone(1320, 0.4, 'square', 0.55); tone(660, 0.4, 'square', 0.3); } else { tone(880, 0.18, 'square', 0.55); tone(440, 0.18, 'square', 0.3); } }
       if (clock > 5.5) lastBeep = 99;
     } else clock += rdt;   // overtime counts up
     hmsgT = Math.max(0, hmsgT - dt);
@@ -2580,7 +2581,7 @@ function gameScene(){
   function musicFx(){
     if (scene !== S) return;
     const last5 = period <= CFG.periods && clock > 0 && clock <= 5 && (state === 'play' || state === 'face');
-    musicDuck(state === 'goal' ? 0.4 : last5 ? 0.35 : CFG.music.gameVolume);
+    musicDuck(state === 'goal' ? 0.4 : last5 ? 0.12 : CFG.music.gameVolume);
   }
   { const upd = S.update; let snapT = 0;
     S.update = rdt => {
