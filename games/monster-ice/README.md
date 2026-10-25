@@ -1,4 +1,6 @@
-# Monster Ice
+# Monster Hockey: "Ice Scream!"
+
+(Folder and repo name: monster-ice.)
 
 NES-style 3-on-3 hockey with classic monsters. Spun off from Rec Center Hockey in Super Sullivan. Part of the Monster Pizza arcade.
 

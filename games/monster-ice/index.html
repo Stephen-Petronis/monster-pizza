@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#120a22">
-<title>Monster Ice</title>
+<title>Monster Hockey: Ice Scream</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@ canvas{
 </style>
 </head>
 <body>
-<div id="stage"><canvas id="game" width="180" height="320" aria-label="Monster Ice hockey game"></canvas></div>
+<div id="stage"><canvas id="game" width="180" height="320" aria-label="Monster Hockey: Ice Scream"></canvas></div>
 <script>
 (() => {
 'use strict';
@@ -677,8 +677,13 @@ function titleScene(){
     nightSky(2); moon(140, 40, 16);
     for (let k = 0; k < 3; k++){ const t = TT * 0.6 + k * 2.1; drawBat(((t * 40) % 220) - 20, 30 + k * 18 + Math.sin(t * 3) * 6, 1, k); }
     const wob = Math.sin(TT * 3) * 2;
-    fancy('MONSTER', 90, 64 + wob, 16, 'orange');
-    fancy('ICE', 90, 88 - wob, 24, 'blue');
+    fancy('MONSTER', 90, 58 + wob, 16, 'blue');
+    fancy('HOCKEY', 90, 80 - wob, 24, 'orange');
+    // the "ICE SCREAM!" tag, tilted a little like on the cabinet
+    ctx.save(); ctx.translate(90, 120); ctx.rotate(-0.06);
+    R(-46, -8, 92, 16, '#000'); R(-45, -7, 90, 14, '#bfe6ff'); R(-45, -7, 90, 2, '#ffffff'); R(-45, 5, 90, 2, '#5cc8ff');
+    T('ICE SCREAM!', 0, -4, '#1d4fd8', 8, 'center', null);
+    ctx.restore();
     // graveyard horizon + ice
     for (const tx of [16, 44, 120, 152]) tomb(tx, 150);
     R(0, 150, W, 4, '#3a2e52');
@@ -688,7 +693,7 @@ function titleScene(){
       const x = ((TT * 26 + k * 50) % 260) - 40, y = 192 + (k % 2) * 16;
       drawMonster(m, x, y, 1.6 * (m.size > 1 ? 1.15 : 1), TEAM[k % 2], { fx: 1, fy: 0.2, anim: TT * 2 + k, moving: true });
     });
-    T('3 ON 3 MONSTER HOCKEY', 90, 134, '#c9a0ff', 8);
+    T('3 ON 3 SPOOKY HOCKEY', 90, 138, '#c9a0ff', 8);
     bs.forEach(drawBtn);
   };
   return S;
@@ -2170,7 +2175,7 @@ function initialsScene(res){
   S.draw = () => {
     nightSky(3); drawParts(parts);
     T('NEW HIGH SCORE!', 90, 20, '#ffd23f', 8);
-    T('MONSTER ICE', 90, 38, '#c9a0ff', 8);
+    T('MONSTER HOCKEY', 90, 38, '#c9a0ff', 8);
     T('#' + (hsRank(res.key) + 1) + '  ' + res.disp, 90, 56, '#ff9a3a', 12);
     T('ENTER YOUR INITIALS', 90, 80, '#f7efe0', 8);
     for (let k = 0; k < 3; k++){
@@ -2193,7 +2198,7 @@ function scoresScene(back){
   S.draw = () => {
     nightSky(4); moon(150, 30, 10);
     T('HIGH SCORES', 90, 22, '#ffd23f', 12);
-    T('MONSTER ICE  WINS ONLY', 90, 44, '#c9a0ff', 8);
+    T('MONSTER HOCKEY - WINS', 90, 44, '#c9a0ff', 8);
     for (let r = 0; r < 5; r++){
       const y = 66 + r * 36, e = HS[r];
       R(24, y, 132, 28, r % 2 ? 'rgba(0,0,0,.2)' : 'rgba(0,0,0,.35)');
