@@ -48,6 +48,9 @@ Menus: arrows + Enter/Space (controller: d-pad + A or START). As soon as you pre
 
 Stats work like NES Ice Hockey: high CHK strips the puck more easily and is harder to knock off it; Frankenstein is big and slow, the Werewolf is fast and easy to knock over. Every skater's special meter fills over time (~20s) and gets a boost from good checks. The CPU uses its specials too.
 
+## No cheap goals
+A shot (or a pass) taken from before your attacking blue line can't score: if it reaches the net, the goalie always turns it away ("TOO FAR!"), even a lightning shot. Get past the blue line first. The CPU follows the same rule and only shoots once it's past the line.
+
 ## Finishers
 Hold SHOOT for 1 second without getting the puck stolen (you skate slowly while charging) and release at MAX **in the attacking zone** (past the blue line, in front of the net). Anywhere else a full charge is a hard power shot and the meter says GET CLOSER. Everyone freezes, your monster winds up, and the shot scores, knocking the goalie out and the net over:
 - **Frankenstein – Thunder Slam:** lightning strike, then a stomp that knocks *everybody* down.
