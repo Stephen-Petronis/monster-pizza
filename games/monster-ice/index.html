@@ -673,7 +673,7 @@ function titleScene(){
   S.enter = () => { bs = [
     btn(36, 228, 108, 20, '1 PLAYER', () => { G.twoP = false; go(diffScene()); }),
     btn(36, 252, 108, 20, '2P ON IPAD', () => { G.twoP = true; go(diffScene()); }, '#ff8a3a'),
-    btn(36, 276, 108, 20, 'ZOMBONI', () => go(zamboniScene()), '#b6ff4a'),
+    btn(36, 276, 108, 20, 'ZOMBONI', () => go(zamboniScene({ timed: CFG.zamboni.time })), '#b6ff4a'),
     btn(36, 300, 108, 18, 'HIGH SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
   ]; };
   S.down = p => hitBtn(bs, p);
@@ -1983,7 +1983,7 @@ function gameScene(){
    ========================================================= */
 function zamboniScene(opts = {}){
   const timed = opts.timed || 0, back = opts.back || null, ZC = CFG.zamboni;
-  const S = { quit: true, game: true }; if (timed) S.music = 'game';   // between periods: keep the game song going
+  const S = { quit: true, game: true }; if (back) S.music = 'game';   // between periods: keep the game song going
   const RK = RINK;
   const CS = 4, GX = Math.ceil((RK.x1 - RK.x0) / CS), GYN = Math.ceil((RK.y1 - RK.y0) / CS);
   const ZG = {
@@ -2081,7 +2081,7 @@ function zamboniScene(opts = {}){
   const onBtn = (q, b) => Math.hypot(q.x - b.x, q.y - b.y) < b.r + 4;
   S.down = p => {
     const g = geo(), q = { x: p.x, y: p.y }, PL = g.PILL;
-    if (over && overT > 0.8){ p.ui = true; leave(); return; }
+    if (over && overT > 0.8){ p.ui = true; const PL = geo().PILL; if (!back && inBox(q, PL.x - 3, PL.y - 3, PL.w + 6, PL.h + 6)){ SFX.pick(); S.enter(); } else leave(); return; }
     if (inBox(q, PL.x - 3, PL.y - 3, PL.w + 6, PL.h + 6)){ pill(); p.ui = true; return; }
     if (onBtn(q, g.A)){ honk(); p.ui = true; return; }
     if (onBtn(q, g.B)){ boost(); p.ui = true; return; }
@@ -2093,7 +2093,7 @@ function zamboniScene(opts = {}){
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(c)){ dn ? keys.add(c) : keys.delete(c); return; }
     if (c === 'Escape' && dn){ leave(); return; }
     if (!dn || rep) return;
-    if (over){ if (overT > 0.8) leave(); return; }
+    if (over){ if (overT > 0.8){ if (!back && KEYMAP.one.sp.includes(c)){ SFX.pick(); S.enter(); } else leave(); } return; }
     const M = KEYMAP.one; if (M.a.includes(c)) honk(); else if (M.b.includes(c)) boost(); else if (M.sp.includes(c)) pill();
   };
   // which way the sprite faces (with a little hysteresis so it doesn't flicker on diagonals)
@@ -2116,7 +2116,7 @@ function zamboniScene(opts = {}){
       const sec = Math.ceil(tLeft); if (sec <= 3 && sec < lastTick && sec > 0){ tone(880, 0.08, 'square', 0.12); } lastTick = sec;
       if (tLeft <= 0 || done){ over = true; overT = 0; SFX.horn(); boostT = 0; if (!done) burst(parts, z.x, z.y, 14, CONF, 60, 30, 0.8, 1); }
     }
-    if (over){ overT += dt; if (overT > 4.5) leave(); }
+    if (over){ overT += dt; if (back && overT > 4.5) leave(); }   // between periods it moves on by itself
     // steer toward where the stick points
     const jm = over ? 0 : Math.hypot(joy.ux, joy.uy); let vmax = 0; z.turn *= Math.max(0, 1 - dt * 8);
     if (jm > 0.25){ const target = Math.atan2(joy.ux, -joy.uy), d = clamp(angDiff(target, z.h), -ZC.turn * dt, ZC.turn * dt); z.h += d; z.turn = d / dt; vmax = ZC.speed * jm; }
@@ -2197,7 +2197,7 @@ function zamboniScene(opts = {}){
       T('CLEAN ' + pct + '%', 90, 126, '#ffffff', 8);
       T(pct >= 97 ? 'THE ZOMBIE IS PROUD' : pct >= 75 ? 'SQUEAKY CLEAN!' : pct >= 50 ? 'NOT BAD!' : pct >= 30 ? 'STILL KINDA GROSS' : 'EWWW. GROSS!', 90, 142, '#b6ff4a', 8);
       if (found) tiny('FOUND ' + found + ' LOST THING' + (found > 1 ? 'S' : ''), 90, 158, '#ffd23f', 'center', null);
-      if (overT > 0.8 && Math.floor(TT * 3) % 2) tiny(back ? 'TAP TO PLAY ON' : 'TAP TO GO BACK', 90, 172, '#c9b8f0', 'center', null);
+      if (overT > 0.8 && Math.floor(TT * 3) % 2) tiny(back ? 'TAP TO PLAY ON' : 'BAR = AGAIN   TAP = MENU', 90, 172, '#c9b8f0', 'center', null);
     }
     else if (done){ T('SPOTLESS!', 90, 110, '#9ce8ff', 16, 'center'); if (doneT > 1) T('TAP THE BAR TO\nMESS IT UP AGAIN', 90, 140, '#ffffff', 8); }
   }
@@ -2217,7 +2217,7 @@ function zamboniScene(opts = {}){
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.ux * 14, joy.oy + joy.uy * 14, 7, 'rgba(156,232,255,.85)'); }
     else T('DRAG\nTO DRIVE', g.hint[0], g.hint[1], '#5a4a7a', 8);
     const frac = cleanN / total;
-    drawBar(g.PILL, done ? 1 : frac, over ? (back ? 'PLAY ON' : 'BACK') : done && !timed ? 'AGAIN' : 'BRAAAINS');
+    drawBar(g.PILL, done ? 1 : frac, over ? (back ? 'PLAY ON' : 'AGAIN') : done && !timed ? 'AGAIN' : 'BRAAAINS');
     const bt = (b, label, col) => { C(b.x + 1, b.y + 2, b.r, '#000'); C(b.x, b.y, b.r, col); C(b.x - 4, b.y - 5, 3, 'rgba(255,255,255,.4)'); tiny(label, b.x, b.y + b.r + 4, '#c9b8f0', 'center', null); };
     bt(g.A, 'HONK', '#b6ff4a'); bt(g.B, boostCD > 0 ? '...' : 'BOOST', boostCD > 0 ? '#7a5a4a' : '#ff9a3a');
     const kn = INPUT === 'touch' ? null : keyNames(0);
