@@ -3069,15 +3069,16 @@ function resultScene(res){
     }
     if (res.win || res.twoP) SFX.win(); else SFX.lose();
     bs = [
-      btn(36, 222, 108, 24, 'REMATCH', () => go(vsScene())),
-      btn(36, 252, 108, 22, res.twoP ? 'NEW TEAMS' : 'NEW TEAM', () => go(pickScene(0)), '#c9a0ff'),
-      btn(36, 280, 108, 22, 'HIGH SCORES', () => go(scoresScene(() => go(resultScene(res)))), '#b6ff4a'),
+      btn(36, 214, 108, 22, 'REMATCH', () => go(vsScene())),
+      btn(36, 240, 108, 20, res.twoP ? 'NEW TEAMS' : 'NEW TEAM', () => go(pickScene(0)), '#c9a0ff'),
+      btn(36, 264, 108, 20, 'HIGH SCORES', () => go(scoresScene(() => go(resultScene(res)))), '#b6ff4a'),
+      btn(36, 288, 108, 20, 'MENU', () => go(titleScene()), '#5cc8ff'),
     ];
     if (res.win || res.twoP) for (let k = 0; k < 3; k++) burst(parts, 90, 100, 20, CONF, 90, 80, 1.6);
   };
   S.update = dt => { t += dt; stepParts(parts, dt); if ((res.win || res.twoP) && Math.random() < dt * 3) burst(parts, rnd(30, 150), rnd(40, 90), 10, CONF, 60, 80, 1.2); };
   S.down = p => { if (t > 0.5) hitBtn(bs, p); };
-  S.key = (c, dn) => { if (dn && c === 'Enter' && t > 0.5){ SFX.tap(); go(vsScene()); } };
+  S.key = (c, dn) => { if (!dn || t <= 0.5) return; if (c === 'Enter'){ SFX.tap(); if (res.online && G.online) bs[0].fn(); else if (res.online) go(titleScene()); else go(vsScene()); } else if (c === 'Escape' || c === 'KeyM'){ SFX.tap(); if (G.online) netClose(); go(titleScene()); } };
   S.draw = () => {
     nightSky(6); moon(30, 36, 10);
     const p2won = res.twoP && res.them > res.us;
