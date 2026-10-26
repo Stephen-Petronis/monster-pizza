@@ -75,7 +75,9 @@ window.MONSTER_PIZZA = {
       title: "Zomboni",
       blurb: "Drive the zombie Zamboni! Clean up after monster hockey: 8 nights, snow goblins, ghosts, and lights out at midnight.",
       url: "games/zomboni/index.html",                // lives inside this repo
-      screen: "games/zomboni/screen.gif",             // no drawn cabinet yet: uses the built-in one
+      cabinet: "games/zomboni/cabinet.webp",
+      screen: "games/zomboni/screen.gif",
+      screenBox: [16.9, 25, 66.9, 22.8],
       color: "#5ac43a",
     },
     {
