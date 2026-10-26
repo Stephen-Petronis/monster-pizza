@@ -30,6 +30,9 @@ body{
   touch-action:none;overscroll-behavior:none;
 }
 #stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;touch-action:none}
+html.full{padding:0}
+html.full body{padding:0}
+html.full canvas{border-radius:0;box-shadow:none}
 canvas{
   display:block;image-rendering:pixelated;image-rendering:crisp-edges;
   border-radius:6px;touch-action:none;
@@ -138,20 +141,36 @@ ctx.imageSmoothingEnabled = false;
 if (!ctx.roundRect) CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r){ r = Math.min(r, w / 2, h / 2); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); };
 /* Screen layouts: 'P' portrait (controls under the rink), 'L' landscape (stick on the left, buttons on the right),
    '2P' one iPad, two players (P2's controls along the top edge, upside down). Game art always draws in the 180x320 space. */
-let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0;   // LAYOUT is set on the first frame
+let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0, TOPB = 0, PY = 0, SAFE_T = 0, SAFE_B = 0;   // LAYOUT is set on the first frame
+/* Phones (and the iOS app) fill the whole screen edge to edge. SAFE_T / SAFE_B = rows hidden by the notch and the home bar.
+   In a hockey game the extra rows go to a strip of fans along the top (TOPB rows, the rink starts below it) and to a bigger
+   control area at the bottom (the panel sits PY rows lower, clear of the home bar). */
+const FULL = !!window.Capacitor || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 700);
+if (FULL) document.documentElement.classList.add('full');
+const safeProbe = document.createElement('div'); safeProbe.id = 'safe-probe';
+safeProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';
+document.body.appendChild(safeProbe);
 /* Tall phones: portrait grows by EX extra rows so the game fills the screen. Menus sit centered (OFFY = EX/2) on the same background;
    the hockey game keeps the rink at the top and moves its controls to the bottom (scene.tallP). */
-const tallEX = () => { const r = stage.getBoundingClientRect(); return r.width > 0 ? clamp(Math.round(180 * r.height / r.width) - 320, 0, 100) : 0; };
+const tallEX = () => { const r = stage.getBoundingClientRect(); return r.width > 0 ? clamp(Math.floor(180 * r.height / r.width) - 320, 0, FULL ? 220 : 100) : 0; };
+function tallRows(){ // how the extra rows get used (portrait only)
+  const r = stage.getBoundingClientRect(), k = r.width > 0 ? 180 / r.width : 1, cs = getComputedStyle(safeProbe);
+  SAFE_T = FULL ? Math.ceil(parseFloat(cs.paddingTop || 0) * k) : 0; SAFE_B = FULL ? Math.ceil(parseFloat(cs.paddingBottom || 0) * k) : 0;
+  SAFE_T = Math.min(SAFE_T, EX); SAFE_B = Math.min(SAFE_B, EX - SAFE_T);
+  const free = EX - SAFE_T - SAFE_B;
+  TOPB = SAFE_T + clamp(Math.round(free * 0.3), 0, 34);   // fans strip (behind the notch + a bit more)
+  PY = EX - SAFE_B;                                        // controls pushed to the bottom, above the home bar
+}
 function fit(){ const r = stage.getBoundingClientRect(); const s = Math.max(1, Math.min(r.width / CW, r.height / CH)); cv.style.width = Math.floor(CW * s) + 'px'; cv.style.height = Math.floor(CH * s) + 'px'; }
 function setLayout(L){
   if (L === LAYOUT) return;
-  LAYOUT = L; EX = L === 'P' ? tallEX() : 0; [CW, CH] = L === 'L' ? [400, 254] : L === '2P' ? [180, 386] : [180, 320 + EX];
+  LAYOUT = L; EX = L === 'P' ? tallEX() : 0; [CW, CH] = L === 'L' ? [400, 254] : L === '2P' ? [180, 386] : [180, 320 + EX]; tallRows();
   cv.width = CW; cv.height = CH; ctx.imageSmoothingEnabled = false; CHROME_Y = L === '2P' ? 66 : 0; fit();
   ptrs.clear(); if (scene && scene.relayout) scene.relayout();
 }
 const wantsLandscape = () => innerWidth > innerHeight * 1.15;
 const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
-addEventListener('resize', () => { if (LAYOUT === 'P' && tallEX() !== EX){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
+addEventListener('resize', () => { if (LAYOUT === 'P'){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -981,6 +1000,14 @@ function netWaitScene(){
 
 function hsRank(key){ let r = HS.findIndex(e => key < e.k); if (r < 0) r = HS.length; return r < 5 ? r : -1; }
 
+function drawFans(y, h){
+  R(0, y, W, h, '#120a22');
+  if (rinkArt()){
+    const f = [0, 1, 2, 1][Math.floor(TT * 5) % 4], sh = Math.min(h, 237);
+    for (let x = 0, k = 0; x < W; x += 21, k++){ const sx = k % 2 ? 157 : 0; ctx.drawImage(RINK_IMG, sx, f * 267 + 30 + (k * 37) % Math.max(1, 237 - sh), 21, sh, x, y + h - sh, 21, sh); }
+  }
+  R(0, y + h - 2, W, 2, '#2a1446');
+}
 function drawChrome(){
   const x = CW - 16, y = CHROME_Y + 4;
   R(x, y + 3, 3, 5, '#f7efe0'); TRI(x + 3, y + 3, x + 7, y, x + 7, y + 11, '#f7efe0'); TRI(x + 3, y + 8, x + 7, y + 11, x + 3, y + 3, '#f7efe0');
@@ -1333,7 +1360,7 @@ function gameScene(){
     if (LAYOUT === '2P'){ if (p.y >= 320) return [0, { x: p.x, y: p.y - 66 }]; if (p.y < 66) return [1, { x: W - p.x, y: 320 - p.y }]; return [-1, null]; }
     return [0, { x: p.x, y: p.y - PEX() }];
   }
-  const PEX = () => LAYOUT === 'P' ? EX : 0;   // controls sit EX lower on tall phones
+  const PEX = () => LAYOUT === 'P' ? PY : 0;   // controls sit PY lower on tall phones
   const localFor = (k, p) => k === 1 && !G.online ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - PEX() };
   const joyZone = q => LAYOUT === 'L' ? q.x < 110 : LAYOUT === '2P' ? q.x < 88 && q.y >= 254 : q.x < 88 && q.y > 34;
   S.down = p => {
@@ -1973,7 +2000,7 @@ function gameScene(){
     if (k === 0){ offer = null; S.resume = true; go(zamboniScene({ timed: CFG.zamboni.time, back: S })); return; }
     offer = null; stT = Math.min(stT, 0.7);
   }
-  const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
+  const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - TOPB };
   function finish(){
     if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
     const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : D === CFG.difficulty.nightmare ? ' NM' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
@@ -2462,8 +2489,13 @@ function gameScene(){
   S.draw = () => {
     const L = LAYOUT, fighting = state === 'fight' && fight;
     const ME = P[G.online === 'guest' ? 1 : 0];
-    if (L === 'P'){ drawGame(); drawHUD(); if (fighting) drawFight();
-      if (EX){ R(0, 254, W, EX, '#120a22'); ctx.save(); ctx.translate(0, EX); drawPanel(ME); ctx.restore(); } else drawPanel(ME);   // tall phones: controls at the bottom
+    if (L === 'P'){
+      if (!EX){ drawGame(); drawHUD(); if (fighting) drawFight(); drawPanel(ME); return; }
+      // tall phones: a strip of cheering fans on top, the rink under it, the controls at the bottom
+      if (TOPB > 0) drawFans(0, TOPB);
+      ctx.save(); ctx.translate(0, TOPB); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip(); drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
+      R(0, 254 + TOPB, W, CH - 254 - TOPB, '#120a22'); R(0, 254 + TOPB, W, 1, '#2a1446');
+      ctx.save(); ctx.translate(0, PY); drawPanel(ME); ctx.restore();
       return; }
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? 66 : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
@@ -2983,7 +3015,8 @@ function frame(now){
   if (NET.dropped) netLost();
   if (netToast && (netToast.t -= dt) <= 0) netToast = null;
   try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt);
-    OFFY = LAYOUT === 'P' && EX && !scene.tallP ? Math.floor(EX / 2) : 0;
+    OFFY = LAYOUT === 'P' && EX && !scene.tallP ? clamp(Math.round((EX + SAFE_T - SAFE_B) / 2), SAFE_T, Math.max(SAFE_T, EX - SAFE_B)) : 0;
+    if (LAYOUT === 'P') CHROME_Y = scene.tallP ? TOPB : 0;
     if (LAYOUT === 'P' && EX) R(0, 0, CW, CH, '#120a22');
     ctx.setTransform(1, 0, 0, 1, 0, OFFY); scene.draw(); } } catch (err) { console.error(err); }
   ctx.setTransform(1, 0, 0, 1, 0, OFFY);
