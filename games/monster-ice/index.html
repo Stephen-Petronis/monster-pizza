@@ -2982,7 +2982,7 @@ function zamboniScene(opts = {}){
   const zKey = () => -Math.floor(cleanN / total * 1000);   // lower = better, like the board's other keys
   let posted = false;
   function leave(){
-    if (over && !posted && hsQual() && hsRank(zKey()) >= 0){ posted = true; const k = zKey(); go(initialsScene({ key: k, disp: (-k / 10).toFixed(1) + '%', title: 'ZOMBONI CLEAN-UP', after: back || titleScene() })); return; }
+    if (over && !posted && hsQual() && hsRank(zKey()) >= 0){ posted = true; const k = zKey(); go(initialsScene({ key: k, disp: (-k / 10).toFixed(1) + '%', title: 'ZOMBONI CLEAN-UP', music: 'zomboni', after: back || titleScene() })); return; }
     if (back) go(back); else go(titleScene());
   }
   function honk(){
@@ -3165,7 +3165,7 @@ function zamboniScene(opts = {}){
 
 /* ---------- INITIALS ---------- */
 function initialsScene(res){
-  const S = {}; const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const S = { music: res.music || 'menu' }; const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let ini = lastIni.split('').map(c => Math.max(0, L.indexOf(c))), t = 0, bs, parts = [], cur = 0;
   const XS = [54, 90, 126];
   S.enter = () => { SFX.win(); bs = [btn(36, 232, 108, 26, 'OK', save)]; for (let k = 0; k < 3; k++) burst(parts, 90, 60, 16, CONF, 90, 80, 1.4); };
