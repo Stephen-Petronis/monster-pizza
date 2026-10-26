@@ -71,6 +71,14 @@ window.MONSTER_PIZZA = {
       color: "#3a9ae8",
     },
     {
+      id: "zomboni",
+      title: "Zomboni",
+      blurb: "Drive the zombie Zamboni! Clean up after monster hockey: 8 nights, snow goblins, ghosts, and lights out at midnight.",
+      url: "games/zomboni/index.html",                // lives inside this repo
+      screen: "games/zomboni/screen.gif",             // no drawn cabinet yet: uses the built-in one
+      color: "#5ac43a",
+    },
+    {
       id: "whack-a-ghost",
       title: "Whack-A-Ghost",
       blurb: "Pop the ghosts, spare the kitties, grab the hearts. Boss every 3 rounds.",
