@@ -8,6 +8,7 @@ echo "== Installing Capacitor =="
 npm install
 echo "== Bundling the pixel font =="
 node scripts/localize-font.js
+node scripts/pack-songs.js
 echo "== Making the Xcode project =="
 [ -d ios ] || npx cap add ios
 echo "== Icons + launch screen (from the assets folder) =="

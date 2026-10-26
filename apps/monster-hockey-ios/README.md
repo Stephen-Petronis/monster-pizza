@@ -31,7 +31,7 @@ This folder turns the Monster Hockey web game into a real iOS app with **Capacit
 4. Try it first with **TestFlight** (same upload) if you want friends to playtest before release.
 
 ## Updating the game later
-When the web game changes on Monster Pizza, run `npm run update-game` here, then in Xcode bump the **Version/Build** number and Archive again.
+When the web game changes on Monster Pizza, run `git pull` and then `npm run update-game` here (it copies the game in, bundles the font and builds the songs into the page so they play inside the app), then in Xcode bump the **Version/Build** number and Archive again.
 
 ## Swapping the icon
 Replace `assets/icon-only.png` (1024×1024, no transparency) and `assets/splash.png` (2732×2732) with your own art, then run `npx capacitor-assets generate --ios`.
