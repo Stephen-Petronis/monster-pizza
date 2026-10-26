@@ -2738,7 +2738,10 @@ function gameScene(){
       return; }
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? P2H : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
-    drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
+    if (fighting && L === '2P' && !G.online){ // one iPad, two players: the fight turns sideways so neither player watches it upside down
+      R(0, 0, W, 254, '#120a22'); ctx.save(); ctx.translate(90, 127); ctx.rotate(-Math.PI / 2); ctx.scale(0.85, 0.85); ctx.translate(-90, -135); drawFight(); ctx.restore();
+    } else { drawGame(); drawHUD(); if (fighting) drawFight(); }
+    ctx.restore();
     if (L === 'L'){
       if (G.demo && rinkArt()){ // attract mode: fill the sides with more of the crowd instead of controls
         const f = [0, 1, 2, 1][Math.floor(TT * 5) % 4];
