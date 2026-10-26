@@ -96,7 +96,7 @@ const CFG = {
      menu = title, menus and the Zamboni. game = during hockey games (starts over each game). fight = when the gloves come off.
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
-  zamboni: { offer: true, offerTime: 8, time: 15, speed: 70, turn: 4.0, boost: 1.7 },
+  zamboni: { offer: true, offerTime: 8, time: 15, speed: 85, turn: 4.0, boost: 1.7, brush: 18, edge: 7 },   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
 
@@ -2940,7 +2940,7 @@ function zamboniScene(opts = {}){
     grid = new Uint8Array(GX * GYN); total = 0; cleanN = 0;
     for (let j = 0; j < GYN; j++) for (let i = 0; i < GX; i++){
       const x = RK.x0 + i * CS, y = RK.y0 + j * CS;
-      if (!inside(x + CS / 2, y + CS / 2)){ grid[j * GX + i] = 255; continue; }
+      if (!inside(x + CS / 2, y + CS / 2, ZC.edge)){ grid[j * GX + i] = 255; continue; }   // the strip right against the boards doesn't count (the machine can't reach it)
       grid[j * GX + i] = 1; total++;
       dctx.fillStyle = pick(['rgba(255,255,255,.9)', 'rgba(236,242,252,.95)', 'rgba(214,224,240,.9)', 'rgba(200,212,232,.85)']); dctx.fillRect(x, y, CS, CS);
       if (Math.random() < 0.3){ dctx.fillStyle = 'rgba(150,165,190,.5)'; dctx.fillRect(x + rnd(0, 3) | 0, y + rnd(0, 3) | 0, 1, 1); }
@@ -3053,7 +3053,7 @@ function zamboniScene(opts = {}){
     z.dist += Math.hypot(nx - z.x, ny - z.y); z.x = nx; z.y = ny;
     if (eng){ try { eng.o.frequency.setTargetAtTime(42 + Math.abs(z.v) * 0.7, AC.currentTime, 0.1); eng.g.gain.setTargetAtTime(muted ? 0 : 0.02 + Math.abs(z.v) / 2200, AC.currentTime, 0.1); } catch (e) {} }
     // the towel at the back lays down fresh ice
-    if (Math.abs(z.v) > 3) for (let lx = -12; lx <= 12; lx += 1.5) for (const ly of [backOff() - 3, backOff() - 1.5, backOff()]){
+    if (Math.abs(z.v) > 3) for (let lx = -ZC.brush; lx <= ZC.brush; lx += 1.5) for (const ly of [backOff() - 3, backOff() - 1.5, backOff()]){
       const [wx, wy] = toW(lx, ly), i = Math.floor((wx - RK.x0) / CS), j = Math.floor((wy - RK.y0) / CS);
       if (i < 0 || j < 0 || i >= GX || j >= GYN) continue;
       const k = j * GX + i; if (grid[k] === 1){ grid[k] = 0; cleanN++; dctx.clearRect(RK.x0 + i * CS, RK.y0 + j * CS, CS, CS); if (Math.random() < 0.04) parts.push({ x: wx, y: wy, vx: 0, vy: -6, g: 0, life: 0.6, c: '#ffffff', s: 1 }); }
