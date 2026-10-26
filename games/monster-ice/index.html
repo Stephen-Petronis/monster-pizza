@@ -138,17 +138,20 @@ ctx.imageSmoothingEnabled = false;
 if (!ctx.roundRect) CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r){ r = Math.min(r, w / 2, h / 2); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); };
 /* Screen layouts: 'P' portrait (controls under the rink), 'L' landscape (stick on the left, buttons on the right),
    '2P' one iPad, two players (P2's controls along the top edge, upside down). Game art always draws in the 180x320 space. */
-let CW = W, CH = H, LAYOUT = 'P', CHROME_Y = 0;
+let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0;   // LAYOUT is set on the first frame
+/* Tall phones: portrait grows by EX extra rows so the game fills the screen. Menus sit centered (OFFY = EX/2) on the same background;
+   the hockey game keeps the rink at the top and moves its controls to the bottom (scene.tallP). */
+const tallEX = () => { const r = stage.getBoundingClientRect(); return r.width > 0 ? clamp(Math.round(180 * r.height / r.width) - 320, 0, 100) : 0; };
 function fit(){ const r = stage.getBoundingClientRect(); const s = Math.max(1, Math.min(r.width / CW, r.height / CH)); cv.style.width = Math.floor(CW * s) + 'px'; cv.style.height = Math.floor(CH * s) + 'px'; }
 function setLayout(L){
   if (L === LAYOUT) return;
-  LAYOUT = L; [CW, CH] = L === 'L' ? [400, 254] : L === '2P' ? [180, 386] : [180, 320];
+  LAYOUT = L; EX = L === 'P' ? tallEX() : 0; [CW, CH] = L === 'L' ? [400, 254] : L === '2P' ? [180, 386] : [180, 320 + EX];
   cv.width = CW; cv.height = CH; ctx.imageSmoothingEnabled = false; CHROME_Y = L === '2P' ? 66 : 0; fit();
   ptrs.clear(); if (scene && scene.relayout) scene.relayout();
 }
 const wantsLandscape = () => innerWidth > innerHeight * 1.15;
 const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
-addEventListener('resize', fit); fit();
+addEventListener('resize', () => { if (LAYOUT === 'P' && tallEX() !== EX){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -688,7 +691,7 @@ function pollPads(){
 
 /* ================= INPUT ================= */
 const ptrs = new Map();
-function loc(e){ const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CW / r.width, y: (e.clientY - r.top) * CH / r.height }; }
+function loc(e){ const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CW / r.width, y: (e.clientY - r.top) * CH / r.height - OFFY }; }
 const inBox = (p, x, y, w, h) => p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
 stage.addEventListener('pointerdown', e => {
   e.preventDefault(); audioInit(); if (e.pointerType !== 'mouse') INPUT = 'touch';
@@ -1248,7 +1251,7 @@ function vsScene(){
    THE GAME — NES-style 3 on 3, monster edition
    ========================================================= */
 function gameScene(){
-  const S = { quit: true, game: true, music: 'game' }; const SP = CFG.special;
+  const S = { quit: true, game: true, music: 'game', tallP: true }; const SP = CFG.special;
   const RK = RINK;
   const D0 = CFG.difficulty[G.diff] || CFG.difficulty.hard;
   const D = G.twoP ? { ...CFG.difficulty.hard, speed: D0.speed, label: D0.label } : D0;   // 2 players: only the game speed changes, nobody gets a boost
@@ -1328,9 +1331,10 @@ function gameScene(){
   // touch -> which player, and where on that player's own control panel
   function route(p){
     if (LAYOUT === '2P'){ if (p.y >= 320) return [0, { x: p.x, y: p.y - 66 }]; if (p.y < 66) return [1, { x: W - p.x, y: 320 - p.y }]; return [-1, null]; }
-    return [0, { x: p.x, y: p.y }];
+    return [0, { x: p.x, y: p.y - PEX() }];
   }
-  const localFor = (k, p) => k === 1 && !G.online ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y };
+  const PEX = () => LAYOUT === 'P' ? EX : 0;   // controls sit EX lower on tall phones
+  const localFor = (k, p) => k === 1 && !G.online ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - PEX() };
   const joyZone = q => LAYOUT === 'L' ? q.x < 110 : LAYOUT === '2P' ? q.x < 88 && q.y >= 254 : q.x < 88 && q.y > 34;
   S.down = p => {
     if (G.online === 'guest'){ guestDown(p); return; }
@@ -2458,7 +2462,9 @@ function gameScene(){
   S.draw = () => {
     const L = LAYOUT, fighting = state === 'fight' && fight;
     const ME = P[G.online === 'guest' ? 1 : 0];
-    if (L === 'P'){ drawGame(); drawHUD(); if (fighting) drawFight(); drawPanel(ME); return; }
+    if (L === 'P'){ drawGame(); drawHUD(); if (fighting) drawFight();
+      if (EX){ R(0, 254, W, EX, '#120a22'); ctx.save(); ctx.translate(0, EX); drawPanel(ME); ctx.restore(); } else drawPanel(ME);   // tall phones: controls at the bottom
+      return; }
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? 66 : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
     drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
@@ -2548,7 +2554,7 @@ function gameScene(){
     if (Math.abs(j.ux - netJ.x) > 0.04 || Math.abs(j.uy - netJ.y) > 0.04 || netJ.t <= 0){ netJ.x = j.ux; netJ.y = j.uy; netJ.t = 0.2; netSend({ t: 'j', n: ++netJs, x: Math.round(j.ux * 100) / 100, y: Math.round(j.uy * 100) / 100 }, true); }
   }
   function guestDown(p){
-    const q = { x: p.x, y: p.y }, j = P[1].joy; p.pl = 1;
+    const q = { x: p.x, y: p.y - PEX() }, j = P[1].joy; p.pl = 1;
     if (inBox(q, PILL.x - 3, PILL.y - 3, PILL.w + 6, PILL.h + 6)){ gsend('S+'); p.ui = true; return; }
     // A and B need their release too (hold B = power shot, hold A = block), so don't mark them as one-tap UI
     if (onBtn(q, BTN_A)){ gA = p.id; gsend('A+'); return; }
@@ -2976,8 +2982,11 @@ function frame(now){
   }
   if (NET.dropped) netLost();
   if (netToast && (netToast.t -= dt) <= 0) netToast = null;
-  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt); scene.draw(); } } catch (err) { console.error(err); }
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt);
+    OFFY = LAYOUT === 'P' && EX && !scene.tallP ? Math.floor(EX / 2) : 0;
+    if (LAYOUT === 'P' && EX) R(0, 0, CW, CH, '#120a22');
+    ctx.setTransform(1, 0, 0, 1, 0, OFFY); scene.draw(); } } catch (err) { console.error(err); }
+  ctx.setTransform(1, 0, 0, 1, 0, OFFY);
   drawChrome();
   if (netToast){ const w = Math.min(CW - 16, netToast.text.length * 8 + 16), x = (CW - w) / 2; R(x, 40, w, 20, '#000'); R(x + 1, 41, w - 2, 18, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(netToast.text, CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
