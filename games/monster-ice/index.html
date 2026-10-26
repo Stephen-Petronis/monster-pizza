@@ -96,7 +96,7 @@ const CFG = {
      menu = title, menus and the Zamboni. game = during hockey games (starts over each game). fight = when the gloves come off.
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
-  zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
+  zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8, ghosts: 3, slowTime: 1.5, slowMult: 0.45 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
 
@@ -2905,7 +2905,7 @@ function zamboniScene(opts = {}){
   const geo = () => ZG[LAYOUT === 'L' ? 'L' : 'P'];
   const GROAN = ['BRAAAINS!', 'UUURRGH!', 'BRAAAINS!', 'HONK HONK!', 'MMMNNGH!'];
   const LOST = [['A TOOTH', '#ffffff'], ['A FANG', '#ffffff'], ['A STINKY SOCK', '#b6ff4a'], ['A PUCK', '#111111'], ['SOMEBODY\'S GLOVE', '#ff7a1a'], ['A BAT WING', '#2a1a3a'], ['A LOST BANDAGE', '#ece0c4'], ['A ZOMBIE FINGER', '#8ac46a']];
-  let grid, dcv, dctx, total, cleanN, z, joy, keys, parts, floats, items, found, ghost, done, doneT, boostT, boostCD, eng, tLeft, over, overT, lastTick, turbos = [], turboT = 0;
+  let grid, dcv, dctx, total, cleanN, z, joy, keys, parts, floats, items, found, ghosts, done, doneT, boostT, boostCD, eng, tLeft, over, overT, lastTick, turbos = [], turboT = 0, slowT = 0;
   const inside = (x, y, m = 0) => {
     if (x < RK.x0 + m || x > RK.x1 - m || y < RK.y0 + m || y > RK.y1 - m) return false;
     const r = RK.r, cx = x < RK.x0 + r ? RK.x0 + r : x > RK.x1 - r ? RK.x1 - r : null, cy = y < RK.y0 + r ? RK.y0 + r : y > RK.y1 - r ? RK.y1 - r : null;
@@ -2971,7 +2971,8 @@ function zamboniScene(opts = {}){
     if (eng) S.exit();   // (restarting: stop the old engine sound)
     z = { x: 90, y: 214, h: 0, v: 0, turn: 0, view: 'up', dist: 0 };
     joy = { id: null, ox: 0, oy: 0, ux: 0, uy: 0 }; keys = new Set(); parts = []; floats = [];
-    ghost = { x: 50, y: 90, vx: 12, vy: 6, flee: 0, boo: 0 }; boostT = 0; boostCD = 0; mess();
+    ghosts = []; for (let k = 0; k < (ZC.ghosts || 1); k++) ghosts.push({ x: rnd(RK.x0 + 20, RK.x1 - 20), y: RK.y0 + 30 + k * (RK.y1 - RK.y0 - 60) / Math.max(1, (ZC.ghosts || 1) - 1), vx: rnd(-14, 14), vy: rnd(-8, 8), flee: 0, boo: 0, hit: 0 });
+    slowT = 0; boostT = 0; boostCD = 0; mess();
     tLeft = timed; over = false; overT = 0; lastTick = 99; turboT = 0;
     if (timed) floater(floats, 90, 150, 'CLEAN IT UP!\n' + timed + ' SECONDS', '#b6ff4a');
     if (AC){ try { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 45; g.gain.value = 0; o.connect(g); g.connect(MG); o.start(); eng = { o, g }; } catch (e) {} }
@@ -2990,7 +2991,7 @@ function zamboniScene(opts = {}){
     tone(150, 0.6, 'sawtooth', 0.15, -50); tone(95, 0.7, 'square', 0.08, -20, 0.05);   // the zombie groans...
     tone(330, 0.35, 'square', 0.12); tone(415, 0.35, 'square', 0.1);                  // ...plus the actual horn
     floater(floats, z.x, z.y - 26, pick(GROAN), '#b6ff4a');
-    if (Math.hypot(ghost.x - z.x, ghost.y - z.y) < 70){ ghost.flee = 1.6; floater(floats, ghost.x, ghost.y - 14, 'EEK!', '#ffffff'); }
+    for (const ghost of ghosts) if (Math.hypot(ghost.x - z.x, ghost.y - z.y) < 70){ ghost.flee = 1.6; floater(floats, ghost.x, ghost.y - 14, 'EEK!', '#ffffff'); }
   }
   const ZS = ZC.size || 1;
   const backOff = () => (z.view === 'up' || z.view === 'down' ? 16 : 19) * ZS;   // where the towel is (behind the machine)
@@ -3042,7 +3043,7 @@ function zamboniScene(opts = {}){
     if (over){ overT += dt; if (back && overT > 4.5) leave(); }   // between periods it moves on by itself
     // steer toward where the stick points
     const jm = over ? 0 : Math.hypot(joy.ux, joy.uy); let vmax = 0; z.turn *= Math.max(0, 1 - dt * 8);
-    turboT = Math.max(0, turboT - dt); const spd = ZC.speed * (turboT > 0 ? ZC.turboMult : 1);
+    turboT = Math.max(0, turboT - dt); slowT = Math.max(0, slowT - dt); const spd = ZC.speed * (turboT > 0 ? ZC.turboMult : 1) * (slowT > 0 ? ZC.slowMult : 1);   // ghosts slow you down
     if (jm > 0.25){ const target = Math.atan2(joy.ux, -joy.uy), tr = ZC.turn * (turboT > 0 ? ZC.turboMult : 1), d = clamp(angDiff(target, z.h), -tr * dt, tr * dt); z.h += d; z.turn = d / dt; vmax = spd * jm; }
     if (boostT > 0) vmax = Math.max(vmax, spd) * ZC.boost;
     z.v += (vmax - z.v) * Math.min(1, dt * (boostT > 0 ? 4 : 2.4));
@@ -3068,15 +3069,20 @@ function zamboniScene(opts = {}){
     for (const t of turbos) if (!t.got && Math.hypot(t.x - z.x, t.y - z.y) < 11){ t.got = true; turboT = ZC.turboTime; jingle([523, 784, 1047, 1568], 0.04); floater(floats, t.x, t.y - 16, 'TURBO!', '#b6ff4a'); burst(parts, t.x, t.y, 14, ['#b6ff4a', '#ffffff', '#5ac43a'], 60, 20, 0.6, 2); }
     // lost & found
     for (const it of items) if (!it.got && Math.hypot(it.x - z.x, it.y - z.y) < 12){ it.got = true; found++; jingle([660, 880, 1100], 0.06); floater(floats, it.x, it.y - 14, 'FOUND\n' + it.name + '!', '#ffd23f'); burst(parts, it.x, it.y, 10, CONF, 40, 30, 0.6, 1); }
-    // the ghost drifts around, gets spooked by honks
-    ghost.flee = Math.max(0, ghost.flee - dt); ghost.boo = Math.max(0, ghost.boo - dt);
+    // the ghosts drift around, get spooked by honks
+    for (const ghost of ghosts){
+    ghost.flee = Math.max(0, ghost.flee - dt); ghost.boo = Math.max(0, ghost.boo - dt); ghost.hit = Math.max(0, ghost.hit - dt);
     const gd = Math.hypot(ghost.x - z.x, ghost.y - z.y) || 1;
     if (ghost.flee > 0){ ghost.vx = (ghost.x - z.x) / gd * 70; ghost.vy = (ghost.y - z.y) / gd * 70; }
     else { ghost.vx += rnd(-20, 20) * dt; ghost.vy += rnd(-20, 20) * dt; const sp = Math.hypot(ghost.vx, ghost.vy) || 1; if (sp > 16){ ghost.vx *= 16 / sp; ghost.vy *= 16 / sp; }
       if (gd < 24 && ghost.boo <= 0){ ghost.boo = 3; floater(floats, ghost.x, ghost.y - 14, 'BOO!', '#ffffff'); tone(200, 0.4, 'sine', 0.1, 300); } }
+    // drive into a ghost and it chills you: slowed right down for a moment (honk first to scare them off)
+    if (!over && gd < 11 && ghost.hit <= 0){ ghost.hit = 2; ghost.flee = 1.2; slowT = ZC.slowTime; turboT = 0; boostT = 0;
+      floater(floats, z.x, z.y - 22, 'SPOOKED!', '#9ce8ff'); tone(520, 0.5, 'sine', 0.14, -380); tone(260, 0.5, 'triangle', 0.08, -150, 0.05); }
     ghost.x += ghost.vx * dt; ghost.y += ghost.vy * dt;
     if (ghost.x < RK.x0 + 8 || ghost.x > RK.x1 - 8) ghost.vx *= -1; if (ghost.y < RK.y0 + 10 || ghost.y > RK.y1 - 8) ghost.vy *= -1;
     ghost.x = clamp(ghost.x, RK.x0 + 8, RK.x1 - 8); ghost.y = clamp(ghost.y, RK.y0 + 10, RK.y1 - 8);
+    }
     // spotless!
     if (!done && cleanN >= total * 0.97){ done = true; doneT = 0; SFX.win(); for (let k = 0; k < 5; k++) burst(parts, rnd(30, 150), rnd(60, 220), 20, CONF, 90, 60, 1.6); }
     if (done){ doneT += dt; if (Math.random() < dt * 4) burst(parts, rnd(20, 160), rnd(50, 230), 8, ['#ffffff', '#9ce8ff', '#ffd23f'], 30, -10, 1.0, 1); }
@@ -3087,6 +3093,7 @@ function zamboniScene(opts = {}){
     const bot = vert ? 18 : 16, bob = sp > 20 && Math.floor(TT * 10) % 2 ? 1 : 0;
     E(Math.round(z.x), Math.round(z.y) + (bot - 2) * ZS, (vert ? 14 : 22) * ZS, 3 * ZS, 'rgba(20,20,40,.3)');
     if (turboT > 0){ ctx.save(); ctx.globalAlpha = 0.35 + 0.25 * Math.sin(TT * 20); C(z.x, z.y, 18 * ZS, '#b6ff4a'); ctx.restore(); }
+    if (slowT > 0){ ctx.save(); ctx.globalAlpha = 0.3 + 0.15 * Math.sin(TT * 8); C(z.x, z.y, 18 * ZS, '#9ce8ff'); ctx.restore(); }   // chilled by a ghost
     ctx.save(); ctx.translate(Math.round(z.x), Math.round(z.y) - bob); ctx.scale(ZS, ZS); if (z.view === 'L') ctx.scale(-1, 1);
     ctx.drawImage(ZOMB, cell * 64, 0, 64, 40, vert ? -32 : -29, bot - 40, 64, 40);
     ctx.restore();
@@ -3107,8 +3114,8 @@ function zamboniScene(opts = {}){
       ctx.save(); ctx.globalAlpha = 0.3; C(x, y, 8 * p, '#b6ff4a'); ctx.restore(); C(x, y, 5, '#2a4a1a'); C(x, y, 4, '#5ac43a');
       ctx.fillStyle = '#fff36a'; ctx.beginPath(); ctx.moveTo(x + 1, y - 4); ctx.lineTo(x - 2, y + 0.5); ctx.lineTo(x, y + 0.5); ctx.lineTo(x - 1, y + 4); ctx.lineTo(x + 2.5, y - 1); ctx.lineTo(x + 0.5, y - 1); ctx.closePath(); ctx.fill(); }
     for (const it of items) if (!it.got){ const b = Math.sin(TT * 4 + it.x) > 0.6; C(it.x, it.y, 3, it.col); R(it.x - 1, it.y - 1, 1, 1, it.col === '#ffffff' ? '#ff3d1e' : '#ffffff'); if (b){ R(it.x + 3, it.y - 4, 1, 3, '#ffd23f'); R(it.x + 2, it.y - 3, 3, 1, '#ffd23f'); } }
-    // ghost
-    { const gx = Math.round(ghost.x), gy = Math.round(ghost.y + Math.sin(TT * 3) * 2); ctx.save(); ctx.globalAlpha = 0.85;
+    // ghosts
+    for (const ghost of ghosts){ const gx = Math.round(ghost.x), gy = Math.round(ghost.y + Math.sin(TT * 3) * 2); ctx.save(); ctx.globalAlpha = 0.85;
       E(gx, gy - 6, 6, 6, '#ffffff'); R(gx - 6, gy - 6, 12, 7, '#ffffff'); for (let k = 0; k < 4; k++) R(gx - 6 + k * 3, gy + 1 + (Math.floor(TT * 6 + k) % 2), 2, 2, '#ffffff');
       R(gx - 3, gy - 8, 2, 2, '#111'); R(gx + 1, gy - 8, 2, 2, '#111'); if (ghost.flee > 0 || ghost.boo > 2) E(gx, gy - 3, 1.5, 2, '#111'); ctx.restore(); }
     drawRig();
@@ -3159,7 +3166,7 @@ function zamboniScene(opts = {}){
     else drawWorld();
     panel();
   };
-  S._debug = () => ({ z, get dirty(){ const o = []; for (let j = 0; j < GYN; j++) for (let i = 0; i < GX; i++) if (grid[j * GX + i] === 1) o.push([RK.x0 + i * CS, RK.y0 + j * CS]); return o; }, get turbos(){ return turbos; }, get clean(){ return cleanN / total; }, get tLeft(){ return tLeft; }, get over(){ return over; }, set tLeft(v){ tLeft = v; }, items, forceClean(){ for (let k = 0; k < grid.length; k++) if (grid[k] === 1){ grid[k] = 0; cleanN++; } dctx.clearRect(0, 0, W, H); } });
+  S._debug = () => ({ z, get dirty(){ const o = []; for (let j = 0; j < GYN; j++) for (let i = 0; i < GX; i++) if (grid[j * GX + i] === 1) o.push([RK.x0 + i * CS, RK.y0 + j * CS]); return o; }, get turbos(){ return turbos; }, get ghosts(){ return ghosts; }, get slowT(){ return slowT; }, get clean(){ return cleanN / total; }, get tLeft(){ return tLeft; }, get over(){ return over; }, set tLeft(v){ tLeft = v; }, items, forceClean(){ for (let k = 0; k < grid.length; k++) if (grid[k] === 1){ grid[k] = 0; cleanN++; } dctx.clearRect(0, 0, W, H); } });
   return S;
 }
 
