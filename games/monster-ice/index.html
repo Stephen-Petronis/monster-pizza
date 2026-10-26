@@ -1004,9 +1004,9 @@ function gcScene(quick){
       drawMonster(them, 134, 168, 2.6 * (them.size > 1 ? 1.1 : 1), TEAM[1], { fx: -0.8, fy: 0.3 }); ctx.restore();
       fancy('?', 134, 96 + Math.sin(TT * 4) * 2, 16, 'gold');
       fancy('VS', 90, 128, 16, 'blue');
-      T(Math.floor(t) + 's', 90, 196, '#8a7ab8', 8);
-      T('ANYONE WHO TAPS\nQUICK MATCH TOO', 90, 216, '#c9e8a0', 8);
-      const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 256, 3, k < g ? '#ffd23f' : '#2a1a4a');
+      T(Math.floor(t / 60) + ':' + String(Math.floor(t) % 60).padStart(2, '0'), 90, 194, '#8a7ab8', 8);
+      T('ANYONE WHO TAPS\nQUICK MATCH TOO.\nWE KEEP LOOKING!', 90, 212, '#c9e8a0', 8);
+      const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 262, 3, k < g ? '#ffd23f' : '#2a1a4a');
     } else {
       T('INVITE FRIENDS', 90, 60, '#ff7ad9', 12);
       T('OPENING GAME CENTER', 90, 100, '#c9b8f0', 8);

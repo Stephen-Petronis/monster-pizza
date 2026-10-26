@@ -41,6 +41,8 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     private var wantsMatch = false   // tapped FIND A MATCH / QUICK MATCH before sign-in finished
     private var wantsQuick = false   // ...and it was QUICK MATCH (no Apple screen)
     private var searching = false    // QUICK MATCH is looking for someone
+    private var searchGen = 0        // which QUICK MATCH tap the current search belongs to
+    private var quickMisses = 0      // searches in a row that failed right away
 
     // MARK: sign in (quietly at launch; the sign-in screen only shows when they ask for a match)
 
@@ -111,23 +113,54 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
         }
     }
 
+    /// Keeps searching until a match is found or they tap CANCEL: when Apple's search gives up
+    /// with nobody found, a fresh one starts. Setup problems (sign-in, Game Center off) stop it with a message.
     private func startQuickMatch() {
         if searching { return }
+        searching = true
+        searchGen += 1
+        quickMisses = 0
+        searchOnce(gen: searchGen)
+    }
+
+    private func searchOnce(gen: Int) {
         let request = GKMatchRequest()
         request.minPlayers = 2
         request.maxPlayers = 2
-        searching = true
+        let began = Date()
         GKMatchmaker.shared().findMatch(for: request) { [weak self] found, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
-                guard self.searching else { found?.disconnect(); return }   // they cancelled
-                self.searching = false
+                guard self.searching, gen == self.searchGen else { found?.disconnect(); return }   // cancelled or replaced
                 if let found = found {
+                    self.searching = false
                     self.begin(found)
+                    return
+                }
+                // A search that fails within a couple of seconds over and over means something's wrong (no internet).
+                if Date().timeIntervalSince(began) < 2 { self.quickMisses += 1 } else { self.quickMisses = 0 }
+                if self.keepLooking(error) && self.quickMisses < 5 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + (self.quickMisses > 0 ? 2 : 0.3)) {
+                        if self.searching && gen == self.searchGen { self.searchOnce(gen: gen) }
+                    }
                 } else {
+                    self.searching = false
                     self.notifyListeners("fail", data: ["msg": self.failMessage(error)])
                 }
             }
+        }
+    }
+
+    private func keepLooking(_ error: Error?) -> Bool {
+        guard let error = error else { return true }
+        let ns = error as NSError
+        guard ns.domain == GKErrorDomain, let code = GKError.Code(rawValue: ns.code) else { return true }
+        switch code {
+        case .gameUnrecognized, .notSupported, .apiNotAvailable, .notAuthenticated, .invalidCredentials,
+             .authenticationInProgress, .underage, .parentalControlsBlocked, .notAuthorized, .cancelled, .matchRequestInvalid:
+            return false
+        default:
+            return true
         }
     }
 
