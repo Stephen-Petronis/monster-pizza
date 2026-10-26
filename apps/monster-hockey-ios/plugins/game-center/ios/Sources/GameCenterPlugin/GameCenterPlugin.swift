@@ -117,7 +117,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
         request.minPlayers = 2
         request.maxPlayers = 2
         searching = true
-        GKMatchmaker.shared().findMatch(for: request) { [weak self] found, _ in
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] found, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 guard self.searching else { found?.disconnect(); return }   // they cancelled
@@ -125,7 +125,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
                 if let found = found {
                     self.begin(found)
                 } else {
-                    self.notifyListeners("fail", data: ["msg": "NO MONSTERS FOUND. TRY AGAIN!"])
+                    self.notifyListeners("fail", data: ["msg": self.failMessage(error)])
                 }
             }
         }
@@ -194,8 +194,31 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
         DispatchQueue.main.async {
             self.closeMatchmaker(viewController)
-            self.notifyListeners("fail", data: ["msg": "COULDN'T MAKE A MATCH"])
+            self.notifyListeners("fail", data: ["msg": self.failMessage(error)])
         }
+    }
+
+    /// Says what went wrong in words a player can act on (the number helps us debug).
+    private func failMessage(_ error: Error?) -> String {
+        guard let error = error else { return "NO MONSTERS FOUND. TRY AGAIN!" }
+        let ns = error as NSError
+        if ns.domain == GKErrorDomain, let code = GKError.Code(rawValue: ns.code) {
+            switch code {
+            case .gameUnrecognized, .notSupported, .apiNotAvailable:
+                return "GAME CENTER ISN'T SWITCHED ON FOR THIS APP YET (\(ns.code))"
+            case .notAuthenticated, .invalidCredentials, .authenticationInProgress:
+                return "SIGN IN TO GAME CENTER IN SETTINGS (\(ns.code))"
+            case .underage, .parentalControlsBlocked, .notAuthorized:
+                return "MULTIPLAYER IS TURNED OFF ON THIS PHONE (\(ns.code))"
+            case .communicationsFailure, .connectionTimeout:
+                return "NO MONSTERS FOUND. CHECK YOUR INTERNET (\(ns.code))"
+            case .cancelled:
+                return "SEARCH STOPPED"
+            default:
+                return "NO MONSTERS FOUND. TRY AGAIN! (\(ns.code))"
+            }
+        }
+        return "NO MONSTERS FOUND. TRY AGAIN! (\(ns.code))"
     }
 
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {

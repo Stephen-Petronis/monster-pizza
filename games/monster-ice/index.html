@@ -3380,10 +3380,13 @@ function frame(now){
     ctx.setTransform(K, 0, 0, K, 0, OFFY * K); scene.draw(); } } catch (err) { console.error(err); }
   ctx.setTransform(K, 0, 0, K, 0, OFFY * K);
   drawChrome();
-  if (netToast){ const w = Math.min(CW - 16, netToast.text.length * 8 + 16), x = (CW - w) / 2; R(x, 40, w, 20, '#000'); R(x + 1, 41, w - 2, 18, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(netToast.text, CW / 2, 46, '#ffffff', 8, 'center', null); }
+  if (netToast){   // wrapped to 19 letters a line so it fits the app's wide pixel font
+    const lines = []; for (const word of String(netToast.text).split(' ')){ const l = lines.length - 1; if (l >= 0 && (lines[l] + ' ' + word).length <= 19) lines[l] += ' ' + word; else lines.push(word); }
+    const w = Math.min(CW - 12, Math.max(...lines.map(l => l.length)) * 8 + 16), h = lines.length * 12 + 8, x = (CW - w) / 2;
+    R(x, 40, w, h, '#000'); R(x + 1, 41, w - 2, h - 2, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(lines.join('\n'), CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, NET, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { CFG, NET, toast, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();
