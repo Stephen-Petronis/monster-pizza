@@ -1,0 +1,9 @@
+{
+  "name": "monster-game-center",
+  "version": "1.0.0",
+  "description": "Apple Game Center matchmaking for Monster Hockey (local Capacitor plugin).",
+  "main": "index.js",
+  "license": "MIT",
+  "files": ["index.js", "ios/Sources", "Package.swift", "MonsterGameCenter.podspec"],
+  "capacitor": { "ios": { "src": "ios" } }
+}

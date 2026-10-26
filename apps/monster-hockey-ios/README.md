@@ -36,5 +36,12 @@ When the web game changes on Monster Pizza, run `git pull` and then `npm run upd
 ## Swapping the icon
 Replace `assets/icon-only.png` (1024×1024, no transparency) and `assets/splash.png` (2732×2732) with your own art, then run `npx capacitor-assets generate --ios`.
 
-## Later: Game Center
-Game Center leaderboards and Apple's online matchmaking (works on cell data) need a small native plugin; this project is ready for it when you want it.
+## Game Center (Apple matchmaking)
+In the app, **PLAY ONLINE > FIND A MATCH** opens Apple's Game Center matchmaking screen: play a random opponent, or invite friends (Game Center friends or Messages). Invites open the app and drop both players into the game. Room codes are still there for playing someone on the website.
+
+The native code is a small local plugin in `plugins/game-center` (Swift, `GameCenterPlugin.swift`); `npm run update-game` installs it and syncs it into Xcode.
+
+One-time switches:
+1. **Xcode:** click **App** > **Signing & Capabilities** > **+ Capability** > **Game Center**.
+2. **App Store Connect:** your app > the version you're submitting > scroll to **Game Center** and turn it on (if it isn't already).
+3. To test, you need **two real iPhones/iPads signed into different Apple IDs** with Game Center on (Settings > Game Center). The Simulator can't do matchmaking.

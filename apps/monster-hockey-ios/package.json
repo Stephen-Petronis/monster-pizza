@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@capacitor/core": "latest",
-    "@capacitor/ios": "latest"
+    "@capacitor/ios": "latest",
+    "monster-game-center": "file:./plugins/game-center"
   },
   "devDependencies": {
     "@capacitor/cli": "latest",

@@ -882,17 +882,18 @@ const SIG = {
   },
 };
 function netReset(){
-  Object.assign(NET, { role: null, code: '', pc: null, ctl: null, snap: null, up: false, dropped: false, closing: false, status: '', err: '',
+  Object.assign(NET, { gc: false, role: null, code: '', pc: null, ctl: null, snap: null, up: false, dropped: false, closing: false, status: '', err: '',
     inputs: [], sfx: [], rec: false, last: null, peerTeam: null, start: null, end: null, again: false, rx: 0, tx: 0 });
 }
 addEventListener('pagehide', () => { if (NET.up) netSend({ t: 'bye' }); });
 function netClose(){
+  if (NET.gc){ netSend({ t: 'bye' }); setTimeout(() => { try { GC.disconnect(); } catch (e) {} }, 150); }
   if (NET.pc){ NET.closing = true; netSend({ t: 'bye' }); const pc = NET.pc; setTimeout(() => { try { pc.close(); } catch (e) {} }, 150); }
   netReset(); G.online = null; G.twoP = false;
 }
 const netPC = () => new RTCPeerConnection({ iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] });
 function iceDone(pc){ return new Promise(res => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete'){ clearTimeout(t); res(); } }); }); }
-function netLost(){ const sc = scene, pc = NET.pc; netReset(); try { pc && pc.close(); } catch (e) {} if (sc && sc.netDrop) sc.netDrop(); else { G.online = null; G.twoP = false; toast('LOST THE OTHER PLAYER'); go(titleScene()); } }
+function netLost(){ const sc = scene, pc = NET.pc; if (NET.gc) try { GC.disconnect(); } catch (e) {} netReset(); try { pc && pc.close(); } catch (e) {} if (sc && sc.netDrop) sc.netDrop(); else { G.online = null; G.twoP = false; toast('LOST THE OTHER PLAYER'); go(titleScene()); } }
 function netDrop(){ if (NET.role && !NET.closing && !NET.dropped){ NET.dropped = true; NET.up = false; } }
 function netWire(ch){
   if (ch.label === 'snap') NET.snap = ch; else NET.ctl = ch;
@@ -900,7 +901,9 @@ function netWire(ch){
   ch.onclose = () => { if (ch.label === 'ctl') netDrop(); };
   ch.onmessage = e => { NET.rx = performance.now(); let m; try { m = JSON.parse(e.data); } catch (err) { return; } netRecv(m); };
 }
-function netSend(m, fast){ const ch = fast ? NET.snap : NET.ctl; if (ch && ch.readyState === 'open') try { ch.send(JSON.stringify(m)); } catch (e) {} }
+function netSend(m, fast){
+  if (NET.gc){ if (NET.up || m.t === 'bye') try { GC.send({ d: JSON.stringify(m), fast: !!fast }); } catch (e) {} return; }   // Apple Game Center match
+  const ch = fast ? NET.snap : NET.ctl; if (ch && ch.readyState === 'open') try { ch.send(JSON.stringify(m)); } catch (e) {} }
 function netRecv(m){
   if (m.t === 'snap'){ if (!NET.last || m.n > NET.last.n) NET.last = m; return; }
   if (m.t === 'in' || m.t === 'j') NET.inputs.push(m);
@@ -950,23 +953,68 @@ async function netJoin(code){
   } catch (e) { console.warn(e); if (NET.role === 'guest') NET.err = String(e).includes('403') ? 'ONLINE ISN\'T SWITCHED ON YET' : 'COULDN\'T CONNECT'; }
 }
 
+/* ---------- APPLE GAME CENTER (only inside the iPhone / iPad app) ----------
+   The app's native plugin shows Apple's matchmaking screen (a random opponent, or invite friends / Messages),
+   then carries our messages. Both phones agree who hosts. Everything after that is the same as a room-code game. */
+const GC = (() => { try { const C = window.Capacitor; if (!C || !C.isPluginAvailable || !C.isPluginAvailable('GameCenter')) return null;
+  return (C.Plugins && C.Plugins.GameCenter) || (C.registerPlugin && C.registerPlugin('GameCenter')) || null; } catch (e) { return null; } })();
+const gcName = n => String(n || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 14) || 'A MONSTER';
+function gcMatched(e){
+  const pc = NET.pc; if (pc) try { pc.close(); } catch (err) {}
+  netReset(); NET.gc = true; NET.role = e.host ? 'host' : 'guest'; NET.up = true; NET.rx = performance.now();
+  G.online = NET.role; G.twoP = true; SFX.win(); toast('PLAYING ' + gcName(e.other) + '!');
+  go(e.host ? diffScene() : pickScene(1));
+}
+if (GC){
+  GC.addListener('data', e => { if (!NET.gc) return; NET.rx = performance.now(); let m; try { m = JSON.parse(e.d); } catch (err) { return; } netRecv(m); });
+  GC.addListener('left', () => { if (NET.gc) netDrop(); });
+  GC.addListener('match', e => gcMatched(e));
+  GC.addListener('cancel', () => { if (scene && scene.gcCancel) scene.gcCancel(); });
+  GC.addListener('fail', e => { if (scene && scene.gcCancel) scene.gcCancel(); toast(e.msg || 'GAME CENTER TROUBLE'); });
+}
+function gcScene(){
+  const S = { quit: true }; let bs;
+  S.enter = () => { netClose(); bs = [btn(46, 286, 88, 22, 'BACK', () => go(onlineScene()), '#c9a0ff')]; try { GC.findMatch(); } catch (e) { toast('GAME CENTER TROUBLE'); } };
+  S.gcCancel = () => go(onlineScene());
+  S.down = p => hitBtn(bs, p);
+  S.key = (c, dn) => { if (dn && c === 'Escape') bs[0].fn(); };
+  S.draw = () => {
+    nightSky(12); moon(150, 30, 10);
+    T('GAME CENTER', 90, 60, '#ffd23f', 12);
+    T('FIND A RANDOM MONSTER\nOR INVITE YOUR FRIENDS', 90, 100, '#c9b8f0', 8);
+    const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 150, 3, k < g ? '#ffd23f' : '#2a1a4a');
+    bs.forEach(drawBtn);
+  };
+  return S;
+}
+
 /* ---------- ONLINE MENU ---------- */
 function onlineScene(){
-  const S = { quit: true }; let bs;
-  S.enter = () => { netClose(); bs = [
-    btn(24, 120, 132, 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff'),
-    btn(24, 196, 132, 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a'),
-    btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff'),
-  ]; };
+  const S = { quit: true }; let bs, keys;
+  S.enter = () => { netClose();
+    const host = btn(24, GC ? 136 : 120, 132, GC ? 26 : 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff');
+    const join = btn(24, GC ? 202 : 196, 132, GC ? 26 : 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a');
+    const back = btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff');
+    const find = GC && btn(24, 60, 132, 30, 'FIND A MATCH', () => go(gcScene()), '#ffd23f');
+    bs = [host, join, back]; if (find) bs.push(find);
+    keys = { KeyH: host, Digit1: host, KeyJ: join, Digit2: join, Escape: back }; if (find){ keys.KeyF = find; keys.Digit3 = find; }
+  };
   S.down = p => hitBtn(bs, p);
-  S.key = (c, dn) => { if (!dn) return; if (c === 'KeyH' || c === 'Digit1') bs[0].fn(); else if (c === 'KeyJ' || c === 'Digit2') bs[1].fn(); else if (c === 'Escape') bs[2].fn(); };
+  S.key = (c, dn) => { if (dn && keys[c]) keys[c].fn(); };
   S.draw = () => {
     nightSky(9); moon(150, 30, 10);
-    T('PLAY ONLINE', 90, 40, '#5cc8ff', 12);
-    T('2 PHONES OR IPADS,\nEACH WITH THE GAME OPEN', 90, 66, '#c9b8f0', 8);
-    T('YOU GET A ROOM CODE\nTO GIVE YOUR FRIEND', 90, 158, '#c9e8a0', 8);
-    T('TYPE THEIR\nROOM CODE', 90, 234, '#c9e8a0', 8);
-    tiny('WORKS BEST ON WIFI', 90, 270, '#8a7ab8');
+    if (GC){
+      T('PLAY ONLINE', 90, 32, '#5cc8ff', 12);
+      T('GAME CENTER: A RANDOM\nMONSTER OR YOUR FRIENDS', 90, 96, '#ffe9a8', 8);
+      T('ROOM CODES (TO PLAY\nSOMEONE ON THE WEBSITE)', 90, 166, '#c9b8f0', 8);
+      T('TYPE THEIR ROOM CODE', 90, 234, '#c9e8a0', 8);
+    } else {
+      T('PLAY ONLINE', 90, 40, '#5cc8ff', 12);
+      T('2 PHONES OR IPADS,\nEACH WITH THE GAME OPEN', 90, 66, '#c9b8f0', 8);
+      T('YOU GET A ROOM CODE\nTO GIVE YOUR FRIEND', 90, 158, '#c9e8a0', 8);
+      T('TYPE THEIR\nROOM CODE', 90, 234, '#c9e8a0', 8);
+      tiny('WORKS BEST ON WIFI', 90, 270, '#8a7ab8');
+    }
     bs.forEach(drawBtn);
   };
   return S;
