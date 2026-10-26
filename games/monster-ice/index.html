@@ -607,7 +607,13 @@ function audioInit(){
   musicStart();
 }
 ['touchend', 'pointerup', 'click', 'keydown'].forEach(ev => addEventListener(ev, () => { if (!AC || AC.state !== 'running') audioInit(); }, { passive: true }));
-document.addEventListener('visibilitychange', () => { if (!document.hidden && AC && AC.state !== 'running') { try { AC.resume(); } catch (e) {} } });
+// Leaving the app (home screen, another app, phone locked) silences everything; coming back picks the music up again.
+let audioAway = false;
+function audioAwayNow(){ audioAway = true; if (AC && AC.state === 'running') try { AC.suspend(); } catch (e) {} }
+function audioBack(){ if (!audioAway) return; audioAway = false; if (AC && AC.state !== 'running') try { AC.resume(); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.hidden) audioAwayNow(); else audioBack(); });
+addEventListener('pagehide', audioAwayNow); addEventListener('pageshow', audioBack);
+document.addEventListener('pause', audioAwayNow); document.addEventListener('resume', audioBack);   // the iOS app's own "went to background / came back" signals
 /* ---------- MUSIC: a little spooky chiptune loop (Am - F - Dm - E) ---------- */
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
 const BASS = [45, 57, 45, 57, 45, 57, 45, 57, 41, 53, 41, 53, 41, 53, 41, 53, 38, 50, 38, 50, 38, 50, 38, 50, 40, 52, 40, 52, 44, 56, 40, 52];
