@@ -6,7 +6,9 @@ import GameKit
 /// Apple Game Center for Monster Hockey.
 ///
 /// The game (a web page) calls:
-///   GameCenter.findMatch()    -> shows Apple's matchmaking screen (random opponent, or invite friends / Messages)
+///   GameCenter.findMatch()    -> shows Apple's matchmaking screen (invite friends / Messages / SharePlay, or automatch)
+///   GameCenter.quickMatch()   -> automatch with NO Apple screen (the game shows its own searching screen)
+///   GameCenter.cancelSearch() -> stops a quickMatch search
 ///   GameCenter.send({ d, fast }) -> sends one message (a JSON string) to the other player
 ///   GameCenter.disconnect()   -> leaves the match
 /// and listens for these events:
@@ -25,6 +27,8 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "findMatch", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "quickMatch", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cancelSearch", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "send", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disconnect", returnType: CAPPluginReturnPromise)
     ]
@@ -34,7 +38,9 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     private var signInScreen: UIViewController?
     private var matchScreen: GKMatchmakerViewController?   // Apple's matchmaking screen we put up (if any)
     private var listening = false
-    private var wantsMatch = false   // tapped FIND A MATCH before sign-in finished
+    private var wantsMatch = false   // tapped FIND A MATCH / QUICK MATCH before sign-in finished
+    private var wantsQuick = false   // ...and it was QUICK MATCH (no Apple screen)
+    private var searching = false    // QUICK MATCH is looking for someone
 
     // MARK: sign in (quietly at launch; the sign-in screen only shows when they ask for a match)
 
@@ -59,7 +65,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
                     }
                     if self.wantsMatch {
                         self.wantsMatch = false
-                        self.openMatchmaker()
+                        if self.wantsQuick { self.startQuickMatch() } else { self.openMatchmaker() }
                     }
                 } else if self.wantsMatch {
                     self.wantsMatch = false
@@ -81,23 +87,67 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
 
     @objc func findMatch(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            if GKLocalPlayer.local.isAuthenticated {
-                self.openMatchmaker()
-            } else if let screen = self.signInScreen {
-                self.wantsMatch = true
-                self.show(screen)
-            } else {
-                // Apple stops offering the sign-in screen after the player cancels it; they have to use Settings.
-                self.wantsMatch = true
-                self.authenticate()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                    if self.wantsMatch && !GKLocalPlayer.local.isAuthenticated && self.signInScreen == nil {
-                        self.wantsMatch = false
-                        self.notifyListeners("fail", data: ["msg": "SIGN IN TO GAME CENTER IN SETTINGS"])
-                    }
-                }
+            self.signInThen(quick: false)
+            call.resolve()
+        }
+    }
+
+    /// QUICK MATCH: Apple's automatch with no Apple screen; the game draws its own "searching" screen.
+    @objc func quickMatch(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.signInThen(quick: true)
+            call.resolve()
+        }
+    }
+
+    @objc func cancelSearch(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.wantsMatch = false
+            if self.searching {
+                self.searching = false
+                GKMatchmaker.shared().cancel()
             }
             call.resolve()
+        }
+    }
+
+    private func startQuickMatch() {
+        if searching { return }
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 2
+        searching = true
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] found, _ in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                guard self.searching else { found?.disconnect(); return }   // they cancelled
+                self.searching = false
+                if let found = found {
+                    self.begin(found)
+                } else {
+                    self.notifyListeners("fail", data: ["msg": "NO MONSTERS FOUND. TRY AGAIN!"])
+                }
+            }
+        }
+    }
+
+    private func signInThen(quick: Bool) {
+        self.wantsQuick = quick
+        if GKLocalPlayer.local.isAuthenticated {
+            if quick { self.startQuickMatch() } else { self.openMatchmaker() }
+        } else if let screen = self.signInScreen {
+            self.wantsMatch = true
+            self.show(screen)
+        } else {
+            // Apple stops offering the sign-in screen after the player cancels it; they have to use Settings.
+            self.wantsMatch = true
+            self.authenticate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                if self.wantsMatch && !GKLocalPlayer.local.isAuthenticated && self.signInScreen == nil {
+                    self.wantsMatch = false
+                    self.notifyListeners("fail", data: ["msg": "SIGN IN TO GAME CENTER IN SETTINGS"])
+                }
+            }
         }
     }
 

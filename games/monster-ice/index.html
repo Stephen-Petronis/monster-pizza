@@ -972,17 +972,37 @@ if (GC){
   GC.addListener('cancel', () => { if (scene && scene.gcCancel) scene.gcCancel(); });
   GC.addListener('fail', e => { if (scene && scene.gcCancel) scene.gcCancel(); toast(e.msg || 'GAME CENTER TROUBLE'); });
 }
-function gcScene(){
-  const S = { quit: true }; let bs;
-  S.enter = () => { netClose(); bs = [btn(46, 286, 88, 22, 'BACK', () => go(onlineScene()), '#c9a0ff')]; try { GC.findMatch(); } catch (e) { toast('GAME CENTER TROUBLE'); } };
+// QUICK MATCH: our own searching screen (Apple matchmaking behind it). INVITE: Apple's screen (Messages, contacts, SharePlay).
+function gcScene(quick){
+  const S = { quit: true }; let bs, t = 0, spin = 0, who = 0;
+  const pool = ROSTER.map(m => m.id);
+  const cancel = () => { if (quick) try { GC.cancelSearch(); } catch (e) {} go(onlineScene()); };
+  S.enter = () => { netClose(); t = 0; bs = [btn(46, 286, 88, 22, quick ? 'CANCEL' : 'BACK', cancel, '#c9a0ff')];
+    try { quick ? GC.quickMatch() : GC.findMatch(); } catch (e) { toast('GAME CENTER TROUBLE'); } };
   S.gcCancel = () => go(onlineScene());
+  S.update = dt => { t += dt; spin += dt; if (spin > 0.14){ spin = 0; who = (who + 1) % pool.length; if (quick) tone(300 + who * 40, 0.03, 'square', 0.04); } };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && c === 'Escape') bs[0].fn(); };
   S.draw = () => {
     nightSky(12); moon(150, 30, 10);
-    T('GAME CENTER', 90, 60, '#ffd23f', 12);
-    T('FIND A RANDOM MONSTER\nOR INVITE YOUR FRIENDS', 90, 100, '#c9b8f0', 8);
-    const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 150, 3, k < g ? '#ffd23f' : '#2a1a4a');
+    if (quick){
+      T('QUICK MATCH', 90, 34, '#ffd23f', 12);
+      T('FINDING A MONSTER...', 90, 58, '#c9b8f0', 8);
+      const me = MON[(G.team && G.team[0]) || 'vamp'] || MON.vamp, them = MON[pool[who]];
+      const hop = Math.abs(Math.sin(TT * 5)) * 3;
+      drawMonster(me, 46, 168 - hop, 2.6 * (me.size > 1 ? 1.1 : 1), TEAM[0], { fx: 0.8, fy: 0.3, anim: TT * 3, moving: true });
+      ctx.save(); ctx.globalAlpha = 0.45 + 0.25 * Math.sin(TT * 9);
+      drawMonster(them, 134, 168, 2.6 * (them.size > 1 ? 1.1 : 1), TEAM[1], { fx: -0.8, fy: 0.3 }); ctx.restore();
+      fancy('?', 134, 96 + Math.sin(TT * 4) * 2, 16, 'gold');
+      fancy('VS', 90, 128, 16, 'blue');
+      T(Math.floor(t) + 's', 90, 196, '#8a7ab8', 8);
+      T('ANYONE WHO TAPS\nQUICK MATCH TOO', 90, 216, '#c9e8a0', 8);
+      const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 256, 3, k < g ? '#ffd23f' : '#2a1a4a');
+    } else {
+      T('INVITE FRIENDS', 90, 60, '#ff7ad9', 12);
+      T('OPENING GAME CENTER', 90, 100, '#c9b8f0', 8);
+      const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 130, 3, k < g ? '#ff7ad9' : '#2a1a4a');
+    }
     bs.forEach(drawBtn);
   };
   return S;
@@ -992,25 +1012,28 @@ function gcScene(){
 function onlineScene(){
   const S = { quit: true }; let bs, keys;
   S.enter = () => { netClose();
-    const host = btn(24, GC ? 136 : 120, 132, GC ? 26 : 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff');
-    const join = btn(24, GC ? 202 : 196, 132, GC ? 26 : 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a');
+    const quick = GC && btn(24, 58, 132, 28, 'QUICK MATCH', () => go(gcScene(true)), '#ffd23f');
+    const invite = GC && btn(24, 124, 132, 28, 'INVITE FRIENDS', () => go(gcScene(false)), '#ff7ad9');
+    const host = GC ? btn(14, 210, 72, 24, 'HOST', () => go(hostScene()), '#5cc8ff') : btn(24, 120, 132, 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff');
+    const join = GC ? btn(94, 210, 72, 24, 'JOIN', () => go(joinScene()), '#b6ff4a') : btn(24, 196, 132, 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a');
     const back = btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff');
-    const find = GC && btn(24, 60, 132, 30, 'FIND A MATCH', () => go(gcScene()), '#ffd23f');
-    bs = [host, join, back]; if (find) bs.push(find);
-    keys = { KeyH: host, Digit1: host, KeyJ: join, Digit2: join, Escape: back }; if (find){ keys.KeyF = find; keys.Digit3 = find; }
+    bs = [host, join, back]; if (GC) bs.push(quick, invite);
+    keys = { KeyH: host, Digit1: host, KeyJ: join, Digit2: join, Escape: back }; if (GC){ keys.KeyQ = quick; keys.KeyF = quick; keys.KeyI = invite; }
   };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && keys[c]) keys[c].fn(); };
   S.draw = () => {
     nightSky(9); moon(150, 30, 10);
-    if (GC){
-      T('PLAY ONLINE', 90, 32, '#5cc8ff', 12);
-      T('GAME CENTER: A RANDOM\nMONSTER OR YOUR FRIENDS', 90, 96, '#ffe9a8', 8);
-      T('ROOM CODES (TO PLAY\nSOMEONE ON THE WEBSITE)', 90, 166, '#c9b8f0', 8);
-      T('TYPE THEIR ROOM CODE', 90, 234, '#c9e8a0', 8);
+    if (GC){   // lines kept to 20 letters: the app's pixel font is wide
+      T('PLAY ONLINE', 90, 30, '#5cc8ff', 12);
+      T('A RANDOM MONSTER\nFROM ANYWHERE', 90, 92, '#ffe9a8', 8);
+      T('MESSAGES, CONTACTS\nOR SHAREPLAY', 90, 158, '#ffc2ee', 8);
+      R(20, 194, 140, 1, '#3a2a5e');
+      T('ROOM CODE', 90, 198, '#c9b8f0', 8);
+      T('FOR THE WEBSITE', 90, 240, '#8a7ab8', 8);
     } else {
       T('PLAY ONLINE', 90, 40, '#5cc8ff', 12);
-      T('2 PHONES OR IPADS,\nEACH WITH THE GAME OPEN', 90, 66, '#c9b8f0', 8);
+      T('2 PHONES OR IPADS\nWITH THE GAME OPEN', 90, 66, '#c9b8f0', 8);
       T('YOU GET A ROOM CODE\nTO GIVE YOUR FRIEND', 90, 158, '#c9e8a0', 8);
       T('TYPE THEIR\nROOM CODE', 90, 234, '#c9e8a0', 8);
       tiny('WORKS BEST ON WIFI', 90, 270, '#8a7ab8');
@@ -1030,7 +1053,7 @@ function hostScene(){
     T('YOUR ROOM CODE', 90, 40, '#ffd23f', 8);
     if (NET.code){
       for (let k = 0; k < 4; k++){ const x = 27 + k * 34, y = 62 + Math.sin(TT * 3 + k) * 2; R(x - 1, y - 1, 30, 38, '#000'); R(x, y, 28, 36, '#22143e'); R(x, y, 28, 2, '#5cc8ff'); fancy(NET.code[k], x + 14, y + 8, 16, 'blue'); }
-      T('TELL PLAYER 2:\nTAP PLAY ONLINE,\nJOIN A GAME,\nTHEN TYPE THIS CODE', 90, 120, '#f7efe0', 8);
+      T('TELL PLAYER 2:\nTAP PLAY ONLINE,\nTHEN JOIN,\nTHEN TYPE THIS CODE', 90, 120, '#f7efe0', 8);
     } else if (!NET.err){ for (let k = 0; k < 4; k++) R(27 + k * 34, 62, 28, 36, (Math.floor(TT * 4) + k) % 4 ? '#22143e' : '#3a2266'); }
     if (NET.err){ T(NET.err, 90, 200, '#ff5d73', 8); T('TAP TO GO BACK', 90, 220, '#c9b8f0', 8); }
     else { T(NET.status, 90, 200, '#c9a0ff', 8); const g = Math.floor(TT * 3) % 4; for (let k = 0; k < 3; k++) C(80 + k * 10, 232, 3, k < g ? '#5cc8ff' : '#2a1a4a'); }
