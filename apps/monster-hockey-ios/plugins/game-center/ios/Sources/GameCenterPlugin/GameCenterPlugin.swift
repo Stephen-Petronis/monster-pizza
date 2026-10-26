@@ -16,6 +16,8 @@ import GameKit
 ///   "data"   { d: String }                  a message from the other player
 ///   "left"   {}                             the other player left / the connection dropped
 /// Invites accepted from Messages or Game Center (even when the app wasn't open) also end in "match".
+///
+/// All plugin state is only touched on the main thread.
 @objc(GameCenterPlugin)
 public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewControllerDelegate, GKMatchDelegate, GKLocalPlayerListener {
     public let identifier = "GameCenterPlugin"
@@ -30,6 +32,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     private var match: GKMatch?
     private var started = false
     private var signInScreen: UIViewController?
+    private var matchScreen: GKMatchmakerViewController?   // Apple's matchmaking screen we put up (if any)
     private var listening = false
     private var wantsMatch = false   // tapped FIND A MATCH before sign-in finished
 
@@ -40,26 +43,28 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     }
 
     private func authenticate() {
-        GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
-            guard let self = self else { return }
-            if let viewController = viewController {
-                self.signInScreen = viewController
-                if self.wantsMatch { self.show(viewController) }
-                return
-            }
-            self.signInScreen = nil
-            if GKLocalPlayer.local.isAuthenticated {
-                if !self.listening {
-                    self.listening = true
-                    GKLocalPlayer.local.register(self)   // so invites reach us
+        GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, _ in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                if let viewController = viewController {
+                    self.signInScreen = viewController
+                    if self.wantsMatch { self.show(viewController) }
+                    return
                 }
-                if self.wantsMatch {
+                self.signInScreen = nil
+                if GKLocalPlayer.local.isAuthenticated {
+                    if !self.listening {
+                        self.listening = true
+                        GKLocalPlayer.local.register(self)   // so invites reach us
+                    }
+                    if self.wantsMatch {
+                        self.wantsMatch = false
+                        self.openMatchmaker()
+                    }
+                } else if self.wantsMatch {
                     self.wantsMatch = false
-                    self.openMatchmaker()
+                    self.notifyListeners("fail", data: ["msg": "SIGN IN TO GAME CENTER IN SETTINGS"])
                 }
-            } else if self.wantsMatch {
-                self.wantsMatch = false
-                self.notifyListeners("fail", data: ["msg": "SIGN IN TO GAME CENTER IN SETTINGS"])
             }
         }
     }
@@ -67,7 +72,8 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     @objc func status(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             let me = GKLocalPlayer.local
-            call.resolve(["signedIn": me.isAuthenticated, "name": me.isAuthenticated ? me.displayName : ""])
+            // alias = the Game Center nickname (displayName can be "Me" for the local player)
+            call.resolve(["signedIn": me.isAuthenticated, "name": me.isAuthenticated ? me.alias : ""])
         }
     }
 
@@ -96,6 +102,8 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     }
 
     private func openMatchmaker(recipients: [GKPlayer]? = nil) {
+        // Already showing Apple's screen (double tap): leave it alone, unless this is a pick-friends request.
+        if let current = matchScreen, current.presentingViewController != nil, recipients == nil { return }
         let request = GKMatchRequest()
         request.minPlayers = 2
         request.maxPlayers = 2
@@ -104,31 +112,54 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
             notifyListeners("fail", data: ["msg": "GAME CENTER ISN'T READY"])
             return
         }
+        present(matchmaker: screen)
+    }
+
+    /// Puts up a matchmaking screen, quietly replacing one that's already up (e.g. an invite arrives while browsing).
+    private func present(matchmaker screen: GKMatchmakerViewController) {
         screen.matchmakerDelegate = self
+        if let old = matchScreen, old !== screen, old.presentingViewController != nil {
+            old.matchmakerDelegate = nil
+            matchScreen = screen
+            old.dismiss(animated: false) { self.show(screen) }
+            return
+        }
+        matchScreen = screen
         show(screen)
     }
 
-    public func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
+    private func closeMatchmaker(_ viewController: GKMatchmakerViewController) {
+        if matchScreen === viewController { matchScreen = nil }
+        viewController.matchmakerDelegate = nil
         viewController.dismiss(animated: true)
-        notifyListeners("cancel", data: [:])
+    }
+
+    public func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
+        DispatchQueue.main.async {
+            self.closeMatchmaker(viewController)
+            self.notifyListeners("cancel", data: [:])
+        }
     }
 
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
-        viewController.dismiss(animated: true)
-        notifyListeners("fail", data: ["msg": "COULDN'T MAKE A MATCH"])
+        DispatchQueue.main.async {
+            self.closeMatchmaker(viewController)
+            self.notifyListeners("fail", data: ["msg": "COULDN'T MAKE A MATCH"])
+        }
     }
 
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
-        viewController.dismiss(animated: true)
-        begin(match)
+        DispatchQueue.main.async {
+            self.closeMatchmaker(viewController)
+            self.begin(match)
+        }
     }
 
     // Someone accepted an invite (Messages or Game Center), maybe launching the app to do it.
     public func player(_ player: GKPlayer, didAccept invite: GKInvite) {
         DispatchQueue.main.async {
             guard let screen = GKMatchmakerViewController(invite: invite) else { return }
-            screen.matchmakerDelegate = self
-            self.show(screen)
+            self.present(matchmaker: screen)
         }
     }
 
@@ -149,8 +180,27 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     private func startIfReady() {
         guard let m = match, !started, m.expectedPlayerCount == 0, let other = m.players.first else { return }
         started = true
-        let host = GKLocalPlayer.local.gamePlayerID < other.gamePlayerID
+        let mine = GKLocalPlayer.local.gamePlayerID
+        let theirs = other.gamePlayerID
+        // IDs should never match; if they somehow do, fall back to the names so exactly one side hosts.
+        let host = mine != theirs ? mine < theirs : GKLocalPlayer.local.alias < other.alias
+        // Kept until the page listens, so a match made from a cold-launch invite isn't lost.
         notifyListeners("match", data: ["host": host, "other": other.displayName], retainUntilConsumed: true)
+    }
+
+    /// Drops the current match. If it never got going, tell the page so it doesn't wait forever.
+    private func endMatch(_ m: GKMatch) {
+        guard m === match else { return }
+        let wasStarted = started
+        m.delegate = nil
+        m.disconnect()
+        match = nil
+        started = false
+        if wasStarted {
+            notifyListeners("left", data: [:])
+        } else {
+            notifyListeners("fail", data: ["msg": "COULDN'T MAKE A MATCH"])
+        }
     }
 
     // MARK: messages
@@ -168,24 +218,26 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
     }
 
     public func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
-        guard match === self.match, let text = String(data: data, encoding: .utf8) else { return }
-        notifyListeners("data", data: ["d": text])
+        guard let text = String(data: data, encoding: .utf8) else { return }
+        DispatchQueue.main.async {
+            guard match === self.match, self.started else { return }
+            self.notifyListeners("data", data: ["d": text])
+        }
     }
 
     public func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
-        guard match === self.match else { return }
         DispatchQueue.main.async {
+            guard match === self.match else { return }
             if state == .connected {
                 self.startIfReady()
-            } else if state == .disconnected && self.started {
-                self.notifyListeners("left", data: [:])
+            } else if state == .disconnected {
+                self.endMatch(match)
             }
         }
     }
 
     public func match(_ match: GKMatch, didFailWithError error: Error?) {
-        guard match === self.match else { return }
-        DispatchQueue.main.async { if self.started { self.notifyListeners("left", data: [:]) } }
+        DispatchQueue.main.async { self.endMatch(match) }
     }
 
     @objc func disconnect(_ call: CAPPluginCall) {
@@ -199,11 +251,22 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKMatchmakerViewCont
 
     // MARK: helpers
 
-    private func show(_ screen: UIViewController) {
-        guard let root = bridge?.viewController else { return }
+    /// Presents on top of whatever is showing. If another screen is mid-animation (e.g. Apple's sign-in
+    /// screen closing itself), or the window isn't up yet (cold launch from an invite), try again shortly.
+    private func show(_ screen: UIViewController, tries: Int = 0) {
         if screen.presentingViewController != nil { return }   // already up
+        guard let root = bridge?.viewController else { return }
         var top: UIViewController = root
-        while let next = top.presentedViewController { top = next }
+        var busy = root.isBeingPresented || root.isBeingDismissed || root.view.window == nil
+        while !busy, let next = top.presentedViewController {
+            if next.isBeingPresented || next.isBeingDismissed { busy = true } else { top = next }
+        }
+        if busy {
+            if tries < 40 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { self.show(screen, tries: tries + 1) }
+            }
+            return
+        }
         top.present(screen, animated: true)
     }
 }
