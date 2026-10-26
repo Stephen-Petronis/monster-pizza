@@ -144,6 +144,7 @@ if (!ctx.roundRect) CanvasRenderingContext2D.prototype.roundRect = function(x, y
 /* Screen layouts: 'P' portrait (controls under the rink), 'L' landscape (stick on the left, buttons on the right),
    '2P' one iPad, two players (P2's controls along the top edge, upside down). Game art always draws in the 180x320 space. */
 const P2H = 88;   // iPad 2-player: each player's control strip (tall enough for the monster panels)
+let K = 1;   // backing-store scale: the canvas has K real pixels per game pixel so text and art come out sharp on phones
 let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0, TOPB = 0, PY = 0, SAFE_T = 0, SAFE_B = 0, SBH = 34, WY = 0;   // LAYOUT is set on the first frame
 /* Phones (and the iOS app) fill the whole screen edge to edge. SAFE_T / SAFE_B = rows hidden by the notch and the home bar.
    In a hockey game the extra rows go to a strip of fans along the top (TOPB rows, the rink starts below it) and to a bigger
@@ -170,12 +171,14 @@ function fit(){ const r = stage.getBoundingClientRect(); const s = Math.max(1, M
 function setLayout(L){
   if (L === LAYOUT) return;
   LAYOUT = L; EX = L === 'P' ? tallEX() : 0; [CW, CH] = L === 'L' ? [400, 254] : L === '2P' ? [180, 254 + 2 * P2H] : [180, 320 + EX]; tallRows();
-  cv.width = CW; cv.height = CH; ctx.imageSmoothingEnabled = false; CHROME_Y = L === '2P' ? P2H : 0; fit();
+  const r = stage.getBoundingClientRect(), s = r.width > 0 ? Math.max(1, Math.min(r.width / CW, r.height / CH)) : 1;
+  K = clamp(Math.round(s * (window.devicePixelRatio || 1)), 1, 6);
+  cv.width = CW * K; cv.height = CH * K; ctx.imageSmoothingEnabled = false; CHROME_Y = L === '2P' ? P2H : 0; fit();
   ptrs.clear(); if (scene && scene.relayout) scene.relayout();
 }
 const wantsLandscape = () => innerWidth > innerHeight * 1.15;
 const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
-addEventListener('resize', () => { if (LAYOUT === 'P'){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
+addEventListener('resize', () => { if (LAYOUT){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -3364,12 +3367,12 @@ function frame(now){
   }
   if (NET.dropped) netLost();
   if (netToast && (netToast.t -= dt) <= 0) netToast = null;
-  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt);
+  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(K, 0, 0, K, 0, 0); scene.update && scene.update(dt);
     OFFY = LAYOUT === 'P' && EX && !scene.tallP ? clamp(Math.round((EX + SAFE_T - SAFE_B) / 2), SAFE_T, Math.max(SAFE_T, EX - SAFE_B)) : 0;
     if (LAYOUT === 'P') CHROME_Y = scene.tallP && (EX >= 24 || FULL) ? SAFE_T + 3 : 0;
     if (LAYOUT === 'P' && EX) R(0, 0, CW, CH, '#120a22');
-    ctx.setTransform(1, 0, 0, 1, 0, OFFY); scene.draw(); } } catch (err) { console.error(err); }
-  ctx.setTransform(1, 0, 0, 1, 0, OFFY);
+    ctx.setTransform(K, 0, 0, K, 0, OFFY * K); scene.draw(); } } catch (err) { console.error(err); }
+  ctx.setTransform(K, 0, 0, K, 0, OFFY * K);
   drawChrome();
   if (netToast){ const w = Math.min(CW - 16, netToast.text.length * 8 + 16), x = (CW - w) / 2; R(x, 40, w, 20, '#000'); R(x + 1, 41, w - 2, 18, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(netToast.text, CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
