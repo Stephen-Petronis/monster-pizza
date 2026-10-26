@@ -3203,8 +3203,9 @@ function zamboniScene(opts = {}){
     // HUD
     R(0, 0, W, 29, '#120a22');
     const pctF = Math.floor(cleanN / total * 1000) / 10, pct = pctF.toFixed(1);
-    T('THE ZOMBONI', 90, 5, '#b6ff4a', 8);
-    T('CLEAN ' + pct + '%', 90, 18, done ? '#b6ff4a' : '#9ce8ff', 8);   // one decimal: it's the high score
+    const hx = timed ? 80 : 90;   // nudged left so the timer has room (the pixel font is wide)
+    T('THE ZOMBONI', hx, 5, '#b6ff4a', 8);
+    T('CLEAN ' + pct + '%', hx, 18, done ? '#b6ff4a' : '#9ce8ff', 8);   // one decimal: it's the high score
     if (timed){ const sec = Math.ceil(tLeft), hot = sec <= 3 && !over; T(':' + String(sec).padStart(2, '0'), W - 24, 11, hot ? (Math.floor(TT * 6) % 2 ? '#ff5d73' : '#ffffff') : '#ffd23f', 8, 'right'); }
     else tiny('LOST ' + found + '-' + items.length, W - 22, 20, '#ffd23f', 'right', null);
     if (over){
