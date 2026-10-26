@@ -3,3 +3,5 @@ ios/App/Pods/
 ios/App/output/
 ios/DerivedData/
 .DS_Store
+# made from games/monster-ice by setup / update-game (it gets the font and songs packed in)
+www/
