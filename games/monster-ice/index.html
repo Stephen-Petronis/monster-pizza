@@ -96,7 +96,7 @@ const CFG = {
      menu = title, menus and the Zamboni. game = during hockey games (starts over each game). fight = when the gloves come off.
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
-  zamboni: { offer: true, offerTime: 8, time: 15, speed: 85, turn: 4.0, boost: 1.7, brush: 18, edge: 7 },   // brush = half-width of the clean strip it lays down
+  zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
 
@@ -2905,7 +2905,7 @@ function zamboniScene(opts = {}){
   const geo = () => ZG[LAYOUT === 'L' ? 'L' : 'P'];
   const GROAN = ['BRAAAINS!', 'UUURRGH!', 'BRAAAINS!', 'HONK HONK!', 'MMMNNGH!'];
   const LOST = [['A TOOTH', '#ffffff'], ['A FANG', '#ffffff'], ['A STINKY SOCK', '#b6ff4a'], ['A PUCK', '#111111'], ['SOMEBODY\'S GLOVE', '#ff7a1a'], ['A BAT WING', '#2a1a3a'], ['A LOST BANDAGE', '#ece0c4'], ['A ZOMBIE FINGER', '#8ac46a']];
-  let grid, dcv, dctx, total, cleanN, z, joy, keys, parts, floats, items, found, ghost, done, doneT, boostT, boostCD, eng, tLeft, over, overT, lastTick;
+  let grid, dcv, dctx, total, cleanN, z, joy, keys, parts, floats, items, found, ghost, done, doneT, boostT, boostCD, eng, tLeft, over, overT, lastTick, turbos = [], turboT = 0;
   const inside = (x, y, m = 0) => {
     if (x < RK.x0 + m || x > RK.x1 - m || y < RK.y0 + m || y > RK.y1 - m) return false;
     const r = RK.r, cx = x < RK.x0 + r ? RK.x0 + r : x > RK.x1 - r ? RK.x1 - r : null, cy = y < RK.y0 + r ? RK.y0 + r : y > RK.y1 - r ? RK.y1 - r : null;
@@ -2962,6 +2962,8 @@ function zamboniScene(opts = {}){
     items = []; const pool = LOST.slice().sort(() => Math.random() - 0.5).slice(0, timed ? 3 : 4);
     for (const [name, col] of pool){ const [x, y] = spot(14); items.push({ x, y, name, col, got: false }); }
     found = 0; done = false; doneT = 0;
+    // speed power-ups: one in each third of the rink, so a perfect run has to route through all three
+    turbos = []; for (let k = 0; k < (ZC.turbos || 0); k++){ const ya = RK.y0 + 30 + k * (RK.y1 - RK.y0 - 60) / Math.max(1, ZC.turbos - 1); turbos.push({ x: rnd(RK.x0 + 26, RK.x1 - 26), y: ya + rnd(-12, 12), got: false }); }
   }
   S.layout = () => wantsLandscape() ? 'L' : 'P';
   S.relayout = () => { joy.id = null; joy.ux = joy.uy = 0; };
@@ -2970,7 +2972,7 @@ function zamboniScene(opts = {}){
     z = { x: 90, y: 214, h: 0, v: 0, turn: 0, view: 'up', dist: 0 };
     joy = { id: null, ox: 0, oy: 0, ux: 0, uy: 0 }; keys = new Set(); parts = []; floats = [];
     ghost = { x: 50, y: 90, vx: 12, vy: 6, flee: 0, boo: 0 }; boostT = 0; boostCD = 0; mess();
-    tLeft = timed; over = false; overT = 0; lastTick = 99;
+    tLeft = timed; over = false; overT = 0; lastTick = 99; turboT = 0;
     if (timed) floater(floats, 90, 150, 'CLEAN IT UP!\n' + timed + ' SECONDS', '#b6ff4a');
     if (AC){ try { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 45; g.gain.value = 0; o.connect(g); g.connect(MG); o.start(); eng = { o, g }; } catch (e) {} }
   };
@@ -2990,7 +2992,8 @@ function zamboniScene(opts = {}){
     floater(floats, z.x, z.y - 26, pick(GROAN), '#b6ff4a');
     if (Math.hypot(ghost.x - z.x, ghost.y - z.y) < 70){ ghost.flee = 1.6; floater(floats, ghost.x, ghost.y - 14, 'EEK!', '#ffffff'); }
   }
-  const backOff = () => z.view === 'up' || z.view === 'down' ? 16 : 19;   // where the towel is (behind the machine)
+  const ZS = ZC.size || 1;
+  const backOff = () => (z.view === 'up' || z.view === 'down' ? 16 : 19) * ZS;   // where the towel is (behind the machine)
   function boost(){
     if (over || boostCD > 0) return; boostT = 1.1; boostCD = 1.8;
     noise(0.15, 0.5, 600); tone(70, 0.2, 'square', 0.25, -30); floater(floats, z.x, z.y + 18, 'BANG!', '#ff7a1a');
@@ -3021,8 +3024,8 @@ function zamboniScene(opts = {}){
     const fx = Math.sin(z.h), fy = -Math.cos(z.h), vert = z.view === 'up' || z.view === 'down';
     if (Math.abs(fy) > (vert ? 0.6 : 0.8)) z.view = fy < 0 ? 'up' : 'down'; else z.view = fx > 0 ? 'R' : 'L';
   }
-  const ext = () => z.view === 'up' || z.view === 'down' ? [14, 17] : [22, 11];   // half width / half height on screen
-  const fits = (x, y) => { const [hw, hh] = ext(); return x - hw > RK.x0 + 1 && x + hw < RK.x1 - 1 && y - hh > RK.y0 + 1 && y + hh < RK.y1 - 1 && inside(x, y, 13); };
+  const ext = () => (z.view === 'up' || z.view === 'down' ? [14, 17] : [22, 11]).map(v => v * ZS);   // half width / half height on screen
+  const fits = (x, y) => { const [hw, hh] = ext(); return x - hw > RK.x0 + 1 && x + hw < RK.x1 - 1 && y - hh > RK.y0 + 1 && y + hh < RK.y1 - 1 && inside(x, y, 13 * ZS); };
   S.update = dt => {
     stepParts(parts, dt); stepFloat(floats, dt);
     if (joy.id === null){
@@ -3039,8 +3042,9 @@ function zamboniScene(opts = {}){
     if (over){ overT += dt; if (back && overT > 4.5) leave(); }   // between periods it moves on by itself
     // steer toward where the stick points
     const jm = over ? 0 : Math.hypot(joy.ux, joy.uy); let vmax = 0; z.turn *= Math.max(0, 1 - dt * 8);
-    if (jm > 0.25){ const target = Math.atan2(joy.ux, -joy.uy), d = clamp(angDiff(target, z.h), -ZC.turn * dt, ZC.turn * dt); z.h += d; z.turn = d / dt; vmax = ZC.speed * jm; }
-    if (boostT > 0) vmax = Math.max(vmax, ZC.speed) * ZC.boost;
+    turboT = Math.max(0, turboT - dt); const spd = ZC.speed * (turboT > 0 ? ZC.turboMult : 1);
+    if (jm > 0.25){ const target = Math.atan2(joy.ux, -joy.uy), tr = ZC.turn * (turboT > 0 ? ZC.turboMult : 1), d = clamp(angDiff(target, z.h), -tr * dt, tr * dt); z.h += d; z.turn = d / dt; vmax = spd * jm; }
+    if (boostT > 0) vmax = Math.max(vmax, spd) * ZC.boost;
     z.v += (vmax - z.v) * Math.min(1, dt * (boostT > 0 ? 4 : 2.4));
     z.h = angDiff(z.h, 0); pickView();
     { const [hw, hh] = ext(); z.x = clamp(z.x, RK.x0 + hw + 2, RK.x1 - hw - 2); z.y = clamp(z.y, RK.y0 + hh + 2, RK.y1 - hh - 2); }   // turning near the boards: nudge back in
@@ -3060,6 +3064,8 @@ function zamboniScene(opts = {}){
     }
     // smoke from the stack
     if (Math.random() < dt * (8 + Math.abs(z.v) / 4)){ const [px, py] = toW(0, backOff() - 6); parts.push({ x: px + rnd(-2, 2), y: py - 14, vx: -fx * 8 + rnd(-4, 4), vy: -fy * 8 - 6, g: -8, life: 0.8, c: boostT > 0 ? pick(['#ff3d1e', '#ffd23f']) : pick(['#6ad04a', '#8a8a96', '#5a6a5a']), s: 2 }); }
+    // speed power-ups
+    for (const t of turbos) if (!t.got && Math.hypot(t.x - z.x, t.y - z.y) < 11){ t.got = true; turboT = ZC.turboTime; jingle([523, 784, 1047, 1568], 0.04); floater(floats, t.x, t.y - 16, 'TURBO!', '#b6ff4a'); burst(parts, t.x, t.y, 14, ['#b6ff4a', '#ffffff', '#5ac43a'], 60, 20, 0.6, 2); }
     // lost & found
     for (const it of items) if (!it.got && Math.hypot(it.x - z.x, it.y - z.y) < 12){ it.got = true; found++; jingle([660, 880, 1100], 0.06); floater(floats, it.x, it.y - 14, 'FOUND\n' + it.name + '!', '#ffd23f'); burst(parts, it.x, it.y, 10, CONF, 40, 30, 0.6, 1); }
     // the ghost drifts around, gets spooked by honks
@@ -3079,8 +3085,9 @@ function zamboniScene(opts = {}){
     const vert = z.view === 'up' || z.view === 'down', sp = Math.abs(z.v), f = Math.floor(z.dist / 3);
     const cell = z.view === 'up' ? 4 + f % 2 : z.view === 'down' ? 6 + f % 2 : f % 4;
     const bot = vert ? 18 : 16, bob = sp > 20 && Math.floor(TT * 10) % 2 ? 1 : 0;
-    E(Math.round(z.x), Math.round(z.y) + bot - 2, vert ? 14 : 22, 3, 'rgba(20,20,40,.3)');
-    ctx.save(); ctx.translate(Math.round(z.x), Math.round(z.y) - bob); if (z.view === 'L') ctx.scale(-1, 1);
+    E(Math.round(z.x), Math.round(z.y) + (bot - 2) * ZS, (vert ? 14 : 22) * ZS, 3 * ZS, 'rgba(20,20,40,.3)');
+    if (turboT > 0){ ctx.save(); ctx.globalAlpha = 0.35 + 0.25 * Math.sin(TT * 20); C(z.x, z.y, 18 * ZS, '#b6ff4a'); ctx.restore(); }
+    ctx.save(); ctx.translate(Math.round(z.x), Math.round(z.y) - bob); ctx.scale(ZS, ZS); if (z.view === 'L') ctx.scale(-1, 1);
     ctx.drawImage(ZOMB, cell * 64, 0, 64, 40, vert ? -32 : -29, bot - 40, 64, 40);
     ctx.restore();
     if (boostT > 0){ const [px, py] = toW(0, backOff() + 2); for (let k = 0; k < 3; k++) R(px - 1 + rnd(-2, 2), py - 6 + rnd(-2, 2), 2, 2, pick(['#ff3d1e', '#ffd23f'])); }
@@ -3096,6 +3103,9 @@ function zamboniScene(opts = {}){
     ctx.restore();
     drawNet(RK, true); drawNet(RK, false);
     // lost stuff
+    for (const t of turbos) if (!t.got){ const p = 1 + 0.15 * Math.sin(TT * 8 + t.x), x = t.x, y = t.y + Math.sin(TT * 4 + t.y) * 1.5;   // glowing brain-juice bolt
+      ctx.save(); ctx.globalAlpha = 0.3; C(x, y, 8 * p, '#b6ff4a'); ctx.restore(); C(x, y, 5, '#2a4a1a'); C(x, y, 4, '#5ac43a');
+      ctx.fillStyle = '#fff36a'; ctx.beginPath(); ctx.moveTo(x + 1, y - 4); ctx.lineTo(x - 2, y + 0.5); ctx.lineTo(x, y + 0.5); ctx.lineTo(x - 1, y + 4); ctx.lineTo(x + 2.5, y - 1); ctx.lineTo(x + 0.5, y - 1); ctx.closePath(); ctx.fill(); }
     for (const it of items) if (!it.got){ const b = Math.sin(TT * 4 + it.x) > 0.6; C(it.x, it.y, 3, it.col); R(it.x - 1, it.y - 1, 1, 1, it.col === '#ffffff' ? '#ff3d1e' : '#ffffff'); if (b){ R(it.x + 3, it.y - 4, 1, 3, '#ffd23f'); R(it.x + 2, it.y - 3, 3, 1, '#ffd23f'); } }
     // ghost
     { const gx = Math.round(ghost.x), gy = Math.round(ghost.y + Math.sin(TT * 3) * 2); ctx.save(); ctx.globalAlpha = 0.85;
@@ -3149,7 +3159,7 @@ function zamboniScene(opts = {}){
     else drawWorld();
     panel();
   };
-  S._debug = () => ({ z, get clean(){ return cleanN / total; }, get tLeft(){ return tLeft; }, get over(){ return over; }, set tLeft(v){ tLeft = v; }, items, forceClean(){ for (let k = 0; k < grid.length; k++) if (grid[k] === 1){ grid[k] = 0; cleanN++; } dctx.clearRect(0, 0, W, H); } });
+  S._debug = () => ({ z, get dirty(){ const o = []; for (let j = 0; j < GYN; j++) for (let i = 0; i < GX; i++) if (grid[j * GX + i] === 1) o.push([RK.x0 + i * CS, RK.y0 + j * CS]); return o; }, get turbos(){ return turbos; }, get clean(){ return cleanN / total; }, get tLeft(){ return tLeft; }, get over(){ return over; }, set tLeft(v){ tLeft = v; }, items, forceClean(){ for (let k = 0; k < grid.length; k++) if (grid[k] === 1){ grid[k] = 0; cleanN++; } dctx.clearRect(0, 0, W, H); } });
   return S;
 }
 

@@ -68,7 +68,8 @@ A zombie Zamboni after Stephen's design (`art/zamboni-sheet.png`), hand-pixeled 
 - **Between periods (optional):** when a period ends you get a **ZOMBONI BREAK?** card. Pick **DRIVE 15 SEC** to clean as much as you can in 15 seconds (CLEAN % and a rating at the end), then tap to play on: same game, next period. **SKIP** (or wait 8 seconds) goes straight on. The game song keeps playing. Turn the offer off with `CFG.zamboni.offer = false`.
 - **From the title:** removed from the menu (the code is still there: `zamboniScene()`). It used to be the same 15-second run. At the end, tap the bar (or C) to go **AGAIN** with a fresh mess, or tap anywhere else to go back to the menu. Get it 97% clean before time's up for **SPOTLESS!**
 - Drag (or arrows) to drive. **A / Z = HONK** (BRAAAINS!). **B / SPACE = BOOST** (backfire, flames). Find the lost things on the ice. A ghost drifts around saying BOO; honk to scare it off.
-- Speed, turning, boost, the timer and the offer time are in `CFG.zamboni`.
+- **TURBOS:** 3 green bolt orbs sit on the ice, one in each third of the rink. Drive over one for 3 seconds of 1.8x speed (turning speeds up too). The machine is smaller (`size: 0.7`) with a 13px towel, and it cleans right up to the boards. 100% is possible but only with a clean line AND all 3 turbos: our test robot gets about 75% with no turbos and about 90% with all three.
+- Speed, turning, boost, size, towel width, turbos, the timer and the offer time are in `CFG.zamboni`.
 
 ## Fight!
 The fight switches to 16-bit fighters: bigger, shaded monsters in full gear (numbered jerseys, gloves, breezers, striped socks, skates).
