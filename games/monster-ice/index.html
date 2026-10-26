@@ -726,11 +726,11 @@ function toggleMute(){ muted = !muted; if (MG) MG.gain.value = muted ? 0 : 0.3; 
    Game controllers (Xbox / PlayStation / Switch) just work: stick or d-pad skate, A pass, B or X shoot, Y or a bumper special, START = OK. */
 const KEYMAP = {
   one: { up: ['KeyW', 'ArrowUp'], down: ['KeyS', 'ArrowDown'], left: ['KeyA', 'ArrowLeft'], right: ['KeyD', 'ArrowRight'],
-         a: ['KeyZ', 'ShiftLeft', 'ShiftRight', 'KeyJ'], b: ['Space', 'KeyX', 'KeyK'], sp: ['KeyC', 'KeyL'] },
+         a: ['ShiftLeft', 'ShiftRight', 'KeyZ', 'KeyJ'], b: ['Space', 'KeyX', 'KeyK'], sp: ['KeyE', 'KeyQ', 'KeyC', 'KeyL'] },
   p1:  { up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'], a: ['KeyF'], b: ['KeyG'], sp: ['KeyH'] },
   p2:  { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], a: ['KeyJ'], b: ['KeyK'], sp: ['KeyL'] },
 };
-const KEYNAME = { one: { a: 'Z', b: 'SPACE', sp: 'C' }, p1: { a: 'F', b: 'G', sp: 'H' }, p2: { a: 'J', b: 'K', sp: 'L' } };
+const KEYNAME = { one: { a: 'SHIFT', b: 'SPACE', sp: 'E' }, p1: { a: 'F', b: 'G', sp: 'H' }, p2: { a: 'J', b: 'K', sp: 'L' } };
 let INPUT = 'touch';   // 'touch' | 'keys' | 'pad' — the on-screen buttons show key names when you're on a keyboard
 const keyNames = team => INPUT === 'pad' ? { a: 'A', b: 'B', sp: 'Y' } : G.twoP && !G.online ? (team ? KEYNAME.p2 : KEYNAME.p1) : KEYNAME.one;
 /* controllers: polled every frame, turned into the same key presses the keyboard makes */
@@ -1310,7 +1310,7 @@ function vsScene(){
     T(G.cpuName, 90, 126, '#c9a0ff', 8);
     G.cpu.forEach((id, k) => { const m = MON[id], x = 34 + k * 56; drawMonster(m, x, 180, 2.4 * (m.size > 1 ? 1.1 : 1), TEAM[1], { fx: -0.8, fy: 0.4 }); T(m.short, x, 186, '#f7efe0', 8); });
     if (INPUT === 'pad') T(G.twoP ? '2 CONTROLLERS:\nSTICK = SKATE\nA = PASS  B = SHOOT\nY = SPECIAL\nHOLD B = FINISHER' : 'STICK = SKATE\nA = PASS  B = SHOOT\nHOLD B = FINISHER\nY = SPECIAL\nSTART = GO', 90, 200, '#c9b8f0', 8);
-    else if (INPUT === 'keys') T(G.twoP ? 'P1: WASD + F G H\n  PASS SHOOT SPCL\nP2: ARROWS + J K L\n  PASS SHOOT SPCL\nHOLD SHOOT=FINISHER' : 'ARROWS = SKATE\nSPACE = SHOOT/CHECK\nHOLD SPACE=FINISHER\nZ = PASS / SWAP\nC = SPECIAL', 90, 200, '#c9b8f0', 8);
+    else if (INPUT === 'keys') T(G.twoP ? 'P1: WASD + F G H\n  PASS SHOOT SPCL\nP2: ARROWS + J K L\n  PASS SHOOT SPCL\nHOLD SHOOT=FINISHER' : 'WASD = SKATE\nSPACE = SHOOT/CHECK\nHOLD SPACE=FINISHER\nSHIFT = PASS / SWAP\nE = SPECIAL', 90, 200, '#c9b8f0', 8);
     else if (G.twoP) T('LAY THE IPAD FLAT.\nPLAYER 1: BOTTOM\nPLAYER 2: TOP\n\n3 PERIODS, 1 MIN\nTIE = SUDDEN DEATH', 90, 200, '#c9b8f0', 8);
     else T('DRAG LEFT = SKATE\nA = PASS   B = SHOOT\nHOLD B MAX=FINISHER\nB AS PASS LANDS\n  = ONE TIMER!\nB = STEAL  BB = HIT!\nFULL BAR = SPECIAL', 90, 198, '#c9b8f0', 8);
     if (Math.floor(t * 2.5) % 2 === 0 && t > 0.5) T('TAP TO START', 90, 296, '#ffd23f', 8);
@@ -1340,13 +1340,24 @@ function gameScene(){
   };
   const geoKey = () => LAYOUT === 'L' ? 'L' : LAYOUT === 'P' && EX >= 24 ? 'T' : LAYOUT === '2P' ? 'I' : 'P';
   // tall phones: big A/B at the bottom right, the special button above them, lots of room on the left for the stick
+  function fightPanel(pt, pb){
+    if (!PANEL_ON || state !== 'fight' || !fight) return null;
+    const f = myF(); if (!f) return null;
+    const ap = ART_PANELS[f.s.m.power]; if (!ap || !(ap.img.complete && ap.img.naturalWidth)) return null;
+    const k = W / ap.w, r = clamp(Math.floor((pb - pt) * 0.21), 15, 22), by = pb - r - 3;
+    const sh = Math.min(ap.h * k * 0.6, by - pt - 6), sy = pt + 1;
+    if (sh < 28) return null;
+    return { geo: { A: { x: 8 + r + 6, y: by, r }, B: { x: W - 8 - r - 6, y: by, r }, PILL: { x: Math.round(ap.w * 0.38 * k), y: Math.round(sy), w: W - Math.round(ap.w * 0.38 * k), h: Math.round(sh) },
+      pt, fart: { ap, k, sy, sh, f }, hint: [90, by - 4], fhint: [90, by - 4], joyX: 0 } };
+  }
   function artPanel(pt, pb){
     if (!PANEL_ON || state === 'fight' || !ctrl) return null;
     const ap = ART_PANELS[ctrl.m.power]; if (!ap || !(ap.img.complete && ap.img.naturalWidth)) return null;
     const k = W / ap.w, h = ap.h * k; return pb - pt >= h - 8 ? { ap, k, h, y0: pb - h } : null;
   }
   Object.defineProperty(GEO, 'I', { get(){ // iPad 2-player strip, in panel coordinates (y 254 .. 254 + P2H)
-    const pt = 254, pb = 254 + P2H, art = artPanel(pt, pb);
+    const pt = 254, pb = 254 + P2H; { const fp = fightPanel(pt, pb); if (fp) return fp.geo; }
+    const art = artPanel(pt, pb);
     if (art){ const { ap, k, y0, h } = art;
       return { A: { x: ap.A[0] * k, y: y0 + ap.A[1] * k, r: 15 }, B: { x: ap.B[0] * k, y: y0 + ap.B[1] * k, r: 15 },
         PILL: { x: Math.round(ap.w * 0.42 * k), y: Math.round(y0), w: W - Math.round(ap.w * 0.42 * k), h: Math.round(h * 0.56) }, pt, art, hint: [44, 300], fhint: [44, 280], joyX: ap.A[0] * k - 17 };
@@ -1356,6 +1367,7 @@ function gameScene(){
   } });
   Object.defineProperty(GEO, 'T', { get(){
     const pt = WY + 254, pb = CH - SAFE_B, ph = pb - pt, r = clamp(Math.floor((ph - 50) / 2.2), 15, 22);
+    const fp = fightPanel(pt, pb); if (fp) return fp.geo;
     const art = artPanel(pt, pb);
     if (art){ const { ap, k, y0, h } = art;
       const A = { x: ap.A[0] * k, y: y0 + ap.A[1] * k, r: 15 }, B = { x: ap.B[0] * k, y: y0 + ap.B[1] * k, r: 15 };
@@ -2382,6 +2394,7 @@ function gameScene(){
   }
   function panelFight(g){
     const me = myF(); if (!me) return;
+    if (g.fart){ drawFightPanel(g, me); return; }
     if (geoKey() === 'T') drawSpecialBtn(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp); else drawPlate(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp);
     btnDraw(BTN_A, 'BLOCK', '#c9a0ff', me.block); btnDraw(BTN_B, 'PUNCH', '#ff9a3a', me.st === 'punch');
     T('HOLD A\nTO BLOCK\nGOLD RING\n=COUNTER', g.fhint[0], g.fhint[1], '#8a7ab8', 8);
@@ -2608,16 +2621,45 @@ function gameScene(){
     // pressed look
     if (bHold){ ctx.save(); ctx.globalAlpha = 0.35; C(ap.B[0] * k, y0 + ap.B[1] * k, 12, '#000'); ctx.restore(); }
   }
+  // fight controls: the monster's art strip = special (charges across the title), big BLOCK (left thumb) + PUNCH (right thumb)
+  function drawFightPanel(g, me){
+    const { ap, k, sy, sh } = g.fart, ready = me.sp >= 1, iw = ap.img.naturalWidth, ih = ap.img.naturalHeight, cut = ih * 0.6;
+    if (panelCv.width !== iw || panelCv.height !== ih){ panelCv.width = iw; panelCv.height = ih; }
+    pctx.globalCompositeOperation = 'source-over'; pctx.clearRect(0, 0, iw, ih); pctx.drawImage(ap.img, 0, 0);
+    if (!ready){ const tx = iw * 0.38, cx = tx + (iw - tx) * me.sp; pctx.globalCompositeOperation = 'source-atop'; pctx.fillStyle = 'rgba(10,6,24,.62)'; pctx.fillRect(cx, 0, iw - cx, cut); pctx.fillStyle = 'rgba(255,255,255,.5)'; pctx.fillRect(cx - 1, 0, 2, cut); }
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(panelCv, 0, 0, iw, cut, 0, sy, W, sh);
+    if (ready){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.16 + 0.14 * Math.sin(TT * 9); ctx.drawImage(panelCv, 0, 0, iw, cut, 0, sy, W, sh); }
+    ctx.restore();
+    // badge: fight special % (or TAP!)
+    const ky = sh / (ap.h * k * 0.6), [px0, py0, px1, py1] = ap.P, bx = px0 * k, by = sy + py0 * k * ky, bw = (px1 - px0) * k, bh = (py1 - py0) * k * ky;
+    ctx.fillStyle = ap.bg; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 3); ctx.fill();
+    T(ready ? (Math.floor(TT * 4) % 2 ? 'GO!' : 'TAP!') : Math.floor(me.sp * 100) + '%', bx + bw / 2, by + bh / 2 - 4, ready ? '#ffd23f' : '#ffffff', 8, 'center');
+    tiny(fspOf(me.s), W - 6, sy + sh - 7, '#ffffff', 'right', '#000');
+    // stamina between the thumbs
+    const A = g.A, B = g.B, sx0 = A.x + A.r + 8, sx1 = B.x - B.r - 8, sw = sx1 - sx0, ef = clamp(me.en / (me.enMax || 100), 0, 1), low = me.en < sty(me).cost;
+    tiny('STAMINA', (sx0 + sx1) / 2, A.y - 12, low ? '#ff5d73' : '#5cc8ff', 'center', null);
+    R(sx0 - 1, A.y - 5, sw + 2, 7, '#000'); R(sx0, A.y - 4, sw, 5, '#10202a'); R(sx0, A.y - 4, Math.round(sw * ef), 5, low ? (Math.floor(TT * 6) % 2 ? '#ff5d73' : '#7a2a3a') : '#5cc8ff');
+    tiny('BLOCK ON RING', (sx0 + sx1) / 2, A.y + 6, '#8a7ab8', 'center', null);
+    tiny('= COUNTER', (sx0 + sx1) / 2, A.y + 13, '#8a7ab8', 'center', null);
+    // the two big thumb buttons
+    const big = (b, col, dark, on, dim, label, icon) => {
+      C(b.x + 1, b.y + 3, b.r + 1, '#000'); C(b.x, b.y + (on ? 2 : 0), b.r, dim ? '#4a3a5a' : on ? dark : col); C(b.x - b.r * 0.3, b.y - b.r * 0.35 + (on ? 2 : 0), b.r * 0.28, 'rgba(255,255,255,.35)');
+      ctx.save(); ctx.translate(b.x, b.y - 3 + (on ? 2 : 0)); icon(); ctx.restore();
+      tiny(label, b.x, b.y + b.r * 0.45 + (on ? 2 : 0), '#2a1446', 'center', null);
+    };
+    big(A, '#a07ae8', '#6a4ab0', me.block, me.en <= 4, 'BLOCK', () => { ctx.fillStyle = '#2a1446'; ctx.beginPath(); ctx.moveTo(-8, -9); ctx.lineTo(8, -9); ctx.lineTo(8, 0); ctx.quadraticCurveTo(8, 8, 0, 11); ctx.quadraticCurveTo(-8, 8, -8, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#d8c8ff'; ctx.fillRect(-1, -6, 2, 12); ctx.fillRect(-5, -2, 10, 2); });
+    big(B, '#ff9a3a', '#c8601a', me.st === 'punch', me.en < sty(me).cost, 'PUNCH', () => { ctx.fillStyle = '#2a1446'; ctx.fillRect(-8, -6, 14, 12); for (let i = 0; i < 4; i++) ctx.fillRect(-8 + i * 3.5, -9, 3, 4); ctx.fillRect(4, -2, 6, 6); ctx.fillStyle = '#ffd0a0'; for (let i = 0; i < 4; i++) ctx.fillRect(-7 + i * 3.5, -8, 2, 2); });
+  }
   /* one player's control panel, drawn in that player's own panel coordinates */
   function drawPanel(pl){ withP(pl, () => {
     const g = GEO[geoKey()];
     if (geoKey() === 'L'){ R(0, 0, 110, 254, '#120a22'); R(290, 0, 110, 254, '#120a22'); R(109, 0, 1, 254, '#2a1446'); R(290, 0, 1, 254, '#2a1446'); }
-    else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446'); if (g.art) drawArtPanel(g); }
+    else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446'); if (g.art && !g.fart) drawArtPanel(g); }
     else if (geoKey() === 'I'){ R(0, 254, W, P2H, '#120a22'); if (g.art) drawArtPanel(g); }
     else R(0, 254, W, 66, '#120a22');
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.kx * 14, joy.oy + joy.ky * 14, 7, pl.team === 1 ? 'rgba(74,176,255,.85)' : 'rgba(255,122,26,.85)'); }
     else if (state !== 'fight' && !g.art) T('DRAG\nTO SKATE', g.hint[0], g.hint[1], '#5a4a7a', 8);
-    if (G.twoP && !g.art) tiny(G.online ? (pl.team === 0 ? 'YOU: P1' : 'YOU: P2') : pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, geoKey() === 'T' ? g.pt + 4 : 257, TEAM[pl.team].text, 'left', null);
+    if (G.twoP && !g.art && !g.fart) tiny(G.online ? (pl.team === 0 ? 'YOU: P1' : 'YOU: P2') : pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, geoKey() === 'T' ? g.pt + 4 : 257, TEAM[pl.team].text, 'left', null);
     if (state === 'fight' && fight){ panelFight(g); return; }
     if (g.art) return;   // the art panel already has the special, A and B
     if (ctrl){ if (geoKey() === 'T') drawSpecialBtn(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp); else drawPlate(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp); }

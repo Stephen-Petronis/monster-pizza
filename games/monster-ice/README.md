@@ -21,13 +21,13 @@ How it works (all free): the two devices connect straight to each other (WebRTC)
 ## Controls
 | Touch | Keyboard (1 player) | Controller | What it does |
 |---|---|---|---|
-| Drag left side | Arrows or WASD | Stick or d-pad | Skate (the red ring and yellow arrow show who you are) |
-| A | Z or Shift | A | Pass (with the puck) / swap player |
+| Drag left side | WASD (or arrows) | Stick or d-pad | Skate (the red ring and yellow arrow show who you are) |
+| A | SHIFT (or Z) | A | Pass (with the puck) / swap player |
 | B | SPACE | B or X | Shoot. Double-tap = slap shot. **Hold to charge**; let go at **MAX** for a monster FINISHER |
 | B as a pass reaches you | SPACE | B | **One-timer.** Tap when the ring around you flashes gold for a PERFECT shot |
 | B (defending) | SPACE | B | Poke check: steals the puck |
 | B B (double-tap, defending) | SPACE SPACE | B B | Body check: knocks them flat (bounce off someone bigger and *you* go down) |
-| Special bar | C | Y or a bumper | Fire the special when the bar is full |
+| Special bar | E (or C) | Y or a bumper | Fire the special when the bar is full |
 
 Menus: arrows + Enter/Space (controller: d-pad + A or START). As soon as you press a key, the on-screen buttons show the key names.
 
