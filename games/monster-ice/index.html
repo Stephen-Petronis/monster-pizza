@@ -1061,8 +1061,7 @@ function titleScene(){
     btn(36, 250, 108, 20, 'PLAY ONLINE', () => go(onlineScene()), '#5cc8ff'),
     btn(8, 274, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
     btn(92, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
-    btn(8, 298, 80, 18, 'ZOMBONI', () => go(zamboniScene({ timed: CFG.zamboni.time })), '#b6ff4a'),
-    btn(92, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
+    btn(36, 298, 108, 18, 'HIGH SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),   // (the Zomboni lives between periods now)
   ]; };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; G.online = null; go(diffScene()); } };

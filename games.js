@@ -63,7 +63,7 @@ window.MONSTER_PIZZA = {
     {
       id: "monster-ice",
       title: "Monster Hockey: Ice Scream!",
-      blurb: "3-on-3 monster hockey. Bites, frenzies, finishers, one big fight a game, and a Zamboni to cruise. Play a friend online with a room code, or 2-player on one iPad.",
+      blurb: "3-on-3 monster hockey. Bites, frenzies, finishers, one big fight a game, and a Zomboni break between periods. Play a friend online with a room code, or 2-player on one iPad.",
       url: "games/monster-ice/index.html",            // lives inside this repo
       cabinet: "games/monster-ice/cabinet.webp",
       screen: "games/monster-ice/screen.gif",
