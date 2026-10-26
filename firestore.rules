@@ -5,7 +5,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{board}/{doc} {
-      allow read: if board.matches('ss_g[0-3]') || board == 'wag' || board == 'mi_hockey';
+      allow read: if board.matches('ss_g[0-3]') || board == 'wag' || board == 'mi_hockey' || board == 'mi_zomboni';
 
       allow create: if
         // Super Sullivan: one collection per minigame (ss_g0 .. ss_g3)
@@ -25,8 +25,8 @@ service cloud.firestore {
           && request.resource.data.r is int && request.resource.data.r >= 1 && request.resource.data.r <= 999
           && request.resource.data.t is timestamp)
         ||
-        // Monster Ice: initials, sort key, score shown (like "3-1 EZ"), time
-        (board == 'mi_hockey'
+        // Monster Hockey: initials, sort key, score shown ("3-1 EZ" for old wins, "87.3%" for the Zomboni board), time
+        ((board == 'mi_hockey' || board == 'mi_zomboni')
           && request.resource.data.keys().hasOnly(['n', 'k', 'd', 't'])
           && request.resource.data.n is string && request.resource.data.n.size() == 3
           && request.resource.data.k is number

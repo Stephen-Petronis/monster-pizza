@@ -97,7 +97,7 @@ const CFG = {
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
   zamboni: { offer: true, offerTime: 8, time: 15, speed: 70, turn: 4.0, boost: 1.7 },
-  music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3' }, gameVolume: 0.85, bpm: 132 },
+  music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
 
 /* ================= THE MONSTERS =================
@@ -623,9 +623,10 @@ function trackPlay(t, restart){
 function musicStart(){
   if (!AC || MUSG || !CFG.music.on) return;
   MUSG = AC.createGain(); MUSG.gain.value = 0; MUSG.connect(AC.destination);   // the chiptune's volume
-  trackLoad('menu'); trackLoad('game'); trackLoad('fight');
+  trackLoad('menu'); trackLoad('game'); trackLoad('fight'); trackLoad('zomboni');
 }
 function musicActive(){
+  if (musWant === 'zomboni' && TR.zomboni && TR.zomboni.state === 'ok') return 'zomboni';
   if (musWant === 'fight' && TR.fight && TR.fight.state === 'ok') return 'fight';
   if ((musWant === 'game' || musWant === 'fight') && TR.game && TR.game.state === 'ok') return 'game';
   if (TR.menu && TR.menu.state === 'ok') return 'menu';
@@ -734,12 +735,12 @@ function pollPads(){
       [M.up[M.up.length - 1]]: ay < -0.45 || b(12), [M.down[M.down.length - 1]]: ay > 0.45 || b(13),
       [M.a[0]]: b(0), [M.b[0]]: b(1) || b(2) || b(7), [M.sp[0]]: b(3) || b(4) || b(5) || b(6), Enter: b(9),
     };
-    for (const code in want){ if (want[code] !== !!st[code]){ st[code] = want[code]; INPUT = 'pad'; if (scene && scene.key){ scene.key(code, want[code], false); if (want[code] && code === M.a[0] && !scene.game) scene.key('Enter', true, false); } } }
+    for (const code in want){ if (want[code] !== !!st[code]){ st[code] = want[code]; INPUT = 'pad'; if (scene && scene.key){ const sc0 = scene; scene.key(code, want[code], false); if (want[code] && code === M.a[0] && scene === sc0 && !scene.game) scene.key('Enter', true, false); } } }
   });
 }
 
 /* ================= INPUT ================= */
-const ptrs = new Map();
+const ptrs = new Map(); let quitArm = -9;
 function loc(e){ const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CW / r.width, y: (e.clientY - r.top) * CH / r.height - OFFY }; }
 const inBox = (p, x, y, w, h) => p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
 stage.addEventListener('pointerdown', e => {
@@ -747,7 +748,9 @@ stage.addEventListener('pointerdown', e => {
   const p = loc(e); p.id = e.pointerId; p.px = p.x; p.py = p.y; ptrs.set(e.pointerId, p);
   try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   if (inBox(p, CW - 20, CHROME_Y, 20, 20)){ p.ui = true; toggleMute(); return; }
-  if (scene && scene.quit && inBox(p, 0, CHROME_Y, 20, 20)){ p.ui = true; SFX.tap(); if (G.online || NET.role) netClose(); go(titleScene()); return; }
+  if (scene && scene.quit && inBox(p, 0, CHROME_Y, 20, 20)){ p.ui = true; SFX.tap();
+    if (scene.game && !(TT - quitArm < 2)){ quitArm = TT; return; }   // in a game: tap X twice to quit (no accidental quits)
+    quitArm = -9; if (G.online || NET.role) netClose(); go(titleScene()); return; }
   scene && scene.down && scene.down(p);
 });
 stage.addEventListener('pointermove', e => { const p = ptrs.get(e.pointerId); if (!p || p.ui) return; const q = loc(e); p.px = p.x; p.py = p.y; p.x = q.x; p.y = q.y; scene && scene.move && scene.move(p); });
@@ -788,15 +791,15 @@ function drawFloat(arr){ for (const f of arr) T(f.text, f.x, f.y, f.col, 8); }
 
 /* ================= FLOW ================= */
 let scene = null, TT = 0;
-function go(s){ if (scene && scene.exit) scene.exit(); scene = s; s.enter && s.enter(); setMusic(s.music || 'menu'); musicDuck(s.music === 'game' ? CFG.music.gameVolume : s.game ? 0.6 : 1); }
+function go(s){ if (scene && scene.exit) scene.exit(); scene = s; s.enter && s.enter(); setMusic(s.music || 'menu', !s.keepSong); s.keepSong = false; musicDuck(s.music === 'game' || s.music === 'zomboni' ? CFG.music.gameVolume : s.game ? 0.6 : 1); }
 
 /* ---------- HIGH SCORES (device + shared Firebase board) ---------- */
 let HS = [];
-try { const v = JSON.parse(localStorage.getItem(KEY + '-hs') || 'null'); if (Array.isArray(v)) HS = v; } catch (e) {}
+try { const v = JSON.parse(localStorage.getItem(KEY + '-zhs') || 'null'); if (Array.isArray(v)) HS = v; } catch (e) {}
 let lastIni = 'AAA'; try { lastIni = localStorage.getItem(KEY + '-ini') || 'AAA'; } catch (e) {}
-function saveHS(){ try { localStorage.setItem(KEY + '-hs', JSON.stringify(HS)); localStorage.setItem(KEY + '-ini', lastIni); } catch (e) {} }
+function saveHS(){ try { localStorage.setItem(KEY + '-zhs', JSON.stringify(HS)); localStorage.setItem(KEY + '-ini', lastIni); } catch (e) {} }
 /* Shared online board in the monster-pizza Firebase project (collection mi_hockey). Blank apiKey = this device only. */
-const FIREBASE = { apiKey: 'AIzaSyBSJJ7azwFpZoPEjVgFvU4kvTmGFTWFlpA', projectId: 'monster-pizza-9bc93', collection: 'mi_hockey' };
+const FIREBASE = { apiKey: 'AIzaSyBSJJ7azwFpZoPEjVgFvU4kvTmGFTWFlpA', projectId: 'monster-pizza-9bc93', collection: 'mi_zomboni' };   // high scores = best Zomboni drivers (clean %)
 const ONLINE = !!(FIREBASE.apiKey && FIREBASE.projectId);
 const FS_BASE = () => 'https://firestore.googleapis.com/v1/projects/' + FIREBASE.projectId + '/databases/(default)/documents';
 let hsOnline = false, hsLoading = false;
@@ -910,6 +913,7 @@ async function netJoin(code){
   netReset(); NET.role = 'guest'; NET.code = code; NET.status = 'LOOKING FOR ROOM ' + code + '...';
   try {
     const d = await SIG.get(code);
+    if (NET.role !== 'guest' || NET.code !== code) return;   // they backed out while we were looking
     if (!d || !d.o || Date.now() - d.t > 60 * 60e3){ NET.err = 'NO ROOM CALLED ' + code; return; }
     if (d.a){ NET.err = 'ROOM ' + code + ' IS ALREADY PLAYING'; return; }
     const pc = NET.pc = netPC();
@@ -1371,7 +1375,7 @@ function gameScene(){
   }
   S.enter = () => {
     if (S.resume){ // back from the Zomboni break: same game, next period
-      S.resume = false;
+      S.resume = false; S.keepSong = true;   // the game song carries on where it was
       for (const pl of P){ pl.keys.clear(); pl.joy.id = null; pl.joy.ux = pl.joy.uy = 0; pl.bHold = null; pl.blockId = null; }
       nextPeriod(); return;
     }
@@ -1379,6 +1383,7 @@ function gameScene(){
     gU = { team: 0, x: 90, y: RK.gb - 4 }; gT = { team: 1, x: 90, y: RK.gt + 6 };
     clock = CFG.periodMinutes * 60; period = 1; score = [0, 0]; opening = true; parts = []; floats = []; flash = 0; load(P[0]); faceoff();
     ALL0.length = 0; ALL0.push(...all); NET.rec = G.online === 'host'; NET.sfx = []; NET.last = null; gApplied = null;
+    NET.inputs.length = 0; netJn = 0; netJs = 0; G.wasOnline = !!G.online;
   };
 
   /* ---------- controls ---------- */
@@ -1390,7 +1395,7 @@ function gameScene(){
   const foeG = () => PT === 0 ? gT : gU;
   const myF = () => fight && (PT === 0 ? fight.me : fight.cpu);
   S.layout = () => G.twoP && !G.online ? '2P' : wantsLandscape() ? 'L' : 'P';
-  S.relayout = () => { for (const pl of P){ pl.joy.id = null; pl.joy.ux = pl.joy.uy = 0; pl.bHold = null; pl.blockId = null; } load(CUR); };
+  S.relayout = () => { for (const pl of P){ if (G.online === 'host' && pl === P[1]) continue; pl.joy.id = null; pl.joy.ux = pl.joy.uy = 0; pl.bHold = null; if (pl.blockId !== null && fight) withP(pl, () => { const f = myF(); if (f) fBlock(f, false); }); pl.blockId = null; } load(CUR); };
   // touch -> which player, and where on that player's own control panel
   function route(p){
     if (LAYOUT === '2P'){ if (p.y >= 320) return [0, { x: p.x, y: p.y - 66 }]; if (p.y < 66) return [1, { x: W - p.x, y: 320 - p.y }]; return [-1, null]; }
@@ -1499,7 +1504,7 @@ function gameScene(){
   function shoot(s, tx, ty, spd){
     const dx = tx - puck.x, dy = ty - puck.y, d = Math.hypot(dx, dy) || 1;
     puck.owner = null; puck.passTo = null; puck.oneT = null; puck.rolled = false; puck.through = false; puck.last = s; puck.zap = s.zap > 0;
-    puck.far = !pastBlue(s);   // no cheap goals: a shot (or pass) from before the blue line can't score
+    puck.relY = s.y;   // no cheap goals: a puck last played from before the blue line can't score
     puck.vx = dx / d * spd; puck.vy = dy / d * spd; s.cool = 0.35; SFX.puck(); noise(0.05, 0.15, 3000);
     if (puck.zap) SFX.zap();
   }
@@ -1715,7 +1720,7 @@ function gameScene(){
   function bite(s, t){
     if (!t || gone(t) || t.team === s.team) return;
     burst(parts, t.x, t.y - 10, 14, ['#2a1a3a', '#5a2a7a', '#ff3a3a'], 70, 40, 0.7, 2); SFX.bite();
-    if (teamOf(t.team).length <= 1){ t.stun = 1.2; return; }
+    if (teamOf(t.team).filter(o => !gone(o) && o !== t).length < 1){ t.stun = 1.2; return; }
     moveTeam(t, s.team); t.conv = (SP.biteTimes && SP.biteTimes[t.m.power]) || SP.biteTime; t.stun = 0.5; t.cool = 0.4; t.frenzy = 0; t.fy = s.team === 0 ? -1 : 1;
     floater(floats, t.x, t.y - 26, 'BITTEN! ' + Math.round(t.conv) + 'S', '#ff5d73');
     fixAll();
@@ -1731,7 +1736,7 @@ function gameScene(){
     for (const f of teamOf(1 - s.team)){ if (gone(f)) continue; const d = dist(f, s); if (d < 20){ const n = d || 1; f.stun = Math.max(f.stun, 0.7); f.cool = 0.5; f.vx = (f.x - s.x) / n * 70; f.vy = (f.y - s.y) / n * 70; } }
     if (puck.owner !== s){ const c = puck.owner;
       if (c && c.team !== s.team && dist(c, s) < 22){ c.cool = 0.6; puck.owner = s; puck.zap = false; s.cool = 0; }
-      else if (!c && dist(puck, s) < 22){ puck.owner = s; puck.zap = false; s.cool = 0; } }
+      else if (!c && !puck.held && dist(puck, s) < 22){ puck.owner = s; puck.zap = false; s.cool = 0; } }
     floater(floats, s.x, s.y - 26, 'SPLASH!', '#9ce8ff');
   }
   function wrapUp(t){
@@ -1886,7 +1891,7 @@ function gameScene(){
     for (let k = bats.length - 1; k >= 0; k--){ const b = bats[k]; b.life -= dt; b.x += b.vx * dt; b.y += b.vy * dt; if (b.life <= 0) bats.splice(k, 1); } whiteT = Math.max(0, whiteT - dt); shake = Math.max(0, shake - dt);
     if (state === 'fight'){ stepFight(dt); return; }
     if (state === 'face'){ stT -= rdt; if (stT <= 0){ opening = false; state = 'play'; SFX.whistle(); puck.vx = rnd(-15, 15); puck.vy = rnd(-15, 15); } return; }
-    if (state === 'goal'){ stT -= rdt; stepSpecials(dt); for (const s of all) s.fall = Math.max(0, s.fall - dt); puck.vx *= 0.8; puck.vy *= 0.8; puck.x += puck.vx * dt; puck.y += puck.vy * dt; if (stT <= 0){ if (period > CFG.periods) end(); else if (clock <= 0) endPeriod(); else faceoff(); } return; }
+    if (state === 'goal'){ stT -= rdt; stepSpecials(dt); for (const s of all) s.fall = Math.max(0, s.fall - dt); puck.vx *= 0.8; puck.vy *= 0.8; puck.x += puck.vx * dt; puck.y += puck.vy * dt; puck.x = clamp(puck.x, RK.m0, RK.m1); puck.y = clamp(puck.y, RK.gt - 9, RK.gb + 9); if (stT <= 0){ if (period > CFG.periods) end(); else if (clock <= 0) endPeriod(); else faceoff(); } return; }
     if (state === 'end'){ stT -= rdt; if (stT <= 0) finish(); return; }
     if (state === 'inter'){ stT -= rdt; if (stT <= 0) nextPeriod(); return; }
     if (fin){ stepFin(dt); return; }
@@ -1962,14 +1967,15 @@ function gameScene(){
           const had = puck.owner === f, d = dist(w, f) || 1;
           const fell = knockDown(f, f.x - w.x + rnd(-6, 6), f.y - w.y + rnd(-6, 6), 1.5, 175, w); shake = Math.max(shake, 0.15); burst(parts, f.x, f.y - 10, 10, ['#ff3d1e', '#ffd23f', '#ffffff'], 90, 60, 0.6, 2);
           if (fell) noteKnock(w, f);
+          if (state !== 'play') return;   // that hit started a fight
           if (had){ puck.owner = w; puck.zap = false; puck.passTo = null; w.cool = 0; }
           SFX.check(); burst(parts, f.x, f.y - 8, 8, ['#ffffff', '#ff7a1a', '#ffd23f'], 50, 40, 0.5, 2); floater(floats, f.x, f.y - 26, 'WHAM!', '#ff9a3a');
         }
       }
     }
     // puck
-    if (puck.owner){ const o = puck.owner; puck.x = o.x + o.fx * 5 * o.m.size; puck.y = o.y + o.fy * 4 + 1; puck.vx = o.vx; puck.vy = o.vy; }
-    else if (puck.held){}
+    if (puck.owner){ const o = puck.owner; puck.relY = o.y; puck.x = o.x + o.fx * 5 * o.m.size; puck.y = o.y + o.fy * 4 + 1; puck.vx = o.vx; puck.vy = o.vy; }
+    else if (puck.held){ puck.relY = puck.y; }
     else {
       let tick = false;
       const sub = 4; for (let k = 0; k < sub; k++){
@@ -1978,8 +1984,8 @@ function gameScene(){
         if (puck.y < RK.y0 + 2){ puck.y = RK.y0 + 2; puck.vy = Math.abs(puck.vy) * 0.8; tick = true; } if (puck.y > RK.y1 - 2){ puck.y = RK.y1 - 2; puck.vy = -Math.abs(puck.vy) * 0.8; tick = true; }
         if (cornerFix(puck, 2, true)) tick = true;
         const inMouth = puck.x > RK.m0 && puck.x < RK.m1;
-        if (inMouth && oy >= RK.gt && puck.y < RK.gt){ if (puck.far) farSave(gT); else { goal(0); return; } }
-        if (inMouth && oy <= RK.gb && puck.y > RK.gb){ if (puck.far) farSave(gU); else { goal(1); return; } }
+        if (inMouth && oy >= RK.gt && puck.y < RK.gt){ if (!(puck.relY < BLUE[0])) farSave(gT); else { goal(0); return; } }
+        if (inMouth && oy <= RK.gb && puck.y > RK.gb){ if (!(puck.relY > BLUE[1])) farSave(gU); else { goal(1); return; } }
         if (netPush(puck, true, 0, true) || netPush(puck, false, 0, true)) tick = true;
       }
       if (tick && Math.hypot(puck.vx, puck.vy) > 15) SFX.puck();
@@ -2010,7 +2016,7 @@ function gameScene(){
   };
   function farSave(g){ // shot from before the blue line: the goalie always gets it
     const top = g === gT; puck.y = top ? RK.gt + 2 : RK.gb - 2; puck.vy = (top ? 1 : -1) * Math.max(40, Math.abs(puck.vy) * 0.35); puck.vx = rnd(-60, 60);
-    puck.far = false; puck.zap = false; g.x = clamp(puck.x, RK.m0 + 3, RK.m1 - 3);
+    puck.relY = puck.y; puck.zap = false; g.x = clamp(puck.x, RK.m0 + 3, RK.m1 - 3);
     SFX.puck(); tone(500, 0.06, 'triangle', 0.15); flash = 0.2; floater(floats, puck.x, puck.y + (top ? 10 : -22), 'TOO FAR!', '#ffffff');
   }
   function goal(team){
@@ -2040,7 +2046,7 @@ function gameScene(){
   function finish(){
     if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
     const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : D === CFG.difficulty.nightmare ? ' NM' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
-    if (res.win && !res.twoP && hsRank(res.key) >= 0) go(initialsScene(res)); else go(resultScene(res));
+    go(resultScene(res));   // (the high score board is the Zomboni now)
   }
 
   /* =========================================================
@@ -2073,8 +2079,8 @@ function gameScene(){
   const mkF = (s, side) => { const y = FSTYLE[s.m.power] || FSTYLE.vamp; return { s, side, hp: 100, st: 'idle', t: 0, dur: 0, block: false, blockT: 0, pressT: -9, sp: 0.35, hitT: 0, cpuT: rnd(0.8, 1.2), hitDone: false, beeps: 0, en: y.en, enMax: y.en, restT: 0, tiredT: 0 }; };
   function startFight(mine, cpu){
     // bitten players go home first, so you never end up fighting (and sending off) your own monster
+    if (mine.home === cpu.home) return;              // teammates (one of them bitten) don't fight each other
     for (const o of [mine, cpu]) if (o.conv > 0 || o.team !== o.home){ moveTeam(o, o.home); o.conv = 0; }
-    if (mine.home === cpu.home) return;              // teammates don't fight each other
     if (mine.home !== 0){ const t = mine; mine = cpu; cpu = t; }   // left side = team 0 (you / P1)
     fixAll();
     fightDone = true; state = 'fight'; setMusic('fight');
@@ -2649,7 +2655,7 @@ function gameScene(){
     const memo = new Map(), e = v => netEnc(v, memo);
     const m = { t: 'snap', n: ++netN, TT: Math.round(TT * 1000) / 1000, mus: musWant,
       S: ALL0.map(s => netEnc(s, memo, true)), gU: netEnc(gU, memo, true), gT: netEnc(gT, memo, true), pk: netEnc(puck, memo, true),
-      v: e([us, them, all, clock, score, state, stT, parts.slice(-140), floats, scorer, scorerName, flash, opening, period, bands, rings, bolts, whiteT, shake, hmsg, hsub, hcol, hmsgT, fin, netTip, bats, ptrail, fight, fightDone, knockCount]),
+      v: e([us, them, all, clock, score, state, stT, parts.slice(-40), floats, scorer, scorerName, flash, opening, period, bands, rings, bolts, whiteT, shake, hmsg, hsub, hcol, hmsgT, fin, netTip, bats, ptrail, fight, fightDone, knockCount]),
       P: P.map(pl => e({ ctrl: pl.ctrl, bHold: pl.bHold, tapPend: pl.tapPend, chkPend: pl.chkPend, otArm: pl.otArm, recvT: pl.recvT, swT: pl.swT })),
       fx: NET.sfx };
     NET.sfx = [];
@@ -2721,7 +2727,7 @@ function gameScene(){
       if (G.online === 'guest'){ guestStep(rdt); musicFx(); return; }
       if (G.online === 'host') hostInputs();
       upd(rdt); musicFx();
-      if (G.online === 'host' && scene === S){ snapT -= rdt; if (snapT <= 0){ snapT = 0.05; netSend(netSnap(), true); } }
+      if (G.online === 'host' && scene === S){ snapT -= rdt; if (snapT <= 0){ snapT = 0.05; if (!NET.snap || NET.snap.bufferedAmount < 65536) netSend(netSnap(), true); } }
     };
   }
   S.netDrop = () => {
@@ -2738,9 +2744,9 @@ function gameScene(){
    ========================================================= */
 function zamboniScene(opts = {}){
   const timed = opts.timed || 0, back = opts.back || null, ZC = CFG.zamboni;
-  const S = { quit: true, game: true }; if (back) S.music = 'game';   // between periods: keep the game song going
+  const S = { quit: true, game: true, music: 'zomboni' };   // Stephen's "Brains"
   const RK = RINK;
-  const CS = 4, GX = Math.ceil((RK.x1 - RK.x0) / CS), GYN = Math.ceil((RK.y1 - RK.y0) / CS);
+  const CS = 2, GX = Math.ceil((RK.x1 - RK.x0) / CS), GYN = Math.ceil((RK.y1 - RK.y0) / CS);
   const ZG = {
     P: { A: { x: 108, y: 297, r: 14 }, B: { x: 160, y: 297, r: 14 }, PILL: { x: 92, y: 256, w: 84, h: 20 }, hint: [48, 274], joy: q => q.x < 88 && q.y > 34 },
     L: { A: { x: 322, y: 198, r: 19 }, B: { x: 372, y: 166, r: 19 }, PILL: { x: 296, y: 64, w: 98, h: 22 }, hint: [55, 120], joy: q => q.x < 110 },
@@ -2809,6 +2815,7 @@ function zamboniScene(opts = {}){
   S.layout = () => wantsLandscape() ? 'L' : 'P';
   S.relayout = () => { joy.id = null; joy.ux = joy.uy = 0; };
   S.enter = () => {
+    if (eng) S.exit();   // (restarting: stop the old engine sound)
     z = { x: 90, y: 214, h: 0, v: 0, turn: 0, view: 'up', dist: 0 };
     joy = { id: null, ox: 0, oy: 0, ux: 0, uy: 0 }; keys = new Set(); parts = []; floats = [];
     ghost = { x: 50, y: 90, vx: 12, vy: 6, flee: 0, boo: 0 }; boostT = 0; boostCD = 0; mess();
@@ -2817,7 +2824,14 @@ function zamboniScene(opts = {}){
     if (AC){ try { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = 45; g.gain.value = 0; o.connect(g); g.connect(MG); o.start(); eng = { o, g }; } catch (e) {} }
   };
   S.exit = () => { if (eng){ try { eng.o.stop(); } catch (e) {} eng = null; } };
-  function leave(){ if (back) go(back); else go(titleScene()); }
+  // high score: single player only (not 2P on one iPad, not online, not a game where P2 dropped)
+  const hsQual = () => !!timed && !G.twoP && !G.online && !G.wasOnline && !G.demo;
+  const zKey = () => -Math.floor(cleanN / total * 1000);   // lower = better, like the board's other keys
+  let posted = false;
+  function leave(){
+    if (over && !posted && hsQual() && hsRank(zKey()) >= 0){ posted = true; const k = zKey(); go(initialsScene({ key: k, disp: (-k / 10).toFixed(1) + '%', title: 'ZOMBONI CLEAN-UP', after: back || titleScene() })); return; }
+    if (back) go(back); else go(titleScene());
+  }
   function honk(){
     if (over) return;
     tone(150, 0.6, 'sawtooth', 0.15, -50); tone(95, 0.7, 'square', 0.08, -20, 0.05);   // the zombie groans...
@@ -2888,7 +2902,7 @@ function zamboniScene(opts = {}){
     z.dist += Math.hypot(nx - z.x, ny - z.y); z.x = nx; z.y = ny;
     if (eng){ try { eng.o.frequency.setTargetAtTime(42 + Math.abs(z.v) * 0.7, AC.currentTime, 0.1); eng.g.gain.setTargetAtTime(muted ? 0 : 0.02 + Math.abs(z.v) / 2200, AC.currentTime, 0.1); } catch (e) {} }
     // the towel at the back lays down fresh ice
-    if (Math.abs(z.v) > 3) for (let lx = -12; lx <= 12; lx += 2) for (const ly of [backOff() - 3, backOff()]){
+    if (Math.abs(z.v) > 3) for (let lx = -12; lx <= 12; lx += 1.5) for (const ly of [backOff() - 3, backOff() - 1.5, backOff()]){
       const [wx, wy] = toW(lx, ly), i = Math.floor((wx - RK.x0) / CS), j = Math.floor((wy - RK.y0) / CS);
       if (i < 0 || j < 0 || i >= GX || j >= GYN) continue;
       const k = j * GX + i; if (grid[k] === 1){ grid[k] = 0; cleanN++; dctx.clearRect(RK.x0 + i * CS, RK.y0 + j * CS, CS, CS); if (Math.random() < 0.04) parts.push({ x: wx, y: wy, vx: 0, vy: -6, g: 0, life: 0.6, c: '#ffffff', s: 1 }); }
@@ -2940,16 +2954,17 @@ function zamboniScene(opts = {}){
     drawParts(parts); drawFloat(floats);
     // HUD
     R(0, 0, W, 29, '#120a22');
-    const pct = Math.floor(cleanN / total * 100);
+    const pctF = Math.floor(cleanN / total * 1000) / 10, pct = pctF.toFixed(1);
     T('THE ZOMBONI', 90, 5, '#b6ff4a', 8);
-    T('CLEAN ' + pct + '%', 90, 18, done ? '#b6ff4a' : '#9ce8ff', 8);
+    T('CLEAN ' + pct + '%', 90, 18, done ? '#b6ff4a' : '#9ce8ff', 8);   // one decimal: it's the high score
     if (timed){ const sec = Math.ceil(tLeft), hot = sec <= 3 && !over; T(':' + String(sec).padStart(2, '0'), W - 24, 11, hot ? (Math.floor(TT * 6) % 2 ? '#ff5d73' : '#ffffff') : '#ffd23f', 8, 'right'); }
     else tiny('LOST ' + found + '-' + items.length, W - 22, 20, '#ffd23f', 'right', null);
     if (over){
       R(14, 92, 152, 96, 'rgba(18,10,34,.85)'); R(14, 92, 152, 1, '#b6ff4a'); R(14, 187, 152, 1, '#b6ff4a');
       T(done ? 'SPOTLESS!' : 'TIME!', 90, 100, done ? '#9ce8ff' : '#ffd23f', 16, 'center');
       T('CLEAN ' + pct + '%', 90, 126, '#ffffff', 8);
-      T(pct >= 97 ? 'THE ZOMBIE IS PROUD' : pct >= 75 ? 'SQUEAKY CLEAN!' : pct >= 50 ? 'NOT BAD!' : pct >= 30 ? 'STILL KINDA GROSS' : 'EWWW. GROSS!', 90, 142, '#b6ff4a', 8);
+      T(pctF >= 97 ? 'THE ZOMBIE IS PROUD' : pctF >= 75 ? 'SQUEAKY CLEAN!' : pctF >= 50 ? 'NOT BAD!' : pctF >= 30 ? 'STILL KINDA GROSS' : 'EWWW. GROSS!', 90, 142, '#b6ff4a', 8);
+      if (hsQual() && hsRank(zKey()) >= 0 && Math.floor(TT * 4) % 2) T('NEW HIGH SCORE!', 90, 76, '#ffd23f', 8);
       if (found) tiny('FOUND ' + found + ' LOST THING' + (found > 1 ? 'S' : ''), 90, 158, '#ffd23f', 'center', null);
       if (overT > 0.8 && Math.floor(TT * 3) % 2) tiny(back ? 'TAP TO PLAY ON' : 'BAR = AGAIN   TAP = MENU', 90, 172, '#c9b8f0', 'center', null);
     }
@@ -2996,7 +3011,7 @@ function initialsScene(res){
   function save(){
     lastIni = ini.map(n => L[n]).join('');
     const r = hsRank(res.key), entry = { n: lastIni, k: res.key, d: res.disp }; HS.splice(r, 0, entry); HS = HS.slice(0, 5); saveHS(); hsPost(entry);
-    res.rank = r; go(resultScene(res));
+    res.rank = r; go(res.after || resultScene(res));
   }
   S.update = dt => { t += dt; stepParts(parts, dt); };
   S.down = p => {
@@ -3019,7 +3034,7 @@ function initialsScene(res){
   S.draw = () => {
     nightSky(3); drawParts(parts);
     T('NEW HIGH SCORE!', 90, 20, '#ffd23f', 8);
-    T('MONSTER HOCKEY', 90, 38, '#c9a0ff', 8);
+    T(res.title || 'MONSTER HOCKEY', 90, 38, '#c9a0ff', 8);
     T('#' + (hsRank(res.key) + 1) + '  ' + res.disp, 90, 56, '#ff9a3a', 12);
     T('ENTER YOUR INITIALS', 90, 80, '#f7efe0', 8);
     for (let k = 0; k < 3; k++){
@@ -3041,14 +3056,14 @@ function scoresScene(back){
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Escape')) { SFX.tap(); back(); } };
   S.draw = () => {
     nightSky(4); moon(150, 30, 10);
-    T('HIGH SCORES', 90, 22, '#ffd23f', 12);
-    T('MONSTER HOCKEY - WINS', 90, 44, '#c9a0ff', 8);
+    T('BEST ZOMBONI', 90, 18, '#b6ff4a', 12); T('DRIVERS', 90, 34, '#b6ff4a', 12);
+    tiny('CLEANEST RINK IN 15 SECONDS', 90, 54, '#c9a0ff', 'center', null);
     for (let r = 0; r < 5; r++){
       const y = 66 + r * 36, e = HS[r];
       R(24, y, 132, 28, r % 2 ? 'rgba(0,0,0,.2)' : 'rgba(0,0,0,.35)');
       T((r + 1) + '.', 30, y + 10, r === 0 ? '#ffd23f' : '#c9b8f0', 8, 'left');
       T(e ? e.n : '---', 52, y + 8, '#ffffff', 12, 'left');
-      T(e ? e.d : '', 150, y + 10, '#ff9a3a', 8, 'right');
+      T(e ? e.d : '', 150, y + 10, '#b6ff4a', 8, 'right');
     }
     T(!ONLINE ? 'THIS DEVICE' : hsLoading ? 'LOADING...' : hsOnline ? 'EVERYONE' : 'THIS DEVICE', 90, 254, hsOnline ? '#b6ff4a' : '#8a7ab8', 8);
     bs.forEach(drawBtn);

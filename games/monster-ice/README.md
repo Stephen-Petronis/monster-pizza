@@ -96,6 +96,7 @@ Stephen's rink art (`art/rink-original.png`), with the ice markings faded way do
 Stephen's songs, looped, from files in the same folder as `index.html`:
 - `halloween-arcade-run.mp3`: plays during hockey games (starts from the top each game).
 - `fight-fight-fight.mp3`: when the gloves come off (the game song picks back up where it left off after the KO).
+- `brains.mp3`: the Zomboni ("Brains"). The game song picks back up where it left off after the break.
 - `skating-groove.mp3` (optional): menus and the Zamboni. Until it's added, the game song plays there too. The built-in chiptune only plays if no song file loads.
 
 Sound cues: in the **last 5 seconds** of every period the music dips and the clock beeps each second (the last beep is higher), and every **goal** sets off a Bride-of-Frankenstein scream siren (a rising, wobbling wail over a siren, ending in her hiss) while the music dips under it. Online, the guest hears all of it too.
@@ -111,5 +112,5 @@ Stephen's monster heads (`art/monster-heads-sheet.png`) are cut into two atlases
 ## Adding a monster
 Copy an entry in `ROSTER`, add a row of heads to the head atlases (or draw a 7×7 fallback head), set stats, and either reuse an existing special in `power` (e.g. a Zombie that also uses `'mummy'`) or add a new `case` in `special()` (and a matching line in `aiSpecial()` so the CPU knows when to use it).
 
-## High scores
-Wins go on a top-5 board with arcade initials, saved on the device and shared through the `monster-pizza` Firebase project in the `mi_hockey` collection. The current Firestore rules only allow Super Sullivan's boards, so publish `firestore.rules` from this folder (it keeps Super Sullivan's boards and adds this one). Until then the board just stays on each device.
+## High scores: Best Zomboni Drivers
+The high score board is the Zomboni: after a 1-player Zomboni break between periods, your CLEAN % (to one decimal; the rink is measured on a fine 2px grid) goes on a top-5 board with arcade initials. 2-player and online games don't count. Saved on the device and shared through the `monster-pizza` Firebase project in the `mi_zomboni` collection; publish `firestore.rules` from this folder once so the shared board works (until then it stays on each device). Hockey wins no longer go on a board.
