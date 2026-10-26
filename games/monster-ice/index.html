@@ -141,7 +141,7 @@ ctx.imageSmoothingEnabled = false;
 if (!ctx.roundRect) CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r){ r = Math.min(r, w / 2, h / 2); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath(); };
 /* Screen layouts: 'P' portrait (controls under the rink), 'L' landscape (stick on the left, buttons on the right),
    '2P' one iPad, two players (P2's controls along the top edge, upside down). Game art always draws in the 180x320 space. */
-let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0, TOPB = 0, PY = 0, SAFE_T = 0, SAFE_B = 0;   // LAYOUT is set on the first frame
+let CW = W, CH = H, LAYOUT = '', CHROME_Y = 0, EX = 0, OFFY = 0, TOPB = 0, PY = 0, SAFE_T = 0, SAFE_B = 0, SBH = 34, WY = 0;   // LAYOUT is set on the first frame
 /* Phones (and the iOS app) fill the whole screen edge to edge. SAFE_T / SAFE_B = rows hidden by the notch and the home bar.
    In a hockey game the extra rows go to a strip of fans along the top (TOPB rows, the rink starts below it) and to a bigger
    control area at the bottom (the panel sits PY rows lower, clear of the home bar). */
@@ -158,8 +158,10 @@ function tallRows(){ // how the extra rows get used (portrait only)
   SAFE_T = FULL ? Math.ceil(parseFloat(cs.paddingTop || 0) * k) : 0; SAFE_B = FULL ? Math.ceil(parseFloat(cs.paddingBottom || 0) * k) : 0;
   SAFE_T = Math.min(SAFE_T, EX); SAFE_B = Math.min(SAFE_B, EX - SAFE_T);
   const free = EX - SAFE_T - SAFE_B;
-  TOPB = SAFE_T + clamp(Math.round(free * 0.3), 0, 34);   // fans strip (behind the notch + a bit more)
-  PY = EX - SAFE_B;                                        // controls pushed to the bottom, above the home bar
+  TOPB = SAFE_T + clamp(Math.round(free * 0.3), 0, 34);   // menus: kept clear of the notch
+  PY = EX - SAFE_B;
+  // hockey game: a big scoreboard (SBH rows) under the notch; the rink moves up so the little scoreboard painted on the art hides under it
+  WY = SAFE_T + SBH - 31;
 }
 function fit(){ const r = stage.getBoundingClientRect(); const s = Math.max(1, Math.min(r.width / CW, r.height / CH)); cv.style.width = Math.floor(CW * s) + 'px'; cv.style.height = Math.floor(CH * s) + 'px'; }
 function setLayout(L){
@@ -509,6 +511,32 @@ const PLATE = {
   frank: { bg: '#14240e', fill: '#3a8a22', hi: '#fff36a', ink: '#f0ffd0' },
 };
 function keyCap(name, cx, y){ const w = name.length * 4 + 3; R(Math.round(cx - w / 2) - 1, y - 2, w + 2, 9, '#000'); R(Math.round(cx - w / 2), y - 1, w, 7, '#f7efe0'); tiny(name, cx, y, '#2a1446', 'center', null); }
+function skillIcon(k, x, y, col){ // little picture of each monster's special
+  if (k === 'vamp') drawBat(x, y, 1, 0);
+  else if (k === 'wolf'){ ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.moveTo(x - 3 + i * 4, y - 6); ctx.lineTo(x - 6 + i * 4, y + 6); ctx.stroke(); } ctx.restore(); }
+  else if (k === 'gill'){ ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); for (let i = -6; i <= 6; i++) ctx.lineTo(x + i, y + Math.sin(i * 0.8 + TT * 6) * 3); ctx.stroke(); ctx.restore(); }
+  else if (k === 'mummy'){ for (let i = 0; i < 3; i++) R(x - 6, y - 5 + i * 4, 12, 2, i % 2 ? '#b8a888' : '#ece0c4'); }
+  else { ctx.save(); ctx.fillStyle = '#fff36a'; ctx.beginPath(); ctx.moveTo(x + 2, y - 8); ctx.lineTo(x - 4, y + 1); ctx.lineTo(x, y + 1); ctx.lineTo(x - 2, y + 8); ctx.lineTo(x + 5, y - 2); ctx.lineTo(x + 1, y - 2); ctx.closePath(); ctx.fill(); ctx.restore(); }
+}
+function drawSpecialBtn(m, frac, label, P_, key){ // tall phones: the special is a big chunky button in the monster's colors
+  const th = PLATE[m.power] || PLATE.frank, { x, y, w, h } = P_, ready = frac >= 1, blink = Math.floor(TT * 6) % 2, rad = Math.min(10, h / 2);
+  const rr = (xx, yy, ww, hh, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(xx, yy, ww, hh, rad); ctx.fill(); };
+  if (ready){ ctx.save(); ctx.globalAlpha = 0.35 + 0.25 * Math.sin(TT * 8); rr(x - 3, y - 3, w + 6, h + 9, th.hi); ctx.restore(); }
+  rr(x, y + 3, w, h, '#000'); rr(x, y + 2, w, h, shade(th.fill, 0.5));   // chunky bottom edge
+  rr(x, y, w, h, ready && blink ? '#ffffff' : '#000'); rr(x + 1, y + 1, w - 2, h - 2, shade(th.bg, 1.4));
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x + 1, y + 1, w - 2, h - 2, rad - 1); ctx.clip();
+  const fw = Math.round((w - 2) * Math.min(1, frac)); R(x + 1, y + 1, fw, h - 2, th.fill); R(x + 1, y + 1, fw, 3, shade(th.fill, 1.35)); R(x + 1, y + h - 4, fw, 3, shade(th.fill, 0.7));
+  R(x + 1, y + 1, w - 2, 1, 'rgba(255,255,255,.35)');
+  ctx.restore();
+  const bx = x + h / 2 + 1, by = y + h / 2, br = h / 2 - 2;   // monster badge on the left
+  C(bx, by + 1, br + 1, '#000'); C(bx, by, br, shade(th.bg, 0.8));
+  if (!drawHeadArt(m, ready ? HV.yellR : HV.right, bx, by, br * 1.7)) spr(m.head, m.pal, bx - br * 0.7, by - br * 0.7, br * 0.2);
+  const lx = x + h + (w - h - 18) / 2;   // skill name + icon
+  T(label + (ready ? '!' : ''), lx, y + h / 2 - 4, ready ? (blink ? th.hi : '#ffffff') : '#ffffff', 8, 'center');
+  skillIcon(m.power, x + w - 11, y + h / 2, th.hi);
+  if (!ready && h >= 28) tiny(Math.floor(frac * 100) + '%', lx, y + h - 8, th.ink || '#ffffff', 'center', null);
+  if (key && INPUT !== 'touch') keyCap(key, x + w - 8, y - 6);
+}
 function drawPlate(m, frac, label, P_, key){
   if (key && INPUT !== 'touch'){ drawPlate(m, frac, label, P_); keyCap(key, P_.x + P_.w - 8, P_.y - 6); return; }
   const th = PLATE[m.power] || PLATE.frank, { x, y, w, h } = P_, ready = frac >= 1, blink = Math.floor(TT * 8) % 2;
@@ -1294,7 +1322,14 @@ function gameScene(){
     P: { A: { x: 108, y: 297, r: 14 }, B: { x: 160, y: 297, r: 14 }, PILL: { x: 92, y: 256, w: 84, h: 20 }, hint: [48, 274], fhint: [44, 266] },
     L: { A: { x: 322, y: 198, r: 19 }, B: { x: 372, y: 166, r: 19 }, PILL: { x: 296, y: 64, w: 98, h: 22 }, hint: [55, 120], fhint: [55, 96] },
   };
-  const geoKey = () => LAYOUT === 'L' ? 'L' : 'P';
+  const geoKey = () => LAYOUT === 'L' ? 'L' : LAYOUT === 'P' && EX >= 24 ? 'T' : 'P';
+  // tall phones: big A/B at the bottom right, the special button above them, lots of room on the left for the stick
+  Object.defineProperty(GEO, 'T', { get(){
+    const pt = WY + 254, pb = CH - SAFE_B, ph = pb - pt, r = clamp(Math.floor((ph - 50) / 2.2), 15, 22);
+    const B = { x: W - 8 - r, y: pb - r - 12, r }, A = { x: B.x - 2 * r - 14, y: pb - r - 12, r };
+    const sx = A.x - r - 2, sy = pt + 6, PILL = { x: sx, y: sy, w: W - 6 - sx, h: clamp(B.y - r - 8 - sy, 22, 36) };
+    return { A, B, PILL, pt, hint: [Math.round(sx / 2), Math.round(pt + ph / 2 - 8)], fhint: [Math.round(sx / 2), Math.round(pt + ph / 2 - 20)], joyX: sx - 4 };
+  } });
   function load(pl){ CUR = pl; PT = pl.team; ctrl = pl.ctrl; joy = pl.joy; bHold = pl.bHold; tapPend = pl.tapPend; chkPend = pl.chkPend; otArm = pl.otArm; recvT = pl.recvT; swT = pl.swT;
     const g = GEO[geoKey()]; BTN_A = g.A; BTN_B = g.B; PILL = g.PILL; }
   function save(){ const pl = CUR; pl.ctrl = ctrl; pl.bHold = bHold; pl.tapPend = tapPend; pl.chkPend = chkPend; pl.otArm = otArm; pl.recvT = recvT; pl.swT = swT; }
@@ -1360,9 +1395,9 @@ function gameScene(){
     if (LAYOUT === '2P'){ if (p.y >= 320) return [0, { x: p.x, y: p.y - 66 }]; if (p.y < 66) return [1, { x: W - p.x, y: 320 - p.y }]; return [-1, null]; }
     return [0, { x: p.x, y: p.y - PEX() }];
   }
-  const PEX = () => LAYOUT === 'P' ? PY : 0;   // controls sit PY lower on tall phones
+  const PEX = () => 0;   // (tall phones use their own control layout, GEO.T)
   const localFor = (k, p) => k === 1 && !G.online ? { x: W - p.x, y: 320 - p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - PEX() };
-  const joyZone = q => LAYOUT === 'L' ? q.x < 110 : LAYOUT === '2P' ? q.x < 88 && q.y >= 254 : q.x < 88 && q.y > 34;
+  const joyZone = q => LAYOUT === 'L' ? q.x < 110 : LAYOUT === '2P' ? q.x < 88 && q.y >= 254 : geoKey() === 'T' ? q.x < GEO.T.joyX && q.y > WY + 36 : q.x < 88 && q.y > 34;
   S.down = p => {
     if (G.online === 'guest'){ guestDown(p); return; }
     if (state === 'inter' && offer){ p.ui = true; hitBtn([OFFER.drive, OFFER.skip], toWorld(p)); return; }
@@ -2000,7 +2035,7 @@ function gameScene(){
     if (k === 0){ offer = null; S.resume = true; go(zamboniScene({ timed: CFG.zamboni.time, back: S })); return; }
     offer = null; stT = Math.min(stT, 0.7);
   }
-  const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - TOPB };
+  const toWorld = p => LAYOUT === 'L' ? { x: p.x - 110, y: p.y } : LAYOUT === '2P' ? { x: p.x, y: p.y - 66 } : { x: p.x, y: p.y - (geoKey() === 'T' ? WY : 0) };
   function finish(){
     if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
     const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : D === CFG.difficulty.nightmare ? ' NM' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
@@ -2268,7 +2303,7 @@ function gameScene(){
   }
   function panelFight(g){
     const me = myF(); if (!me) return;
-    drawPlate(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp);
+    if (geoKey() === 'T') drawSpecialBtn(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp); else drawPlate(me.s.m, me.sp, fspOf(me.s), PILL, keyNames(PT).sp);
     btnDraw(BTN_A, 'BLOCK', '#c9a0ff', me.block); btnDraw(BTN_B, 'PUNCH', '#ff9a3a', me.st === 'punch');
     T('HOLD A\nTO BLOCK\nGOLD RING\n=COUNTER', g.fhint[0], g.fhint[1], '#8a7ab8', 8);
     { const f = myF(); if (f) tiny('STAMINA ' + Math.max(0, Math.round(f.en)), g.fhint[0], g.fhint[1] - 9, f.en < sty(f).cost ? '#ff5d73' : '#5cc8ff', 'center', null); }
@@ -2277,7 +2312,7 @@ function gameScene(){
     C(b.x + 1, b.y + 2, b.r, '#000'); C(b.x, b.y + (on ? 1 : 0), b.r, col); C(b.x - 4, b.y - 5, 3, 'rgba(255,255,255,.4)');
     tiny(label, b.x, b.y + b.r + 4, '#c9b8f0', 'center', null);
     const kn = INPUT === 'touch' ? null : keyNames(PT)[b === BTN_A ? 'a' : 'b'];
-    if (kn) keyCap(kn, b.x, b.y - 3); else T(b === BTN_A ? 'A' : 'B', b.x, b.y - 4, '#2a1446', 8, 'center', null);
+    if (kn) keyCap(kn, b.x, b.y - 3); else if (b.r >= 16) T(b === BTN_A ? 'A' : 'B', b.x, b.y - 6, '#2a1446', 12, 'center', null); else T(b === BTN_A ? 'A' : 'B', b.x, b.y - 4, '#2a1446', 8, 'center', null);
   }
   function fBlock(m, dn){ if (!fight || !m) return; if (dn){ m.pressT = TT; if (m.en > 4) m.block = true; else m.tiredT = 0.6; } else m.block = false; }   // a counter tap still works when you're out of gas
 
@@ -2477,25 +2512,43 @@ function gameScene(){
   function drawPanel(pl){ withP(pl, () => {
     const g = GEO[geoKey()];
     if (geoKey() === 'L'){ R(0, 0, 110, 254, '#120a22'); R(290, 0, 110, 254, '#120a22'); R(109, 0, 1, 254, '#2a1446'); R(290, 0, 1, 254, '#2a1446'); }
+    else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446'); }
     else R(0, 254, W, 66, '#120a22');
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.kx * 14, joy.oy + joy.ky * 14, 7, pl.team === 1 ? 'rgba(74,176,255,.85)' : 'rgba(255,122,26,.85)'); }
     else if (state !== 'fight') T('DRAG\nTO SKATE', g.hint[0], g.hint[1], '#5a4a7a', 8);
-    if (G.twoP) tiny(G.online ? (pl.team === 0 ? 'YOU: P1' : 'YOU: P2') : pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, 257, TEAM[pl.team].text, 'left', null);
+    if (G.twoP) tiny(G.online ? (pl.team === 0 ? 'YOU: P1' : 'YOU: P2') : pl.team === 0 ? 'PLAYER 1' : 'PLAYER 2', 4, geoKey() === 'T' ? g.pt + 4 : 257, TEAM[pl.team].text, 'left', null);
     if (state === 'fight' && fight){ panelFight(g); return; }
-    if (ctrl) drawPlate(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp);
+    if (ctrl){ if (geoKey() === 'T') drawSpecialBtn(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp); else drawPlate(ctrl.m, ctrl.sp, ctrl.m.sp, PILL, keyNames(PT).sp); }
     const atk = weHave();
     btnDraw(BTN_A, atk ? 'PASS' : 'SWAP', '#c9a0ff'); btnDraw(BTN_B, atk ? 'SHOOT' : 'CHECK', '#ff9a3a');
   }); }
+  function drawBigBoard(){ // tall phones: a big scoreboard across the top, under the notch
+    const y0 = SAFE_T, h = SBH;
+    if (SAFE_T > 0) drawFans(0, SAFE_T);
+    R(0, y0, W, h, '#0c0618'); R(0, y0 + h - 2, W, 2, '#ff7a1a'); R(0, y0, W, 1, '#2a1446');
+    const n0 = G.online === 'host' ? 'YOU' : G.twoP ? 'P1' : 'YOU', n1 = G.online === 'guest' ? 'YOU' : G.twoP ? 'P2' : 'CPU';
+    const ot = period > CFG.periods, m = Math.floor(Math.ceil(clock) / 60), sec = Math.ceil(clock) % 60, clk = ot ? 'OT' : m + ':' + String(sec).padStart(2, '0');
+    const outS = all.find(o => o.out > 0), own = puck.owner;
+    const status = outS ? outS.m.short + ' OUT ' + Math.ceil(outS.out) : G.twoP ? (own ? (own.team === 0 ? 'P1 PUCK' : 'P2 PUCK') : 'LOOSE PUCK') : (own ? (own.team === 0 ? 'ATTACK!' : 'DEFEND') : 'LOOSE PUCK');
+    for (const [t, x] of [[0, 22], [1, 118]]){   // home (left) and away (right) score boxes
+      R(x, y0 + 3, 40, h - 7, '#000'); R(x + 1, y0 + 4, 38, h - 9, '#14080e'); R(x + 1, y0 + 4, 38, 1, TEAM[t].jersey);
+      tiny(t ? n1 : n0, x + 20, y0 + 7, TEAM[t].text, 'center', null);
+      T(String(score[t]), x + 20, y0 + 14, t ? '#c9a0ff' : '#ff9a3a', 12, 'center', null);
+    }
+    const hot = ot || clock < 10;   // clock + period in the middle
+    T(clk, 90, y0 + 6, hot ? (clock <= 5 && !ot && Math.floor(TT * 4) % 2 ? '#ffffff' : '#ff5d73') : '#ffd23f', 12, 'center', null);
+    tiny(perName() + '  ' + D.label, 90, y0 + 22, D.label === 'EASY' ? '#b6ff4a' : D.label === 'NIGHTMARE' ? '#c46aff' : '#ff9aa8', 'center', null);
+    if (state !== 'fight') tiny(status, 90, y0 + h + 2, outS ? (outS.team === 0 ? '#ff9aa8' : '#b6ff4a') : '#c9b8f0', 'center', '#000');
+  }
   S.draw = () => {
     const L = LAYOUT, fighting = state === 'fight' && fight;
     const ME = P[G.online === 'guest' ? 1 : 0];
     if (L === 'P'){
       if (!EX){ drawGame(); drawHUD(); if (fighting) drawFight(); drawPanel(ME); return; }
-      // tall phones: a strip of cheering fans on top, the rink under it, the controls at the bottom
-      if (TOPB > 0) drawFans(0, TOPB);
-      ctx.save(); ctx.translate(0, TOPB); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip(); drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
-      R(0, 254 + TOPB, W, CH - 254 - TOPB, '#120a22'); R(0, 254 + TOPB, W, 1, '#2a1446');
-      ctx.save(); ctx.translate(0, PY); drawPanel(ME); ctx.restore();
+      // tall phones: big scoreboard on top, the rink tucked up under it, a big control area at the bottom
+      ctx.save(); ctx.translate(0, WY); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip(); drawGame(); drawHUD(); if (fighting) drawFight(); ctx.restore();
+      drawBigBoard();
+      drawPanel(ME);
       return; }
     R(0, 0, CW, CH, '#120a22');
     ctx.save(); ctx.translate(L === 'L' ? 110 : 0, L === '2P' ? 66 : 0); ctx.beginPath(); ctx.rect(0, 0, W, 254); ctx.clip();
@@ -3016,7 +3069,7 @@ function frame(now){
   if (netToast && (netToast.t -= dt) <= 0) netToast = null;
   try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(1, 0, 0, 1, 0, 0); scene.update && scene.update(dt);
     OFFY = LAYOUT === 'P' && EX && !scene.tallP ? clamp(Math.round((EX + SAFE_T - SAFE_B) / 2), SAFE_T, Math.max(SAFE_T, EX - SAFE_B)) : 0;
-    if (LAYOUT === 'P') CHROME_Y = scene.tallP ? TOPB : 0;
+    if (LAYOUT === 'P') CHROME_Y = scene.tallP && EX >= 24 ? SAFE_T + 3 : 0;
     if (LAYOUT === 'P' && EX) R(0, 0, CW, CH, '#120a22');
     ctx.setTransform(1, 0, 0, 1, 0, OFFY); scene.draw(); } } catch (err) { console.error(err); }
   ctx.setTransform(1, 0, 0, 1, 0, OFFY);
