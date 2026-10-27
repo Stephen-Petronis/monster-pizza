@@ -1247,8 +1247,8 @@ function shopScene(back){
 
 /* ---------- FIRST GAME: AUTO OR MANUAL SWITCHING? ---------- */
 const trialSwitch = () => !OPT.picked && !G.twoP && !G.online && !G.demo;
-function switchPickScene(next){
-  const S = { quit: false }; let bs;
+function switchPickScene(next, fresh){   // fresh = they never played the first-game trial (went straight to 2P / online)
+  const S = { quit: !!fresh }; let bs;
   const choose = auto => { OPT.autoSwitch = auto; OPT.picked = true; saveOpt(); SFX.pick(); next(); };
   S.enter = () => { bs = [btn(14, 116, 152, 28, 'MANUAL', () => choose(false), '#ff9a3a'), btn(14, 196, 152, 28, 'AUTO', () => choose(true), '#b6ff4a')]; };
   S.down = p => hitBtn(bs, p);
@@ -1256,10 +1256,11 @@ function switchPickScene(next){
   S.draw = () => {
     nightSky(4); moon(150, 30, 10);
     T('MANUAL\nOR AUTO?', 90, 40, '#ffd23f', 12);
-    T('YOU TRIED BOTH!', 90, 92, '#c9b8f0', 8);
+    T(fresh ? 'HOW DO YOU SWITCH\nMONSTERS?' : 'YOU TRIED BOTH!', 90, fresh ? 84 : 92, '#c9b8f0', 8);
     bs.forEach(drawBtn);
-    T('PERIOD 1. YOU TAP\nSWAP TO CHANGE', 90, 152, '#ffd8b0', 8);
-    T('PERIOD 2. THE GAME\nPICKS YOUR MONSTER', 90, 232, '#d8ffb8', 8);
+    T(fresh ? 'YOU TAP SWAP\nTO CHANGE' : 'PERIOD 1. YOU TAP\nSWAP TO CHANGE', 90, 152, '#ffd8b0', 8);
+    T(fresh ? 'THE GAME PICKS THE\nONE NEAREST THE PUCK' : 'PERIOD 2. THE GAME\nPICKS YOUR MONSTER', 90, 232, '#d8ffb8', 8);
+    if (fresh && G.twoP && !G.online) tiny('BOTH PLAYERS USE THIS', 90, 268, '#ffd23f');
     tiny('CHANGE IT ANYTIME IN OPTIONS', 90, 278, '#8a7ab8');
   };
   return S;
@@ -1575,7 +1576,7 @@ function pickScene(stage = 0){
       if (G.online){ if (G.online === 'guest') netSend({ t: 'team', team: G[key], auto: OPT.autoSwitch }); go(netWaitScene()); return; }
       go(G.twoP && !stage ? pickScene(1) : vsScene()); }),
   ]; bs[2].dim = team.length < 3; }
-  S.enter = mk;
+  S.enter = () => { mk(); if (!OPT.picked && (G.twoP || G.online)) queueMicrotask(() => go(switchPickScene(() => go(S), true))); };   // straight into 2P / online without choosing: ask first
   function add(id){ focus = id; if (team.length < 3){ team.push(id); SFX.pick(); } else SFX.nope(); mk(); }
   S.down = p => {
     for (let k = 0; k < 3; k++) if (team[k] && inBox(p, SLOTX(k), 34, 40, 36)){ team.splice(k, 1); SFX.tap(); mk(); return; }
