@@ -356,10 +356,11 @@ const unlocked = i => i === 0 || /unlockall/.test(location.hash) || prog(i - 1).
 const starLine = N => [N.goal + 5, N.goal + 20, Math.min(97, N.goal + 33)];
 const starsFor = (N, avg) => { const [a, b, c] = starLine(N); return avg >= c ? 3 : avg >= b ? 2 : avg >= a ? 1 : 0; };
 // THE BANK: your money, what you've earned all-time (your rank), your upgrades and paint jobs
-let BANK = { cash: 0, earned: 0, up: {}, paints: ['classic'], paint: 'classic' };
+let BANK = { cash: 0, earned: 0, up: {}, paints: ['classic'], paint: 'classic', minis: [], miniBest: {} };
 try { const v = JSON.parse(localStorage.getItem(KEY + '-bank') || 'null'); if (v && typeof v === 'object') BANK = Object.assign(BANK, v); } catch (e) {}
 function saveBank(){ try { localStorage.setItem(KEY + '-bank', JSON.stringify(BANK)); } catch (e) {} }
 const lvl = id => BANK.up[id] || 0;
+function unlockMini(id){ if (!BANK.minis.includes(id)){ BANK.minis.push(id); saveBank(); return true; } return false; }
 function pay(n){ n = Math.max(0, Math.round(n)); BANK.cash += n; BANK.earned += n; saveBank(); return n; }
 const rankOf = (e = BANK.earned) => { let r = CFG.ranks[0]; for (const k of CFG.ranks) if (e >= k[0]) r = k; return r; };
 const nextRank = () => CFG.ranks.find(k => k[0] > BANK.earned);
@@ -659,9 +660,10 @@ function titleScene(){
   S.enter = () => { bs = [
     btn(8, 222, 80, 22, 'PLAY', () => go(nightsScene()), '#b6ff4a'),
     btn(92, 222, 80, 22, 'GARAGE', () => go(garageScene(() => go(titleScene()))), '#ffd23f'),
-    btn(36, 250, 108, 18, 'QUICK CLEAN', () => go(zamboniScene({ mode: 'quick' })), '#ff9a3a'),
+    btn(36, 250, 108, 18, 'QUICK CLEAN', () => go(zamboniScene({ mode: 'quick' })), '#ff5d73'),
     btn(36, 274, 108, 18, 'FREE DRIVE', () => go(zamboniScene({ mode: 'free' })), '#5cc8ff'),
-    btn(36, 298, 108, 18, 'HIGH SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
+    btn(8, 298, 80, 18, 'MINIGAMES', () => go(minigamesScene()), '#ff9a3a'),
+    btn(92, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
   ]; };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); go(nightsScene()); } };
@@ -675,7 +677,7 @@ function titleScene(){
     T('BRAAAINS ON ICE', 0, -4, '#1d4fd8', 8, 'center', null);
     ctx.restore();
     T(rankOf()[1], 90, 122, '#b6ff4a', 8);
-    const st = totalStars(); tiny('$' + BANK.cash + '      ' + st + ' STARS', 90, 138, '#ffd23f', 'center', null); drawStar(108, 140, 0.6, true);
+    const st = totalStars(); tiny('$' + BANK.cash + '   ' + st + ' STARS', 90, 138, '#ffd23f', 'center', null);
     for (const tx of [14, 40, 128, 156]) tomb(tx, 160);
     R(0, 160, W, 4, '#3a2e52'); R(0, 164, W, 46, '#dfe9f8'); R(0, 164, W, 2, '#ffffff');
     const zx = ((TT * 34) % (W + 120)) - 50;
@@ -739,7 +741,9 @@ function nightResultScene(res){
     if (!paid){ paid = true; bonus = pay(got * CFG.pay.perStar); pr.best = Math.max(pr.best, avg); pr.stars = Math.max(pr.stars, got); saveProg();
       if (rankOf()[1] !== rank0) toast('NEW RANK: ' + rankOf()[1] + '!'); else if (firstClear && !last) toast('NIGHT ' + (res.night + 2) + ' UNLOCKED!'); }
     const again = () => go(zamboniScene({ mode: 'night', night: res.night })), garage = () => go(garageScene(() => go(nightsScene())));
-    bs = got && !last ? [btn(36, 212, 108, 22, 'NEXT NIGHT', () => go(zamboniScene({ mode: 'night', night: res.night + 1 })), '#b6ff4a'), btn(8, 240, 80, 20, 'GARAGE', garage, '#ffd23f'), btn(92, 240, 80, 20, 'AGAIN', again, '#ff9a3a'), btn(36, 266, 108, 20, 'NIGHTS', () => go(nightsScene()), '#c9a0ff')]
+    const overtime = () => go(feedScene({ after: () => { toast('SEASON 1 COMPLETE!'); go(nightsScene()); } }));
+    if (got && last){ bs = [btn(36, 212, 108, 22, 'OVERTIME!', overtime, '#ff9a3a'), btn(8, 240, 80, 20, 'GARAGE', garage, '#ffd23f'), btn(92, 240, 80, 20, 'AGAIN', again, '#c9a0ff')]; organ(DADADA, 0.13); }
+    else bs = got && !last ? [btn(36, 212, 108, 22, 'NEXT NIGHT', () => go(zamboniScene({ mode: 'night', night: res.night + 1 })), '#b6ff4a'), btn(8, 240, 80, 20, 'GARAGE', garage, '#ffd23f'), btn(92, 240, 80, 20, 'AGAIN', again, '#ff9a3a'), btn(36, 266, 108, 20, 'NIGHTS', () => go(nightsScene()), '#c9a0ff')]
                        : [btn(36, 212, 108, 22, 'AGAIN', again, got ? '#ff9a3a' : '#b6ff4a'), btn(8, 240, 80, 20, 'GARAGE', garage, '#ffd23f'), btn(92, 240, 80, 20, 'NIGHTS', () => go(nightsScene()), '#c9a0ff')];
     if (got){ SFX.win(); for (let k = 0; k < 3; k++) burst(parts, 90, 90, 18, CONF, 90, 80, 1.4); } else SFX.lose();
   };
@@ -763,7 +767,7 @@ function nightResultScene(res){
     tiny('1 STAR ' + line[0] + '%   2 STARS ' + line[1] + '%   3 STARS ' + line[2] + '%', 90, 154, '#8a7ab8', 'center', null);
     T('PAY $' + periodPay + (bonus ? ' + $' + bonus + ' STARS' : ''), 90, 168, '#ffd23f', 8);
     tiny('BANK $' + BANK.cash + '   ' + rankOf()[1], 90, 184, '#b6ff4a', 'center', null);
-    if (got && last && Math.floor(TT * 3) % 2) T('YOU ARE THE KING!', 90, 196, '#b6ff4a', 8);
+    if (got && last && Math.floor(TT * 3) % 2) T('SEASON OVER! OVERTIME!', 90, 196, '#ff9a3a', 8);
     else if (wasNew && !firstClear) tiny('NEW BEST!', 90, 198, '#b6ff4a', 'center', null);
     drawParts(parts);
     bs.forEach(drawBtn);
@@ -827,6 +831,120 @@ function garageScene(back){
         tiny(on ? 'ON' : own ? 'USE' : '$' + r.price, 148, y + 7, on ? '#b6ff4a' : own ? '#c9a0ff' : ok ? '#ffd23f' : '#6a5a8a', 'center', null);
       }
     });
+    bs.forEach(drawBtn);
+  };
+  return S;
+}
+
+/* =========================================================
+   OVERTIME — a stadium minigame at the end of every season. Beat it once and it's yours in MINIGAMES.
+   Season 1: FEED THE ZOMBIE. A zombie painted on a board slides across the ice; shoot the puck into his mouth.
+   ========================================================= */
+// the arena organ: CHARGE! and the da-da-da-da-da-da
+function organ(notes, step = 0.12){ notes.forEach((n, i) => { if (!n) return; tone(n, step * 1.5, 'square', 0.06, 0, i * step); tone(n * 2, step * 1.5, 'sine', 0.04, 0, i * step); tone(n / 2, step * 1.5, 'triangle', 0.06, 0, i * step); }); }
+const CHARGE = [392, 523, 659, 784, 0, 659, 784], DADADA = [523, 587, 659, 523, 587, 659, 0, 784, 784];
+const MINIS = [   // one per season; the mix-up mode plays them all, fast
+  { id: 'feed', name: 'FEED THE ZOMBIE', season: 1, desc: 'SHOOT THE PUCK INTO HIS MOUTH', scene: o => feedScene(o) },
+  { id: null, name: '???', season: 2, desc: 'BEAT SEASON 2 TO UNLOCK' },
+  { id: null, name: '???', season: 3, desc: 'BEAT SEASON 3 TO UNLOCK' },
+];
+function feedScene(opts = {}){
+  const S = { music: 'zomboni', quit: true, game: true }, SHOTS = 5, BY = 94;   // BY = the bottom of the board (the mouth)
+  let shots, made, puck, mx, mdir, gap, spd, t, over, overT, parts, floats, earned, chomp, bs, newBest;
+  S.enter = () => {
+    shots = 0; made = 0; puck = null; mx = 90; mdir = 1; gap = 26; spd = 34; t = 0; over = false; overT = 0; earned = 0; chomp = 0; parts = []; floats = []; newBest = false;
+    organ(DADADA, 0.13); floater(floats, 90, 150, opts.after ? 'OVERTIME!' : 'FEED THE ZOMBIE!', '#ff9a3a');
+    bs = [btn(36, 160, 108, 20, 'AGAIN', () => { SFX.pick(); S.enter(); }, '#ff9a3a'), btn(36, 186, 108, 20, opts.after ? 'SEASON DONE!' : 'DONE', () => opts.after ? opts.after() : go(minigamesScene()), '#b6ff4a')];
+  };
+  const aim = () => Math.sin(t * 2.2) * 0.5;
+  function shoot(){
+    if (puck || shots >= SHOTS || over) return;
+    const a = aim(); puck = { x: 90, y: 232, vx: Math.sin(a) * 230, vy: -Math.cos(a) * 230, done: false }; shots++; SFX.puck(); noise(0.08, 0.2, 2500);
+  }
+  S.down = p => { if (over){ if (overT > 0.8) hitBtn(bs, p); return; } shoot(); };
+  S.key = (c, dn, rep) => { if (!dn || rep) return; if (over){ if (overT > 0.8 && (c === 'Enter' || c === 'Space')){ SFX.tap(); bs[1].fn(); } return; } if (c === 'Space' || c === 'Enter' || c === 'ArrowUp' || c === 'KeyW') shoot(); };
+  S.update = dt => {
+    t += dt; stepParts(parts, dt); stepFloat(floats, dt); chomp = Math.max(0, chomp - dt);
+    mx += mdir * spd * dt; const lo = 30 + gap / 2 + 10, hi = 150 - gap / 2 - 10; if (mx < lo){ mx = lo; mdir = 1; } if (mx > hi){ mx = hi; mdir = -1; }
+    if (over){ overT += dt; return; }
+    if (puck){
+      puck.x += puck.vx * dt; puck.y += puck.vy * dt;
+      if (puck.x < 28 || puck.x > 152){ puck.vx *= -1; puck.x = clamp(puck.x, 28, 152); tone(900, 0.04, 'square', 0.1); }   // off the boards
+      if (!puck.done && puck.y <= BY){
+        puck.done = true;
+        if (Math.abs(puck.x - mx) < gap / 2 - 2){   // NOM
+          made++; chomp = 0.6; puck = null; organ(CHARGE, 0.1);
+          floater(floats, mx, BY - 34, pick(['NOM NOM!', 'BRAAAINS!', 'CHOMP!', 'YUM!']), '#b6ff4a'); burst(parts, mx, BY - 4, 18, CONF, 80, 60, 1, 2);
+          gap = Math.max(13, gap - 3); spd += 16;
+        } else { puck.vy = 120; puck.vx *= 0.5; puck.y = BY + 1; noise(0.12, 0.3, 900); floater(floats, clamp(puck.x, 40, 140), BY - 8, pick(['CLANK!', 'NOPE!', 'MISS!']), '#ffffff'); SFX.nope(); }
+      }
+      if (puck && puck.y > 252) puck = null;
+    }
+    if (!puck && shots >= SHOTS){
+      over = true; overT = 0; earned = pay(made * 10 + (made === SHOTS ? 25 : 0));
+      if (made > (BANK.miniBest.feed || 0)){ BANK.miniBest.feed = made; newBest = true; saveBank(); }
+      if (unlockMini('feed')) toast('NEW MINIGAME UNLOCKED!');
+      if (made === SHOTS){ SFX.win(); organ(CHARGE, 0.1); for (let k = 0; k < 4; k++) burst(parts, rnd(40, 140), rnd(60, 160), 18, CONF, 90, 60, 1.4); } else jingle([523, 659, 784], 0.08);
+    }
+  };
+  S.draw = () => {
+    R(0, 0, W, H, '#120a22'); if (rinkArt()) drawRinkArt();
+    // the board across the ice
+    R(24, 69, 132, 27, '#000'); R(25, 70, 130, 25, '#8a5a32'); for (let k = 0; k < 4; k++) R(25, 75 + k * 6, 130, 1, '#6a4020'); R(25, 70, 130, 2, '#b07a48');
+    tiny('FEED', 36, 80, '#ffd23f', 'left', null); tiny('ME!', 146, 80, '#ffd23f', 'right', null);
+    // the zombie painted on it: his mouth is the hole
+    const hx = Math.round(mx), r = gap / 2 + 8, open = chomp > 0 ? Math.abs(Math.cos(chomp * 18)) : 1;
+    C(hx, 77, r + 1, '#1a2a14'); C(hx, 77, r, '#6ad04a'); C(hx + 3, 80, r * 0.6, '#5ab03a');
+    E(hx, 77 - r + 3, r * 0.75, 4, '#ff8aa8'); R(hx - 3, 77 - r + 2, 1, 2, '#d0507a'); R(hx + 2, 77 - r + 1, 1, 2, '#d0507a');   // brain
+    C(hx - 6, 74, 3, '#fff07a'); C(hx + 6, 74, 3, '#fff07a'); R(hx - 6, 74, 1, 1, '#000'); R(hx + 6, 73, 1, 1, '#000');
+    const mh = Math.max(2, Math.round(10 * open)); R(hx - gap / 2, BY - mh, gap, mh, '#1a0408');
+    for (let x = hx - gap / 2 + 1; x < hx + gap / 2 - 1; x += 4) R(x, BY - mh, 2, 2, '#f4ecd8');
+    // the aim arrow
+    if (!puck && !over && shots < SHOTS){ const a = aim(); for (let k = 2; k < 10; k++) R(90 + Math.sin(a) * k * 6 - 1, 232 - Math.cos(a) * k * 6 - 1, 2, 2, k % 2 ? '#ffd23f' : '#ffffff'); C(90, 232, 4, '#000'); C(90, 231.5, 3.4, '#2a2a33'); }
+    if (puck){ C(puck.x, puck.y, 4, '#000'); C(puck.x, puck.y - 0.5, 3.4, '#2a2a33'); }
+    for (let k = 0; k < SHOTS; k++){ const x = 62 + k * 14; C(x, 244, 4, k < shots ? '#5a4a7a' : '#000'); if (k >= shots) C(x, 243.5, 3.4, '#2a2a33'); }
+    drawParts(parts); drawFloat(floats);
+    R(0, 0, W, 29, '#120a22');
+    T(opts.after ? 'OVERTIME' : 'MINIGAME', 90, 5, '#ff9a3a', 8); T('FED ' + made + '/' + SHOTS, 90, 18, '#b6ff4a', 8);
+    R(0, 256, W, 64, '#120a22');
+    if (!over){ T('TAP TO SHOOT!', 90, 268, Math.floor(TT * 3) % 2 ? '#ffd23f' : '#ffffff', 8); tiny('AIM FOR THE MOUTH', 90, 284, '#8a7ab8', 'center', null); }
+    if (over){
+      R(14, 96, 152, 116, 'rgba(18,10,34,.92)'); R(14, 96, 152, 1, '#ff9a3a'); R(14, 211, 152, 1, '#ff9a3a');
+      T(made === SHOTS ? 'PERFECT!' : 'FED ' + made + '/' + SHOTS, 90, 104, made === SHOTS ? '#9ce8ff' : '#ffd23f', 16);
+      T('PAID $' + earned, 90, 128, '#ffd23f', 8);
+      tiny(newBest ? 'NEW BEST!' : 'BEST ' + (BANK.miniBest.feed || 0) + '/' + SHOTS, 90, 144, '#b6ff4a', 'center', null);
+      if (overT > 0.8) bs.forEach(drawBtn);
+    }
+  };
+  return S;
+}
+/* ---------- MINIGAMES: everything you've unlocked in Overtime ---------- */
+function minigamesScene(){
+  const S = { music: 'zomboni', quit: true }; let bs;
+  const has = m => m.id && BANK.minis.includes(m.id), mixReady = () => BANK.minis.length >= 3;
+  S.enter = () => { bs = [btn(46, 262, 88, 20, 'BACK', () => go(titleScene()), '#c9a0ff')]; };
+  S.down = p => {
+    if (hitBtn(bs, p)) return;
+    MINIS.forEach((m, i) => { if (inBox(p, 10, 54 + i * 44, 160, 38)){ if (has(m)){ SFX.pick(); go(m.scene({})); } else { SFX.nope(); toast('BEAT SEASON ' + m.season + ' TO UNLOCK!'); } } });
+    if (inBox(p, 10, 54 + MINIS.length * 44 + 6, 160, 38)){ SFX.nope(); toast(mixReady() ? 'COMING SOON!' : 'UNLOCK 3 MINIGAMES FIRST!'); }
+  };
+  S.key = (c, dn) => { if (dn && c === 'Escape') go(titleScene()); if (dn && (c === 'Enter' || c === 'Space') && has(MINIS[0])) go(MINIS[0].scene({})); };
+  S.draw = () => {
+    nightSky(8); moon(150, 20, 8);
+    T('MINIGAMES', 90, 12, '#ff9a3a', 12);
+    tiny('BEAT A SEASON TO UNLOCK ITS OVERTIME', 90, 34, '#8a7ab8', 'center', null);
+    MINIS.forEach((m, i) => {
+      const y = 54 + i * 44, ok = has(m);
+      R(12, y + 2, 160, 38, '#000'); R(10, y, 160, 38, ok ? '#2a1446' : '#1a1030'); R(10, y, 160, 2, ok ? '#ff9a3a' : '#3a2e52');
+      tiny('SEASON ' + m.season, 16, y + 6, ok ? '#c9a0ff' : '#5a4a7a', 'left', null);
+      T(ok ? m.name : '???', 16, y + 14, ok ? '#ffd23f' : '#5a4a7a', 8, 'left');
+      tiny(ok ? m.desc : 'LOCKED', 16, y + 28, ok ? '#8a7ab8' : '#5a4a7a', 'left', null);
+      if (ok && BANK.miniBest[m.id] !== undefined) tiny('BEST ' + BANK.miniBest[m.id], 164, y + 6, '#b6ff4a', 'right', null);
+    });
+    const y = 54 + MINIS.length * 44 + 6;
+    R(12, y + 2, 160, 38, '#000'); R(10, y, 160, 38, '#140c2a'); R(10, y, 160, 2, mixReady() ? '#b6ff4a' : '#3a2e52');
+    T('ZOMBIE MIX-UP', 16, y + 8, mixReady() ? '#b6ff4a' : '#5a4a7a', 8, 'left');
+    tiny('ALL YOUR MINIGAMES, SUPER FAST!', 16, y + 20, '#5a4a7a', 'left', null); tiny(mixReady() ? 'COMING SOON' : 'UNLOCK 3 MINIGAMES', 16, y + 28, '#5a4a7a', 'left', null);
     bs.forEach(drawBtn);
   };
   return S;
@@ -1408,7 +1526,7 @@ function frame(now){
     R(x, 40, w, h, '#000'); R(x + 1, 41, w - 2, h - 2, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(lines.join('\n'), CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__ZB = { CFG, garageScene, get BANK(){ return BANK; }, get scene(){ return scene; }, go, titleScene, nightsScene, zamboniScene, nightResultScene, PROG, get layout(){ return LAYOUT; } };
+window.__ZB = { CFG, feedScene, minigamesScene, garageScene, get BANK(){ return BANK; }, get scene(){ return scene; }, go, titleScene, nightsScene, zamboniScene, nightResultScene, PROG, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();
