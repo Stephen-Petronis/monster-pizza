@@ -597,7 +597,7 @@ function drawPlate(m, frac, label, P_, key){
 const KEY = 'monster-ice-v1';
 let muted = false; try { muted = localStorage.getItem(KEY + '-mute') === '1'; } catch (e) {}
 // OPTIONS screen settings, kept on the device. music / sfx = volume 0..1 (1 = the normal level). autoSwitch = jump to the skater nearest the puck on defence.
-const OPT = { music: 1, sfx: 1, autoSwitch: true };
+const OPT = { music: 1, sfx: 1, autoSwitch: true, picked: false };   // picked = they've chosen AUTO / MANUAL after their first game
 try { Object.assign(OPT, JSON.parse(localStorage.getItem(KEY + '-opt') || '{}')); } catch (e) {}
 function saveOpt(){ try { localStorage.setItem(KEY + '-opt', JSON.stringify(OPT)); } catch (e) {} }
 const sfxGain = () => muted ? 0 : 0.3 * OPT.sfx;
@@ -1245,6 +1245,26 @@ function shopScene(back){
   return S;
 }
 
+/* ---------- FIRST GAME: AUTO OR MANUAL SWITCHING? ---------- */
+const trialSwitch = () => !OPT.picked && !G.twoP && !G.online && !G.demo;
+function switchPickScene(next){
+  const S = { quit: false }; let bs;
+  const choose = auto => { OPT.autoSwitch = auto; OPT.picked = true; saveOpt(); SFX.pick(); next(); };
+  S.enter = () => { bs = [btn(14, 116, 152, 28, 'AUTO', () => choose(true), '#b6ff4a'), btn(14, 196, 152, 28, 'MANUAL', () => choose(false), '#ff9a3a')]; };
+  S.down = p => hitBtn(bs, p);
+  S.key = (c, dn) => { if (!dn) return; if (c === 'Digit1' || c === 'KeyA') choose(true); else if (c === 'Digit2' || c === 'KeyM') choose(false); };
+  S.draw = () => {
+    nightSky(4); moon(150, 30, 10);
+    T('AUTO OR\nMANUAL?', 90, 40, '#ffd23f', 12);
+    T('YOU TRIED BOTH!', 90, 92, '#c9b8f0', 8);
+    bs.forEach(drawBtn);
+    T('PERIOD 1. THE GAME\nPICKS YOUR MONSTER', 90, 152, '#d8ffb8', 8);
+    T('PERIOD 2. YOU TAP\nSWAP TO CHANGE', 90, 232, '#ffd8b0', 8);
+    tiny('CHANGE IT ANYTIME IN OPTIONS', 90, 278, '#8a7ab8');
+  };
+  return S;
+}
+
 /* ---------- OPTIONS ---------- */
 function optionsScene(back){
   const S = { quit: true }; let bs, drag = null;
@@ -1253,7 +1273,7 @@ function optionsScene(back){
   const setVol = (k, x) => { OPT[k] = Math.round(clamp((x - BAR.x) / BAR.w, 0, 1) * 10) / 10; if (k === 'sfx' && MG) MG.gain.value = sfxGain(); else musicApply(0.05); saveOpt(); };
   const leave = () => back ? back() : go(titleScene());
   S.enter = () => { bs = [
-    btn(30, 200, 120, 22, '', () => { OPT.autoSwitch = !OPT.autoSwitch; saveOpt(); }, '#b6ff4a'),
+    btn(30, 200, 120, 22, '', () => { OPT.autoSwitch = !OPT.autoSwitch; OPT.picked = true; saveOpt(); }, '#b6ff4a'),
     btn(46, 286, 88, 22, 'BACK', leave, '#c9a0ff'),
   ]; if (STORE) bs.push(btn(24, 262, 132, 18, SHOP.prem ? 'RESTORE PURCHASE' : 'NO ADS + ZOMBONI', () => SHOP.prem ? shopRestore() : go(shopScene(() => go(optionsScene(back)))), '#ffd23f')); };
   const rowAt = p => ROWS.find(r => p.y > r[3] + 4 && p.y < r[3] + 30 && p.x > BAR.x - 12 && p.x < BAR.x + BAR.w + 12);
@@ -1736,6 +1756,7 @@ function gameScene(){
     us = G.team.map((id, i) => mk(0, i, id)); them = G.cpu.map((id, i) => mk(1, i, id)); all = us.concat(them);
     gU = { team: 0, x: 90, y: RK.gb - 4 }; gT = { team: 1, x: 90, y: RK.gt + 6 };
     clock = CFG.periodMinutes * 60; period = 1; score = [0, 0]; opening = true; parts = []; floats = []; flash = 0; load(P[0]); faceoff();
+    if (trialSwitch()){ P[0].auto = true; setTimeout(() => toast('AUTO-SWITCH IS ON: YOU JUMP TO THE MONSTER NEAREST THE PUCK'), 2600); }
     ALL0.length = 0; ALL0.push(...all); NET.rec = G.online === 'host'; NET.sfx = []; NET.last = null; gApplied = null;
     NET.inputs.length = 0; netJn = 0; netJs = 0; G.wasOnline = !!G.online;
   };
@@ -2389,7 +2410,8 @@ function gameScene(){
     }
     else end();
   }
-  function nextPeriod(){ offer = null; period++; clock = period <= CFG.periods ? CFG.periodMinutes * 60 : 0; faceoff(); }
+  function nextPeriod(){ offer = null; period++;
+    if (trialSwitch() && period === 2){ P[0].auto = false; setTimeout(() => toast('PERIOD 2 IS MANUAL: TAP SWAP TO CHANGE MONSTERS'), 1200); } clock = period <= CFG.periods ? CFG.periodMinutes * 60 : 0; faceoff(); }
   // the between-periods offer (world coords): drive the Zomboni for 15s, or skip
   const OFFER = { drive: btn(26, 162, 128, 24, 'DRIVE 15 SEC', () => takeOffer(0), '#b6ff4a'), skip: btn(46, 193, 88, 18, 'SKIP', () => takeOffer(1), '#c9a0ff') };
   function takeOffer(k){
@@ -2401,6 +2423,7 @@ function gameScene(){
   function finish(){
     if (G.online === 'host'){ const r = { us: score[0], them: score[1], ot: period > CFG.periods, twoP: true, online: true }; netSend({ t: 'end', res: r }); NET.peerTeam = null; NET.rec = false; go(resultScene({ ...r, me: 0 })); return; }
     const res = { us: score[0], them: score[1], win: score[0] > score[1], tie: score[0] === score[1], ot: period > CFG.periods, twoP: !!G.twoP, disp: score[0] + '-' + score[1] + (D === CFG.difficulty.easy ? ' EZ' : D === CFG.difficulty.nightmare ? ' NM' : ''), key: -((score[0] - score[1]) * 100 + score[0]) };
+    if (trialSwitch()){ go(switchPickScene(() => go(resultScene(res)))); return; }   // first game ever: they've tried both, now they pick
     go(resultScene(res));   // (the high score board is the Zomboni now)
   }
 
@@ -3634,7 +3657,7 @@ function frame(now){
     R(x, 40, w, h, '#000'); R(x + 1, 41, w - 2, h - 2, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(lines.join('\n'), CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, NET, toast, OPT, optionsScene, shopScene, SHOP, setPrem, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { CFG, NET, toast, OPT, switchPickScene, optionsScene, shopScene, SHOP, setPrem, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();
