@@ -96,9 +96,9 @@ const CFG = {
      menu = title, menus and the Zamboni. game = during hockey games (starts over each game). fight = when the gloves come off.
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
-  /* ADS + REMOVE ADS (iPhone / iPad app only; the website has neither). Google AdMob interstitial after every other finished game,
+  /* ADS + REMOVE ADS (iPhone / iPad app only; the website has neither). Google AdMob interstitial after every 3rd finished game,
      never the first. test: true shows Google's test ads (keep it on while testing on your own phone: tapping your own real ads can get the AdMob account suspended). Set false for the App Store build. */
-  ads: { test: true, every: 2, iosInterstitial: 'ca-app-pub-3741719178180276/7498182141', removeAdsId: 'com.stephenpetronis.monsterhockey.removeads', webZomboni: true },
+  ads: { test: true, every: 3, iosInterstitial: 'ca-app-pub-3741719178180276/7498182141', removeAdsId: 'com.stephenpetronis.monsterhockey.removeads', webZomboni: true },
   zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8, ghosts: 3, slowTime: 1.5, slowMult: 0.45 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
@@ -639,7 +639,7 @@ function shopRestore(){
 // a finished game counts once; every CFG.ads.every-th one (never the first) shows an ad before you leave the result screen
 function gameDone(){ SHOP.games++; try { localStorage.setItem(KEY + '-games', SHOP.games); } catch (e) {} return SHOP.games; }
 function adThen(n, fn){
-  const due = ADMOB && !SHOP.prem && SHOP.adReady && n >= 2 && n % CFG.ads.every === 0;
+  const due = ADMOB && !SHOP.prem && SHOP.adReady && n >= CFG.ads.every && n % CFG.ads.every === 0;
   if (!due){ fn(); return; }
   let done = false; const hs = [];
   const finish = () => { if (done) return; done = true; hs.forEach(h => h && h.then && h.then(x => x.remove()).catch(() => {})); audioBack(); adLoad(); fn(); };
