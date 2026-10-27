@@ -1223,7 +1223,7 @@ function moon(x, y, r){ C(x, y, r + 4, 'rgba(255,243,196,.08)'); C(x, y, r, '#ff
 function tomb(x, y){ R(x - 5, y - 10, 10, 10, '#3a2e52'); C(x, y - 10, 5, '#3a2e52'); R(x - 1, y - 11, 2, 6, '#5a4a7a'); R(x - 3, y - 9, 6, 2, '#5a4a7a'); }
 
 /* ---------- REMOVE ADS SHOP ---------- */
-function shopScene(back){
+function shopScene(back, zfirst){   // zfirst = they tapped the locked ZOMBONI (lead with the Zomboni)
   const S = { quit: true }; let bs, parts = [], wasPrem = SHOP.prem;
   const leave = () => back ? back() : go(titleScene());
   S.enter = () => { bs = [btn(24, 196, 132, 30, 'BUY', shopBuy, '#b6ff4a'), btn(24, 238, 132, 20, 'RESTORE PURCHASE', shopRestore, '#9ce8ff'), btn(46, 286, 88, 22, 'BACK', leave, '#c9a0ff')]; };
@@ -1232,12 +1232,12 @@ function shopScene(back){
   S.key = (c, dn) => { if (dn && c === 'Escape') leave(); };
   S.draw = () => {
     nightSky(14); moon(150, 30, 10);
-    T('NO ADS', 90, 34, '#b6ff4a', 16);
-    T('+ BONUS MODE', 90, 62, '#ffd23f', 8);
+    if (zfirst){ T('UNLOCK THE\nZOMBONI', 90, 28, '#b6ff4a', 12); T('+ NO MORE ADS', 90, 66, '#ffd23f', 8); }
+    else { T('NO ADS', 90, 34, '#b6ff4a', 16); T('+ BONUS MODE', 90, 62, '#ffd23f', 8); }
     drawMonster(MON.frank, 44, 122, 2, TEAM[0], { fx: 0.5, fy: 0.2 });
     ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(ZOMB, (Math.floor(TT * 6) % 4) * 64, 0, 64, 40, 96 + Math.sin(TT * 2) * 4, 84, 64, 40); ctx.restore();
     T('ZOMBIE ZOMBONI', 90, 132, '#b6ff4a', 8);
-    T(SHOP.prem ? 'ALL YOURS. THANK YOU!' : 'NO ADS. EVER.\nPLUS THE ZOMBONI\nON THE MENU, ANYTIME', 90, 150, '#f7efe0', 8);
+    T(SHOP.prem ? 'ALL YOURS. THANK YOU!' : zfirst ? 'DRIVE IT ANYTIME\nFROM THE MENU. AND\nNO ADS, EVER.' : 'NO ADS. EVER.\nPLUS THE ZOMBONI\nON THE MENU, ANYTIME', 90, 150, '#f7efe0', 8);
     if (SHOP.prem){ drawBtn(Object.assign({}, bs[0], { label: 'DRIVE THE ZOMBONI' })); }
     else { bs[0].label = SHOP.busy ? '...' : 'BUY  ' + SHOP.price; bs[0].dim = SHOP.busy || !STORE; drawBtn(bs[0]); drawBtn(bs[1]); if (!STORE) tiny('BUY IT IN THE IPHONE / IPAD APP', 90, 264, '#8a7ab8'); }
     drawBtn(bs[2]); drawParts(parts);
@@ -1311,7 +1311,7 @@ function titleScene(){
     btn(8, 250, 80, 20, 'ONLINE', () => go(onlineScene()), '#5cc8ff'),
     btn(92, 250, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
     btn(8, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
-    btn(92, 274, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene()); }, '#b6ff4a'),
+    btn(92, 274, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene(null, true)); }, '#b6ff4a'),
     btn(8, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
     btn(92, 298, 80, 18, 'OPTIONS', () => go(optionsScene()), '#9ce8ff'),
   ]; if (!zomboniOpen()) bs[4].lock = true; };
