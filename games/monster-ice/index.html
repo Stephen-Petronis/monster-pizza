@@ -612,6 +612,9 @@ function audioInit(){
   musicStart();
 }
 ['touchend', 'pointerup', 'click', 'keydown'].forEach(ev => addEventListener(ev, () => { if (!AC || AC.state !== 'running') audioInit(); }, { passive: true }));
+// In the iPhone / iPad app sound is allowed without a tap, so the music starts as soon as the game opens.
+// (On the website the browser still waits for the first tap; the listeners above handle that.)
+if (window.Capacitor) setTimeout(() => { try { audioInit(); } catch (e) {} }, 300);
 // Leaving the app (home screen, another app, phone locked) silences everything; coming back picks the music up again.
 let audioAway = false;
 function audioAwayNow(){ audioAway = true; if (AC && AC.state === 'running') try { AC.suspend(); } catch (e) {} }
