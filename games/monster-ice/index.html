@@ -96,6 +96,9 @@ const CFG = {
      menu = title, menus and the Zamboni. game = during hockey games (starts over each game). fight = when the gloves come off.
      A missing menu song falls back to the game song. Only Stephen's songs ever play. */
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
+  /* ADS + REMOVE ADS (iPhone / iPad app only; the website has neither). Google AdMob interstitial after every other finished game,
+     never the first. test: true shows Google's test ads; switch to false with your own IDs before release. */
+  ads: { test: true, every: 2, iosInterstitial: 'ca-app-pub-3940256099942544/4411468910', removeAdsId: 'com.stephenpetronis.monsterhockey.removeads', webZomboni: true },
   zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8, ghosts: 3, slowTime: 1.5, slowMult: 0.45 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
@@ -598,6 +601,48 @@ const OPT = { music: 1, sfx: 1, autoSwitch: true };
 try { Object.assign(OPT, JSON.parse(localStorage.getItem(KEY + '-opt') || '{}')); } catch (e) {}
 function saveOpt(){ try { localStorage.setItem(KEY + '-opt', JSON.stringify(OPT)); } catch (e) {} }
 const sfxGain = () => muted ? 0 : 0.3 * OPT.sfx;
+/* ---------- REMOVE ADS / ADS ---------- */
+const CAPP = (n) => { try { const C = window.Capacitor; if (!C || !C.isPluginAvailable || !C.isPluginAvailable(n)) return null; return (C.Plugins && C.Plugins[n]) || (C.registerPlugin && C.registerPlugin(n)) || null; } catch (e) { return null; } };
+const STORE = CAPP('Store'), ADMOB = CAPP('AdMob');
+const SHOP = { prem: false, price: '$1.99', busy: false, games: 0, adReady: false };
+try { SHOP.prem = localStorage.getItem(KEY + '-noads') === '1'; SHOP.games = +localStorage.getItem(KEY + '-games') || 0; } catch (e) {}
+function setPrem(on){ SHOP.prem = !!on; try { localStorage.setItem(KEY + '-noads', on ? '1' : '0'); } catch (e) {} }
+const zomboniOpen = () => SHOP.prem || (!STORE && CFG.ads.webZomboni);   // the bonus Zomboni mode: bought in the app, free on the website
+function shopInit(){
+  if (STORE){
+    STORE.addListener('owned', e => setPrem((e.ids || []).includes(CFG.ads.removeAdsId)));
+    STORE.owned().then(r => { if (r && Array.isArray(r.ids)) setPrem(r.ids.includes(CFG.ads.removeAdsId)); }).catch(() => {});
+    STORE.products({ ids: [CFG.ads.removeAdsId] }).then(r => { const it = r && r.items && r.items[0]; if (it) SHOP.price = it.price; }).catch(() => {});
+  }
+  if (ADMOB && !SHOP.prem){
+    ADMOB.addListener('interstitialAdLoaded', () => { SHOP.adReady = true; });
+    ADMOB.addListener('interstitialAdFailedToLoad', () => { SHOP.adReady = false; });
+    ADMOB.initialize({ initializeForTesting: !!CFG.ads.test }).then(adLoad).catch(() => {});
+  }
+}
+function adLoad(){ if (!ADMOB || SHOP.prem) return; SHOP.adReady = false; ADMOB.prepareInterstitial({ adId: CFG.ads.iosInterstitial, isTesting: !!CFG.ads.test, npa: true }).catch(() => {}); }
+function shopBuy(){
+  if (!STORE || SHOP.busy) return; SHOP.busy = true;
+  STORE.buy({ id: CFG.ads.removeAdsId }).then(r => { SHOP.busy = false; if (r && r.ok){ setPrem(true); SFX.win(); toast('NO MORE ADS. ENJOY THE ZOMBONI!'); } else if (r && r.pending) toast('WAITING FOR A GROWN-UP TO SAY YES'); else if (r && r.msg) toast(r.msg); })
+    .catch(() => { SHOP.busy = false; toast('STORE TROUBLE. TRY AGAIN'); });
+}
+function shopRestore(){
+  if (!STORE || SHOP.busy) return; SHOP.busy = true;
+  STORE.restore().then(r => { SHOP.busy = false; const on = r && (r.ids || []).includes(CFG.ads.removeAdsId); if (on){ setPrem(true); SFX.win(); toast('PURCHASE RESTORED!'); } else toast('NOTHING TO RESTORE ON THIS APPLE ID'); })
+    .catch(() => { SHOP.busy = false; toast('STORE TROUBLE. TRY AGAIN'); });
+}
+// a finished game counts once; every CFG.ads.every-th one (never the first) shows an ad before you leave the result screen
+function gameDone(){ SHOP.games++; try { localStorage.setItem(KEY + '-games', SHOP.games); } catch (e) {} return SHOP.games; }
+function adThen(n, fn){
+  const due = ADMOB && !SHOP.prem && SHOP.adReady && n >= 2 && n % CFG.ads.every === 0;
+  if (!due){ fn(); return; }
+  let done = false; const hs = [];
+  const finish = () => { if (done) return; done = true; hs.forEach(h => h && h.then && h.then(x => x.remove()).catch(() => {})); audioBack(); adLoad(); fn(); };
+  hs.push(ADMOB.addListener('interstitialAdDismissed', finish), ADMOB.addListener('interstitialAdFailedToShow', finish));
+  audioAwayNow(); SHOP.adReady = false;
+  ADMOB.showInterstitial().catch(finish);
+  setTimeout(() => { if (!done && !document.hidden) finish(); }, 90000);   // never get stuck behind an ad
+}
 const G = { team: null, cpu: null, cpuName: '', diff: 'hard', online: null };   // online: 'host' | 'guest' | null
 try { const d = localStorage.getItem('monster-ice-v1-diff'); if (d === 'easy' || d === 'hard' || d === 'nightmare') G.diff = d; } catch (e) {}
 try { const t = JSON.parse(localStorage.getItem(KEY + '-team') || 'null'); if (Array.isArray(t) && t.length === 3 && t.every(id => MON[id])) G.team = t; } catch (e) {}
@@ -626,7 +671,8 @@ function audioAwayNow(){ audioAway = true; if (AC && AC.state === 'running') try
 function audioBack(){ if (!audioAway) return; audioAway = false; if (AC && AC.state !== 'running') try { AC.resume(); } catch (e) {} }
 document.addEventListener('visibilitychange', () => { if (document.hidden) audioAwayNow(); else audioBack(); });
 addEventListener('pagehide', audioAwayNow); addEventListener('pageshow', audioBack);
-document.addEventListener('pause', audioAwayNow); document.addEventListener('resume', audioBack);   // the iOS app's own "went to background / came back" signals
+document.addEventListener('pause', audioAwayNow); document.addEventListener('resume', audioBack);
+setTimeout(() => { try { shopInit(); } catch (e) {} }, 500);   // the iOS app's own "went to background / came back" signals
 /* ---------- MUSIC: a little spooky chiptune loop (Am - F - Dm - E) ---------- */
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
 const BASS = [45, 57, 45, 57, 45, 57, 45, 57, 41, 53, 41, 53, 41, 53, 41, 53, 38, 50, 38, 50, 38, 50, 38, 50, 40, 52, 40, 52, 44, 56, 40, 52];
@@ -1171,6 +1217,29 @@ function nightSky(seed = 1){
 function moon(x, y, r){ C(x, y, r + 4, 'rgba(255,243,196,.08)'); C(x, y, r, '#fff3c4'); C(x - r * 0.35, y - r * 0.2, r * 0.22, '#eadfa8'); C(x + r * 0.3, y + r * 0.35, r * 0.15, '#eadfa8'); }
 function tomb(x, y){ R(x - 5, y - 10, 10, 10, '#3a2e52'); C(x, y - 10, 5, '#3a2e52'); R(x - 1, y - 11, 2, 6, '#5a4a7a'); R(x - 3, y - 9, 6, 2, '#5a4a7a'); }
 
+/* ---------- REMOVE ADS SHOP ---------- */
+function shopScene(back){
+  const S = { quit: true }; let bs, parts = [], wasPrem = SHOP.prem;
+  const leave = () => back ? back() : go(titleScene());
+  S.enter = () => { bs = [btn(24, 196, 132, 30, 'BUY', shopBuy, '#b6ff4a'), btn(24, 238, 132, 20, 'RESTORE PURCHASE', shopRestore, '#9ce8ff'), btn(46, 286, 88, 22, 'BACK', leave, '#c9a0ff')]; };
+  S.update = dt => { stepParts(parts, dt); if (SHOP.prem && !wasPrem){ wasPrem = true; for (let k = 0; k < 4; k++) burst(parts, 90, 120, 20, CONF, 90, 80, 1.6); } };
+  S.down = p => { if (SHOP.prem){ if (inBox(p, 24, 196, 132, 30)){ SFX.tap(); G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); return; } return hitBtn([bs[2]], p); } hitBtn(bs, p); };
+  S.key = (c, dn) => { if (dn && c === 'Escape') leave(); };
+  S.draw = () => {
+    nightSky(14); moon(150, 30, 10);
+    T('NO ADS', 90, 34, '#b6ff4a', 16);
+    T('+ BONUS MODE', 90, 62, '#ffd23f', 8);
+    drawMonster(MON.frank, 44, 122, 2, TEAM[0], { fx: 0.5, fy: 0.2 });
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(ZOMB, (Math.floor(TT * 6) % 4) * 64, 0, 64, 40, 96 + Math.sin(TT * 2) * 4, 84, 64, 40); ctx.restore();
+    T('ZOMBIE ZOMBONI', 90, 132, '#b6ff4a', 8);
+    T(SHOP.prem ? 'ALL YOURS. THANK YOU!' : 'NO ADS. EVER.\nPLUS THE ZOMBONI\nON THE MENU, ANYTIME', 90, 150, '#f7efe0', 8);
+    if (SHOP.prem){ drawBtn(Object.assign({}, bs[0], { label: 'DRIVE THE ZOMBONI' })); }
+    else { bs[0].label = SHOP.busy ? '...' : 'BUY  ' + SHOP.price; bs[0].dim = SHOP.busy || !STORE; drawBtn(bs[0]); drawBtn(bs[1]); if (!STORE) tiny('BUY IT IN THE IPHONE / IPAD APP', 90, 264, '#8a7ab8'); }
+    drawBtn(bs[2]); drawParts(parts);
+  };
+  return S;
+}
+
 /* ---------- OPTIONS ---------- */
 function optionsScene(back){
   const S = { quit: true }; let bs, drag = null;
@@ -1181,7 +1250,7 @@ function optionsScene(back){
   S.enter = () => { bs = [
     btn(30, 200, 120, 22, '', () => { OPT.autoSwitch = !OPT.autoSwitch; saveOpt(); }, '#b6ff4a'),
     btn(46, 286, 88, 22, 'BACK', leave, '#c9a0ff'),
-  ]; };
+  ]; if (STORE) bs.push(btn(24, 262, 132, 18, SHOP.prem ? 'RESTORE PURCHASE' : 'NO ADS + ZOMBONI', () => SHOP.prem ? shopRestore() : go(shopScene(() => go(optionsScene(back)))), '#ffd23f')); };
   const rowAt = p => ROWS.find(r => p.y > r[3] + 4 && p.y < r[3] + 30 && p.x > BAR.x - 12 && p.x < BAR.x + BAR.w + 12);
   S.down = p => { const r = rowAt(p); if (r){ drag = { id: p.id, k: r[0] }; setVol(r[0], p.x); return; } hitBtn(bs, p); };
   S.move = p => { if (drag && p.id === drag.id){ setVol(drag.k, p.x); } };
@@ -1202,8 +1271,8 @@ function optionsScene(back){
     }
     T('AUTO-SWITCH', 90, 184, '#b6ff4a', 8);
     const b = bs[0]; b.label = OPT.autoSwitch ? 'ON' : 'OFF'; b.col = OPT.autoSwitch ? '#b6ff4a' : '#7a6a9a'; drawBtn(b);
-    T(OPT.autoSwitch ? 'ON DEFENCE YOU JUMP TO\nTHE MONSTER NEAREST\nTHE PUCK' : 'YOU KEEP YOUR MONSTER\nUNTIL YOU TAP SWAP,\nPASS, OR GET THE PUCK', 90, 232, '#c9b8f0', 8);
-    bs[1] && drawBtn(bs[1]);
+    T(OPT.autoSwitch ? 'ON DEFENCE YOU JUMP TO\nTHE MONSTER NEAREST\nTHE PUCK' : 'YOU KEEP YOUR MONSTER\nUNTIL YOU TAP SWAP,\nPASS, OR GET THE PUCK', 90, 226, '#c9b8f0', 8);
+    for (const x of bs.slice(1)) drawBtn(x);
   };
   return S;
 }
@@ -1213,12 +1282,13 @@ function titleScene(){
   const S = {}; let bs;
   S.enter = () => { bs = [
     btn(36, 226, 108, 20, '1 PLAYER', () => { G.twoP = false; G.online = null; go(diffScene()); }),
-    btn(36, 250, 108, 20, 'PLAY ONLINE', () => go(onlineScene()), '#5cc8ff'),
-    btn(8, 274, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
-    btn(92, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
+    btn(8, 250, 80, 20, 'ONLINE', () => go(onlineScene()), '#5cc8ff'),
+    btn(92, 250, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
+    btn(8, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
+    btn(92, 274, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene()); }, '#b6ff4a'),
     btn(8, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
     btn(92, 298, 80, 18, 'OPTIONS', () => go(optionsScene()), '#9ce8ff'),
-  ]; };
+  ]; if (!zomboniOpen()) bs[4].lock = true; };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; G.online = null; go(diffScene()); } };
   S.draw = () => {
@@ -1249,6 +1319,7 @@ function titleScene(){
     });
     T('3 ON 3 SPOOKY HOCKEY', 90, 138, '#c9a0ff', 8);
     bs.forEach(drawBtn);
+    if (bs[4].lock){ const b = bs[4], x = b.x + b.w - 5, y = b.y - 6; ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 3.5, y + 4, 3, Math.PI, 0); ctx.stroke(); ctx.restore(); R(x - 1, y + 4, 9, 8, '#000'); R(x, y + 5, 7, 6, '#ffd23f'); R(x + 3, y + 7, 1, 2, '#000'); }
   };
   return S;
 }
@@ -3446,7 +3517,9 @@ function scoresScene(back){
 /* ---------- RESULT ---------- */
 function resultScene(res){
   const S = { quit: false }; let bs, parts = [], t = 0;
-  S.enter = () => {
+  if (res.gameNo === undefined) res.gameNo = gameDone();   // (coming back from HIGH SCORES doesn't count it again)
+  const viaAd = list => list.forEach(b => { if (b.label === 'PLAY AGAIN') return; const f = b.fn; b.fn = () => adThen(res.gameNo, f); });   // online rematch: no ad, the other player is waiting
+  const enter0 = () => {
     if (res.online){
       const mine = res.me ? res.them : res.us, theirs = res.me ? res.us : res.them; res.mine = mine; res.theirs = theirs;
       if (mine >= theirs) SFX.win(); else SFX.lose();
@@ -3464,6 +3537,7 @@ function resultScene(res){
     ];
     if (res.win || res.twoP) for (let k = 0; k < 3; k++) burst(parts, 90, 100, 20, CONF, 90, 80, 1.6);
   };
+  S.enter = () => { enter0(); viaAd(bs.filter(b => b.label !== 'HIGH SCORES')); };
   S.update = dt => { t += dt; stepParts(parts, dt); if ((res.win || res.twoP) && Math.random() < dt * 3) burst(parts, rnd(30, 150), rnd(40, 90), 10, CONF, 60, 80, 1.2); };
   S.down = p => { if (t > 0.5) hitBtn(bs, p); };
   S.key = (c, dn) => { if (!dn || t <= 0.5) return; if (c === 'Enter'){ SFX.tap(); if (res.online && G.online) bs[0].fn(); else if (res.online) go(titleScene()); else go(vsScene()); } else if (c === 'Escape' || c === 'KeyM'){ SFX.tap(); if (G.online) netClose(); go(titleScene()); } };
@@ -3511,7 +3585,7 @@ function frame(now){
     R(x, 40, w, h, '#000'); R(x + 1, 41, w - 2, h - 2, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(lines.join('\n'), CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, NET, toast, OPT, optionsScene, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { CFG, NET, toast, OPT, optionsScene, shopScene, SHOP, setPrem, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();

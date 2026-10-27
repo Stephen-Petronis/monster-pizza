@@ -18,7 +18,7 @@ let package = Package(
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
             path: "ios/Sources/GameCenterPlugin",
-            linkerSettings: [.linkedFramework("GameKit")]
+            linkerSettings: [.linkedFramework("GameKit"), .linkedFramework("StoreKit")]
         )
     ]
 )

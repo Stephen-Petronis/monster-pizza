@@ -1,0 +1,4 @@
+{
+  "_note": "Your AdMob iOS App ID (Apps > App settings in admob.google.com). Until you set it, Google's test app ID is used.",
+  "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+}
