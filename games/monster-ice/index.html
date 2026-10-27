@@ -1081,6 +1081,26 @@ function gcScene(quick){
   return S;
 }
 
+/* ---------- 2 PLAYER: ONE IPAD or ONLINE ---------- */
+function multiScene(){
+  const S = { quit: true }; let bs;
+  S.enter = () => { netClose(); bs = [
+    btn(24, 72, 132, 30, 'ONE IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
+    btn(24, 168, 132, 30, 'ONLINE', () => go(onlineScene()), '#5cc8ff'),
+    btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff'),
+  ]; };
+  S.down = p => hitBtn(bs, p);
+  S.key = (c, dn) => { if (!dn) return; if (c === 'Digit1' || c === 'KeyI') bs[0].fn(); else if (c === 'Digit2' || c === 'KeyO') bs[1].fn(); else if (c === 'Escape') bs[2].fn(); };
+  S.draw = () => {
+    nightSky(9); moon(150, 30, 10);
+    T('2 PLAYER', 90, 36, '#5cc8ff', 16);
+    bs.forEach(drawBtn);
+    T('SIT FACE TO FACE.\nLAY THE IPAD FLAT\nBETWEEN YOU.', 90, 110, '#ffd8b0', 8);
+    T(GC ? 'GAME CENTER: ANYONE\nOR YOUR FRIENDS.\nOR A ROOM CODE.' : 'TWO PHONES OR\nIPADS, WITH A\nROOM CODE.', 90, 206, '#c9e8ff', 8);
+  };
+  return S;
+}
+
 /* ---------- ONLINE MENU ---------- */
 function onlineScene(){
   const S = { quit: true }; let bs, keys;
@@ -1089,7 +1109,7 @@ function onlineScene(){
     const invite = GC && btn(24, 124, 132, 28, 'INVITE FRIENDS', () => go(gcScene(false)), '#ff7ad9');
     const host = GC ? btn(14, 210, 72, 24, 'HOST', () => go(hostScene()), '#5cc8ff') : btn(24, 120, 132, 30, 'HOST A GAME', () => go(hostScene()), '#5cc8ff');
     const join = GC ? btn(94, 210, 72, 24, 'JOIN', () => go(joinScene()), '#b6ff4a') : btn(24, 196, 132, 30, 'JOIN A GAME', () => go(joinScene()), '#b6ff4a');
-    const back = btn(46, 286, 88, 22, 'BACK', () => go(titleScene()), '#c9a0ff');
+    const back = btn(46, 286, 88, 22, 'BACK', () => go(multiScene()), '#c9a0ff');
     bs = [host, join, back]; if (GC) bs.push(quick, invite);
     keys = { KeyH: host, Digit1: host, KeyJ: join, Digit2: join, Escape: back }; if (GC){ keys.KeyQ = quick; keys.KeyF = quick; keys.KeyI = invite; }
   };
@@ -1307,14 +1327,13 @@ function optionsScene(back){
 function titleScene(){
   const S = {}; let bs;
   S.enter = () => { bs = [
-    btn(36, 226, 108, 20, '1 PLAYER', () => { G.twoP = false; G.online = null; go(diffScene()); }),
-    btn(8, 250, 80, 20, 'ONLINE', () => go(onlineScene()), '#5cc8ff'),
-    btn(92, 250, 80, 20, '2P IPAD', () => { G.twoP = true; G.online = null; go(diffScene()); }, '#ff8a3a'),
-    btn(8, 274, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
-    btn(92, 274, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene(null, true)); }, '#b6ff4a'),
-    btn(8, 298, 80, 18, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
-    btn(92, 298, 80, 18, 'OPTIONS', () => go(optionsScene()), '#9ce8ff'),
-  ]; if (!zomboniOpen()) bs[4].lock = true; };
+    btn(8, 228, 80, 20, '1 PLAYER', () => { G.twoP = false; G.online = null; go(diffScene()); }),
+    btn(92, 228, 80, 20, '2 PLAYER', () => go(multiScene()), '#5cc8ff'),
+    btn(8, 252, 80, 20, 'MONSTERS', () => go(monstersScene()), '#ff5d73'),
+    btn(92, 252, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene(null, true)); }, '#b6ff4a'),
+    btn(8, 276, 80, 20, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
+    btn(92, 276, 80, 20, 'OPTIONS', () => go(optionsScene()), '#9ce8ff'),
+  ]; if (!zomboniOpen()) bs[3].lock = true; };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; G.online = null; go(diffScene()); } };
   S.draw = () => {
@@ -1345,7 +1364,7 @@ function titleScene(){
     });
     T('3 ON 3 SPOOKY HOCKEY', 90, 138, '#c9a0ff', 8);
     bs.forEach(drawBtn);
-    if (bs[4].lock){ const b = bs[4], x = b.x + b.w - 5, y = b.y - 6; ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 3.5, y + 4, 3, Math.PI, 0); ctx.stroke(); ctx.restore(); R(x - 1, y + 4, 9, 8, '#000'); R(x, y + 5, 7, 6, '#ffd23f'); R(x + 3, y + 7, 1, 2, '#000'); }
+    if (bs[3].lock){ const b = bs[3], x = b.x + b.w - 5, y = b.y - 6; ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 3.5, y + 4, 3, Math.PI, 0); ctx.stroke(); ctx.restore(); R(x - 1, y + 4, 9, 8, '#000'); R(x, y + 5, 7, 6, '#ffd23f'); R(x + 3, y + 7, 1, 2, '#000'); }
   };
   return S;
 }
