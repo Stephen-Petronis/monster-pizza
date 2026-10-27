@@ -604,7 +604,7 @@ const sfxGain = () => muted ? 0 : 0.3 * OPT.sfx;
 /* ---------- REMOVE ADS / ADS ---------- */
 const CAPP = (n) => { try { const C = window.Capacitor; if (!C || !C.isPluginAvailable || !C.isPluginAvailable(n)) return null; return (C.Plugins && C.Plugins[n]) || (C.registerPlugin && C.registerPlugin(n)) || null; } catch (e) { return null; } };
 const STORE = CAPP('Store'), ADMOB = CAPP('AdMob');
-const SHOP = { prem: false, price: '$1.99', busy: false, games: 0, adReady: false, fails: 0, retry: 0 };
+const SHOP = { prem: false, price: '$0.99', busy: false, games: 0, adReady: false, fails: 0, retry: 0 };
 try { SHOP.prem = localStorage.getItem(KEY + '-noads') === '1'; SHOP.games = +localStorage.getItem(KEY + '-games') || 0; } catch (e) {}
 function setPrem(on){ SHOP.prem = !!on; try { localStorage.setItem(KEY + '-noads', on ? '1' : '0'); } catch (e) {} }
 const zomboniOpen = () => SHOP.prem || (!STORE && CFG.ads.webZomboni);   // the bonus Zomboni mode: bought in the app, free on the website
