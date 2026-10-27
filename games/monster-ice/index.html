@@ -997,7 +997,7 @@ function netRecv(m){
   else if (m.t === 'bye') netDrop();
 }
 async function netHost(){
-  netReset(); NET.role = 'host'; NET.status = 'MAKING A ROOM...';
+  G.matchKind = 'friend'; netReset(); NET.role = 'host'; NET.status = 'MAKING A ROOM...';
   try {
     const pc = NET.pc = netPC();
     pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') netDrop(); };
@@ -1018,7 +1018,7 @@ async function netHost(){
   } catch (e) { console.warn(e); if (NET.role === 'host') NET.err = String(e).includes('rooms 403') ? 'ONLINE ISN\'T SWITCHED ON YET' : 'COULDN\'T MAKE A ROOM'; }
 }
 async function netJoin(code){
-  netReset(); NET.role = 'guest'; NET.code = code; NET.status = 'LOOKING FOR ROOM ' + code + '...';
+  G.matchKind = 'friend'; netReset(); NET.role = 'guest'; NET.code = code; NET.status = 'LOOKING FOR ROOM ' + code + '...';
   try {
     const d = await SIG.get(code);
     if (NET.role !== 'guest' || NET.code !== code) return;   // they backed out while we were looking
@@ -1044,6 +1044,7 @@ const GC = (() => { try { const C = window.Capacitor; if (!C || !C.isPluginAvail
   return (C.Plugins && C.Plugins.GameCenter) || (C.registerPlugin && C.registerPlugin('GameCenter')) || null; } catch (e) { return null; } })();
 const gcName = n => String(n || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 14) || 'A MONSTER';
 function gcMatched(e){
+  G.matchKind = scene && scene.quickMatch ? 'quick' : 'friend';   // QUICK MATCH games count toward ads; invites never do
   const pc = NET.pc; if (pc) try { pc.close(); } catch (err) {}
   netReset(); NET.gc = true; NET.role = e.host ? 'host' : 'guest'; NET.up = true; NET.rx = performance.now();
   G.online = NET.role; G.twoP = true; SFX.win(); toast('PLAYING ' + gcName(e.other) + '!');
@@ -1058,7 +1059,7 @@ if (GC){
 }
 // QUICK MATCH: our own searching screen (Apple matchmaking behind it). INVITE: Apple's screen (Messages, contacts, SharePlay).
 function gcScene(quick){
-  const S = { quit: true }; let bs, t = 0, spin = 0, who = 0;
+  const S = { quit: true, quickMatch: !!quick }; let bs, t = 0, spin = 0, who = 0;
   const pool = ROSTER.map(m => m.id);
   const cancel = () => { if (quick) try { GC.cancelSearch(); } catch (e) {} go(onlineScene()); };
   S.enter = () => { netClose(); t = 0; bs = [btn(46, 286, 88, 22, quick ? 'CANCEL' : 'BACK', cancel, '#c9a0ff')];
@@ -3645,7 +3646,7 @@ function scoresScene(back){
 /* ---------- RESULT ---------- */
 function resultScene(res){
   const S = { quit: false }; let bs, parts = [], t = 0;
-  if (res.gameNo === undefined){ res.gameNo = res.online ? -1 : gameDone(); maybeAskReview(res); }   // online games with friends never get ads (or count); coming back from HIGH SCORES doesn't count again
+  if (res.gameNo === undefined){ res.gameNo = res.online && G.matchKind !== 'quick' ? -1 : gameDone(); maybeAskReview(res); }   // online with friends (invite / room code): never an ad; QUICK MATCH counts like any game
   const viaAd = list => list.forEach(b => { if (b.label === 'PLAY AGAIN') return; const f = b.fn; b.fn = () => adThen(res.gameNo, f); });   // online rematch: no ad, the other player is waiting
   const enter0 = () => {
     if (res.online){
