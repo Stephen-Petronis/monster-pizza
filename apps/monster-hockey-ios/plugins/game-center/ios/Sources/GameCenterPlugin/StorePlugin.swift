@@ -21,15 +21,19 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise)
     ]
 
+    // Everything below runs on the main thread (Task { @MainActor ... }), so `cache` is never touched from two threads at once
+    // and notifyListeners / call.resolve always happen on main.
     private var cache: [String: Product] = [:]
     private var updates: Task<Void, Never>?
 
     override public func load() {
-        updates = Task.detached { [weak self] in
+        // Purchases that finish outside buy(): Ask to Buy approvals, purchases on another device, refunds/revocations,
+        // and any purchase left unfinished last time (StoreKit replays those here right after launch).
+        updates = Task { @MainActor [weak self] in
             for await result in Transaction.updates {
                 if case .verified(let t) = result { await t.finish() }
-                guard let self = self else { return }
                 let ids = await StorePlugin.ownedIds()
+                guard let self = self else { return }
                 self.notifyListeners("owned", data: ["ids": ids], retainUntilConsumed: true)
             }
         }
@@ -45,7 +49,7 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
         return ids
     }
 
-    private func product(_ id: String) async throws -> Product? {
+    @MainActor private func product(_ id: String) async throws -> Product? {
         if let p = cache[id] { return p }
         let list = try await Product.products(for: [id])
         for p in list { cache[p.id] = p }
@@ -53,8 +57,8 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func products(_ call: CAPPluginCall) {
-        let ids = (call.getArray("ids") as? [String]) ?? []
-        Task {
+        let ids = call.getArray("ids", String.self) ?? []
+        Task { @MainActor in
             do {
                 let list = try await Product.products(for: ids)
                 for p in list { cache[p.id] = p }
@@ -67,7 +71,7 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func buy(_ call: CAPPluginCall) {
         guard let id = call.getString("id") else { call.resolve(["ok": false]); return }
-        Task {
+        Task { @MainActor in
             do {
                 guard let p = try await product(id) else { call.resolve(["ok": false, "msg": "NOT FOUND"]); return }
                 let result = try await p.purchase()
@@ -93,13 +97,17 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func owned(_ call: CAPPluginCall) {
-        Task { call.resolve(["ids": await StorePlugin.ownedIds()]) }
+        Task { @MainActor in
+            let ids = await StorePlugin.ownedIds()
+            call.resolve(["ids": ids])
+        }
     }
 
     @objc func restore(_ call: CAPPluginCall) {
-        Task {
+        Task { @MainActor in
             try? await AppStore.sync()   // may ask them to sign in to their Apple ID
-            call.resolve(["ids": await StorePlugin.ownedIds()])
+            let ids = await StorePlugin.ownedIds()
+            call.resolve(["ids": ids])
         }
     }
 }

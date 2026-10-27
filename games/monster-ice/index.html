@@ -604,7 +604,7 @@ const sfxGain = () => muted ? 0 : 0.3 * OPT.sfx;
 /* ---------- REMOVE ADS / ADS ---------- */
 const CAPP = (n) => { try { const C = window.Capacitor; if (!C || !C.isPluginAvailable || !C.isPluginAvailable(n)) return null; return (C.Plugins && C.Plugins[n]) || (C.registerPlugin && C.registerPlugin(n)) || null; } catch (e) { return null; } };
 const STORE = CAPP('Store'), ADMOB = CAPP('AdMob');
-const SHOP = { prem: false, price: '$1.99', busy: false, games: 0, adReady: false };
+const SHOP = { prem: false, price: '$1.99', busy: false, games: 0, adReady: false, fails: 0, retry: 0 };
 try { SHOP.prem = localStorage.getItem(KEY + '-noads') === '1'; SHOP.games = +localStorage.getItem(KEY + '-games') || 0; } catch (e) {}
 function setPrem(on){ SHOP.prem = !!on; try { localStorage.setItem(KEY + '-noads', on ? '1' : '0'); } catch (e) {} }
 const zomboniOpen = () => SHOP.prem || (!STORE && CFG.ads.webZomboni);   // the bonus Zomboni mode: bought in the app, free on the website
@@ -615,12 +615,17 @@ function shopInit(){
     STORE.products({ ids: [CFG.ads.removeAdsId] }).then(r => { const it = r && r.items && r.items[0]; if (it) SHOP.price = it.price; }).catch(() => {});
   }
   if (ADMOB && !SHOP.prem){
-    ADMOB.addListener('interstitialAdLoaded', () => { SHOP.adReady = true; });
-    ADMOB.addListener('interstitialAdFailedToLoad', () => { SHOP.adReady = false; });
-    ADMOB.initialize({ initializeForTesting: !!CFG.ads.test }).then(adLoad).catch(() => {});
+    ADMOB.addListener('interstitialAdLoaded', () => { SHOP.adReady = true; SHOP.fails = 0; });
+    // no ad to load (no network / no fill): try again later, waiting longer each time (1, 2, 4 ... up to 10 minutes)
+    ADMOB.addListener('interstitialAdFailedToLoad', () => { SHOP.adReady = false; clearTimeout(SHOP.retry); SHOP.retry = setTimeout(adLoad, Math.min(600, 60 * Math.pow(2, SHOP.fails++)) * 1000); });
+    // family-friendly ads only (rated G), and Google's consent form first where the law needs one (Europe / UK)
+    ADMOB.initialize({ initializeForTesting: !!CFG.ads.test, maxAdContentRating: 'General' })
+      .then(() => ADMOB.requestConsentInfo ? ADMOB.requestConsentInfo().catch(() => null) : null)
+      .then(c => c && c.isConsentFormAvailable && c.status === 'REQUIRED' && ADMOB.showConsentForm ? ADMOB.showConsentForm().catch(() => null) : null)
+      .then(adLoad).catch(() => {});
   }
 }
-function adLoad(){ if (!ADMOB || SHOP.prem) return; SHOP.adReady = false; ADMOB.prepareInterstitial({ adId: CFG.ads.iosInterstitial, isTesting: !!CFG.ads.test, npa: true }).catch(() => {}); }
+function adLoad(){ clearTimeout(SHOP.retry); if (!ADMOB || SHOP.prem) return; SHOP.adReady = false; ADMOB.prepareInterstitial({ adId: CFG.ads.iosInterstitial, isTesting: !!CFG.ads.test, npa: true }).catch(() => {}); }
 function shopBuy(){
   if (!STORE || SHOP.busy) return; SHOP.busy = true;
   STORE.buy({ id: CFG.ads.removeAdsId }).then(r => { SHOP.busy = false; if (r && r.ok){ setPrem(true); SFX.win(); toast('NO MORE ADS. ENJOY THE ZOMBONI!'); } else if (r && r.pending) toast('WAITING FOR A GROWN-UP TO SAY YES'); else if (r && r.msg) toast(r.msg); })
@@ -671,8 +676,8 @@ function audioAwayNow(){ audioAway = true; if (AC && AC.state === 'running') try
 function audioBack(){ if (!audioAway) return; audioAway = false; if (AC && AC.state !== 'running') try { AC.resume(); } catch (e) {} }
 document.addEventListener('visibilitychange', () => { if (document.hidden) audioAwayNow(); else audioBack(); });
 addEventListener('pagehide', audioAwayNow); addEventListener('pageshow', audioBack);
-document.addEventListener('pause', audioAwayNow); document.addEventListener('resume', audioBack);
-setTimeout(() => { try { shopInit(); } catch (e) {} }, 500);   // the iOS app's own "went to background / came back" signals
+document.addEventListener('pause', audioAwayNow); document.addEventListener('resume', audioBack);   // the iOS app's own "went to background / came back" signals
+setTimeout(() => { try { shopInit(); } catch (e) {} }, 500);   // Remove Ads purchase + ads (iOS app only)
 /* ---------- MUSIC: a little spooky chiptune loop (Am - F - Dm - E) ---------- */
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
 const BASS = [45, 57, 45, 57, 45, 57, 45, 57, 41, 53, 41, 53, 41, 53, 41, 53, 38, 50, 38, 50, 38, 50, 38, 50, 40, 52, 40, 52, 44, 56, 40, 52];
