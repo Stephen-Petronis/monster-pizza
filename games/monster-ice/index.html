@@ -1357,27 +1357,29 @@ const CARDS = {
     pros: ['HARDEST SHOT', 'ONLY A FRANKENSTEIN CAN KNOCK HIM DOWN', 'BEST CHECKER'],
     cons: ['SLOWEST SKATER', 'WORST PASSER', 'GASSES OUT FAST IN FIGHTS'] },
 };
-const TIPS = [
-  'NO GOALS FROM BEFORE THE BLUE LINE. GET IN CLOSE.',
-  'HOLD SHOOT TO MAX PAST THE BLUE LINE = FINISHER. IT ALWAYS SCORES.',
-  'TAP SHOOT AS A PASS ARRIVES (GOLD RING) = ONE-TIMER.',
-  'DEFENSE: TAP SHOOT = STEAL. TAP TWICE = BODY CHECK. SMALL GUYS BOUNCE OFF BIG GUYS.',
-  'PASS BACK TO YOUR GOALIE AND HE CATCHES IT.',
-  'THE SPECIAL BAR FILLS OVER TIME AND FROM BIG HITS.',
-  '3 KNOCKDOWNS (OR ONE LATE) START THE FIGHT. THE LOSER SITS 3 SECONDS.',
-  'FIGHTS: WATCH YOUR STAMINA. TAP BLOCK ON THE GOLD RING TO COUNTER A SPECIAL.',
+// HOW TO WIN: one big idea per page, with a little looping demo
+const TIPPAGES = [
+  { title: 'GET CLOSE', demo: 'close', col: '#5cc8ff', text: 'NO GOALS FROM\nBEFORE THE BLUE\nLINE. SKATE IN!' },
+  { title: 'FINISHER', demo: 'finisher', col: '#ff9a3a', text: 'HOLD SHOOT TILL\nIT GOES RED, PAST\nTHE BLUE LINE.\nIT ALWAYS SCORES!' },
+  { title: 'ONE-TIMER', demo: 'onetimer', col: '#ffd23f', text: 'TAP SHOOT WHEN\nTHE PASS HITS THE\nGOLD RING.' },
+  { title: 'DEFENSE', demo: 'defense', col: '#ff5d73', text: 'TAP SHOOT: STEAL.\nTAP TWICE: CHECK!\nSMALL GUYS BOUNCE\nOFF BIG GUYS.' },
+  { title: 'GOALIE PASS', demo: 'goalie', col: '#b6ff4a', text: 'IN TROUBLE? PASS\nBACK TO YOUR\nGOALIE. HE CATCHES\nIT.' },
+  { title: 'SPECIALS', demo: 'special', col: '#c9a0ff', text: 'THE BAR FILLS AS\nYOU PLAY AND FROM\nBIG HITS. AT 100%\nTAP IT!' },
+  { title: 'FIGHT!', demo: 'fight', col: '#ff3d1e', text: '3 KNOCKDOWNS (OR\nA LATE HIT) START\nA FIGHT. WATCH\nYOUR STAMINA!' },
 ];
+const TIPS = TIPPAGES.map(t => t.text.replace(/\n/g, ' '));
 function wrapTiny(text, max = 39){ const out = []; let line = ''; for (const w of text.split(' ')){ if ((line + ' ' + w).trim().length > max){ out.push(line); line = w; } else line = (line + ' ' + w).trim(); } if (line) out.push(line); return out; }
 function monstersScene(opts = {}){   // opts.page = which card to open on, opts.back = scene to return to (the team pick)
   const S = { quit: true }; let page = opts.page || 0, bs, swipe = null, flipped = false, flipT = 1, demoT = 0;
   const back = () => go(opts.back || titleScene());
-  const N = ROSTER.length + 1;   // one card per monster + a tips card
+  const NM = ROSTER.length, N = NM + TIPPAGES.length;   // one card per monster, then the HOW TO WIN pages
   const turn = d => { page = (page + d + N) % N; flipped = false; flipT = 1; demoT = 0; SFX.tap(); };
-  const flip = () => { if (page === ROSTER.length) return; flipped = !flipped; flipT = 0; demoT = 0; SFX.tap(); };
-  S.enter = () => { bs = [btn(6, 296, 30, 18, '<', () => turn(-1), '#c9a0ff'), btn(40, 296, 48, 18, 'FLIP', flip, '#5cc8ff'), btn(92, 296, 48, 18, 'BACK', back, '#ffd23f'), btn(144, 296, 30, 18, '>', () => turn(1), '#c9a0ff')]; };
+  const flip = () => { if (page >= NM) return; flipped = !flipped; flipT = 0; demoT = 0; SFX.tap(); };
+  S.enter = () => { bs = [btn(4, 296, 28, 18, '<', () => turn(-1), '#c9a0ff'), btn(36, 296, 60, 18, 'FLIP', flip, '#5cc8ff'), btn(100, 296, 46, 18, 'BACK', back, '#ffd23f'), btn(150, 296, 26, 18, '>', () => turn(1), '#c9a0ff')]; };
   S.update = dt => { flipT = Math.min(1, flipT + dt * 5); demoT += dt; };
   S.down = p => { if (hitBtn(bs, p)) return; swipe = { x: p.x, y: p.y, id: p.id }; };
-  S.up = p => { if (swipe && swipe.id === p.id){ const dx = p.x - swipe.x; if (Math.abs(dx) > 28) turn(dx < 0 ? 1 : -1); else if (Math.abs(dx) < 8 && Math.abs(p.y - swipe.y) < 8 && swipe.y > 20 && swipe.y < 286) flip(); } swipe = null; };
+  S.up = p => { if (swipe && swipe.id === p.id){ const dx = p.x - swipe.x, dy = p.y - swipe.y;   // swipe sideways = next card, swipe up / down = flip it over
+    if (Math.abs(dx) > 28 && Math.abs(dx) > Math.abs(dy)) turn(dx < 0 ? 1 : -1); else if (Math.abs(dy) > 24) flip(); else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && swipe.y > 20 && swipe.y < 286) flip(); } swipe = null; };
   S.key = (c, dn) => { if (!dn) return; if (c === 'ArrowLeft' || c === 'KeyA') turn(-1); else if (c === 'ArrowRight' || c === 'KeyD' || c === 'KeyZ') turn(1); else if (c === 'Space' || c === 'KeyF' || c === 'ArrowUp' || c === 'ArrowDown') flip(); else if (c === 'Escape' || c === 'Enter') back(); };
   const para = (text, y, col, x = 14, w = 37) => { for (const l of wrapTiny(text, w)) { tiny(l, x, y, col, 'left', null); y += 7; } return y; };
   function stat(lbl, v, x, y, col){ tiny(lbl, x, y, '#c9b8f0', 'left', null); for (let i = 0; i < 5; i++) R(x + 15 + i * 9, y - 1, 8, 7, i < v ? col : '#2a1a4a'); }
@@ -1396,7 +1398,7 @@ function monstersScene(opts = {}){   // opts.page = which card to open on, opts.
     y = head('WEAKNESSES', y + 2, th);
     for (const t of c.cons){ T('-', 14, y - 1, '#ff5d73', 8, 'left', null); y = para(t, y, '#ffc4d0', 24, 35) + 4; }
     tiny('BITTEN? PLAYS FOR THE VAMPIRE ' + c.bite + 'S', 90, 264, th.hi, 'center', null);
-    tiny(Math.floor(TT * 2) % 2 ? 'TAP THE CARD: HOW TO PLAY' : 'TAP THE CARD: HOW TO PLAY', 90, 274, '#8a7ab8', 'center', null);
+    tiny('SWIPE UP TO FLIP: HOW TO PLAY', 90, 274, '#8a7ab8', 'center', null);
   }
   // little looping demos on the back of the card
   function shotDemo(m, c, th, x0, y0){
@@ -1432,24 +1434,66 @@ function monstersScene(opts = {}){   // opts.page = which card to open on, opts.
     T('FIGHT: ' + c.style, 14, y, '#ffd23f', 8, 'left', null); y += 11;
     y = para('PUNCH TO ATTACK, BLOCK TO GUARD. FILL THE BAR AND TAP IT FOR ' + c.fsp + '. ' + c.fight, y, '#f7efe0');
   }
+  // ---- HOW TO WIN pages: big title, a looping demo, a few big lines ----
+  const rinkBox = (x0, y0, w, h) => { R(x0 - 1, y0 - 1, w + 2, h + 2, '#000'); R(x0, y0, w, h, '#d8ecff'); for (let y = y0 + 6; y < y0 + h; y += 9) R(x0, y, w, 1, '#c6dcf4'); };
+  const net = (x, y) => { R(x - 1, y - 9, 7, 18, '#000'); R(x, y - 8, 5, 16, '#ffffff'); for (let k = 0; k < 4; k++) R(x + 1, y - 7 + k * 4, 3, 1, '#bbb'); R(x - 2, y - 9, 2, 18, '#ff3d1e'); };
+  const puck = (x, y) => { R(x - 2, y - 1, 5, 3, '#111'); };
+  const pop = (txt, x, y, col) => T(txt, x, y, col, 8, 'center');
+  const sk = (id, x, y, tc, fx, o = {}) => drawMonster(MON[id], x, y, 1.3, TEAM[tc], { fx, fy: 0, anim: TT * 6, moving: true, ...o });
+  function demo(kind, x0, y0){
+    const W2 = 156, H2 = 74; rinkBox(x0, y0, W2, H2); const t = demoT % 4, gx = x0 + W2 - 12, gy = y0 + 40, mid = y0 + 46;
+    if (kind === 'close'){ R(x0 + 70, y0, 2, H2, '#3a7ae8'); net(gx, gy);
+      if (t < 2){ const k = clamp((t - 0.6) / 0.6, 0, 1); sk('wolf', x0 + 26, mid, 0, 1); puck(x0 + 34 + (gx - 40 - x0) * k, mid - 4 - k * 8); if (t > 1.2){ pop('NO GOAL', x0 + 78, y0 + 6, '#ff3d1e'); R(gx - 6, gy - 12, 3, 24, '#ff3d1e'); } }
+      else { const k = clamp((t - 2.6) / 0.4, 0, 1); sk('wolf', x0 + 100, mid, 0, 1); puck(x0 + 108 + (gx - x0 - 108) * k, mid - 4 - k * 2); if (t > 3) { C(gx + 2, gy, 8 + (t - 3) * 12, 'rgba(255,210,63,.5)'); pop('GOAL!', x0 + 78, y0 + 6, '#ff9a3a'); } } }
+    else if (kind === 'finisher'){ R(x0 + 40, y0, 2, H2, '#3a7ae8'); net(gx, gy); sk('frank', x0 + 74, mid, 0, 1, { moving: false, anim: 0 });
+      const ch = clamp(t / 1.6, 0, 1), col = ch < 0.5 ? '#b6ff4a' : ch < 0.95 ? '#ffd23f' : (Math.floor(TT * 10) % 2 ? '#ff3d1e' : '#fff');
+      if (t < 1.8){ R(x0 + 60, y0 + 6, 30, 6, '#000'); R(x0 + 61, y0 + 7, 28 * ch, 4, col); tiny(ch >= 0.95 ? 'LET GO!' : 'HOLD...', x0 + 96, y0 + 7, ch >= 0.95 ? '#ff3d1e' : '#2a1446', 'left', null); }
+      else if (t < 2.3){ const k = (t - 1.8) / 0.5; for (let j = 0; j < 6; j++) R(x0 + 84 + (gx - x0 - 84) * k - j * 6, mid - 4, 6, 2, j % 2 ? '#ff9a3a' : '#fff'); }
+      else { C(gx + 2, gy, 6 + (t - 2.3) * 14, 'rgba(255,122,26,.45)'); pop('SCORES!', x0 + 74, y0 + 6, '#ff9a3a'); } }
+    else if (kind === 'onetimer'){ net(gx, gy); sk('vamp', x0 + 22, y0 + 60, 0, 1); sk('gill', x0 + 100, y0 + 34, 0, 1, { moving: false, anim: 0 });
+      const ring = 8 + Math.sin(TT * 8) * 1.5; ctx.save(); ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x0 + 106, y0 + 31, ring, 0, 7); ctx.stroke(); ctx.restore();
+      if (t < 1.4){ const k = t / 1.4; puck(x0 + 30 + (76 - 30) * k + x0 * 0, y0 + 56 - 25 * k); }
+      else if (t < 1.8){ pop('TAP!', x0 + 106, y0 + 4, '#ffd23f'); puck(x0 + 106, y0 + 31); }
+      else if (t < 2.2){ const k = (t - 1.8) / 0.4; puck(x0 + 110 + (gx - x0 - 110) * k, y0 + 31 + (gy - y0 - 31) * k); }
+      else { C(gx + 2, gy, 6 + (t - 2.2) * 12, 'rgba(255,210,63,.5)'); pop('ONE-TIMER!', x0 + 58, y0 + 60, '#ffd23f'); } }
+    else if (kind === 'defense'){ const half = t < 2, k = (t % 2) / 2, cx = x0 + 20 + 90 * Math.min(1, k * 1.4);
+      if (half){ sk('mummy', cx, mid, 1, 1); sk('vamp', x0 + 120 - 20 * k, mid + 2, 0, -1);
+        if (k < 0.55) puck(cx + 9, mid - 3); else { puck(x0 + 110, mid + 6); pop('STEAL!', x0 + 78, y0 + 4, '#b6ff4a'); tiny('TAP', x0 + 130, y0 + 18, '#2a1446', 'left', null); } }
+      else { const hit = k > 0.5; sk('vamp', x0 + 60, mid, 1, 1, hit ? { fy: 1.4 } : {}); sk('frank', x0 + 110 - 40 * Math.min(1, k * 2), mid, 0, -1);
+        if (hit){ pop('CHECK!', x0 + 78, y0 + 4, '#ff5d73'); for (let j = 0; j < 5; j++) C(x0 + 62 + Math.cos(j + TT * 4) * 9, mid - 14 + Math.sin(j * 2 + TT * 4) * 5, 1.5, '#ffd23f'); } else tiny('TAP TAP', x0 + 120, y0 + 18, '#2a1446', 'left', null); } }
+    else if (kind === 'goalie'){ net(x0 + 6, gy); sk('gill', x0 + 24, gy + 2, 0, 1, { moving: false, anim: 0 }); sk('wolf', x0 + 110, mid, 0, -1); sk('mummy', x0 + 140, mid - 18, 1, -1);
+      if (t < 1.4){ const k = t / 1.4; puck(x0 + 100 - (100 - 34) * k, mid - 3 + (gy - mid) * k); } else { puck(x0 + 32, gy - 6); pop('SAFE!', x0 + 78, y0 + 4, '#b6ff4a'); } }
+    else if (kind === 'special'){ const pct = Math.min(100, Math.floor(t / 2.2 * 100)), ready = pct >= 100; sk('wolf', x0 + 30, mid, 0, 1);
+      R(x0 + 60, y0 + 24, 70, 18, ready && Math.floor(TT * 6) % 2 ? '#fff' : '#000'); R(x0 + 61, y0 + 25, 68, 16, '#22143e'); R(x0 + 61, y0 + 25, 68 * pct / 100, 16, '#c9a0ff'); T(pct + '%', x0 + 95, y0 + 29, '#fff', 8, 'center', '#000');
+      if (t > 0.6 && t < 1){ pop('BIG HIT +', x0 + 95, y0 + 8, '#ff9a3a'); }
+      if (ready){ pop('TAP IT!', x0 + 95, y0 + 50, '#ffd23f'); } }
+    else if (kind === 'fight'){ const k = Math.floor(TT * 4) % 2; sk('vamp', x0 + 56 + (k ? 4 : 0), mid, 0, 1, { moving: false, anim: 0, fy: k ? 0.3 : 0 }); sk('mummy', x0 + 100 - (k ? 0 : 4), mid, 1, -1, { moving: false, anim: 0 });
+      if (k) C(x0 + 78, mid - 16, 4, '#ffd23f');
+      const st = 1 - (t % 4) / 4.5; R(x0 + 8, y0 + 6, 52, 6, '#000'); R(x0 + 9, y0 + 7, 50 * st, 4, '#5cc8ff'); tiny('STAMINA', x0 + 9, y0 + 14, '#2a1446', 'left', null);
+      R(x0 + 96, y0 + 6, 52, 6, '#000'); R(x0 + 97, y0 + 7, 50 * (1 - (t % 4) / 6), 4, '#ff5d73'); }
+  }
+  function tipPage(tp){
+    R(7, 21, 166, 264, '#000'); R(8, 22, 164, 262, '#22143e'); R(8, 22, 164, 2, tp.col); R(8, 282, 164, 2, tp.col);
+    tiny('HOW TO WIN  ' + (page - NM + 1) + '/' + TIPPAGES.length, 90, 30, '#8a7ab8', 'center', null);
+    T(tp.title, 90, tp.title.length > 9 ? 46 : 42, tp.col, tp.title.length > 9 ? 12 : 16);
+    demo(tp.demo, 12, 78);
+    T(tp.text, 90, 170, '#f7efe0', 8);
+    if (page === N - 1) T('NOW GO WIN!', 90, 262, '#b6ff4a', 8); else tiny('SWIPE FOR THE NEXT TIP', 90, 266, '#8a7ab8', 'center', null);
+  }
   S.draw = () => {
     nightSky(12);
-    for (let k = 0; k < N; k++) C(90 - (N - 1) * 5 + k * 10, 290 - 0, k === page ? 3 : 2, k === page ? '#ffd23f' : '#4a3a6a');
-    if (page === ROSTER.length){ // tips card
-      R(7, 21, 166, 264, '#000'); R(8, 22, 164, 262, '#22143e'); R(8, 22, 164, 2, '#ffd23f');
-      T('HOW TO WIN', 90, 30, '#ffd23f', 12);
-      let y = 52; for (const t of TIPS){ R(14, y + 1, 3, 3, '#ff9a3a'); for (const l of wrapTiny(t, 37)){ tiny(l, 21, y, '#f7efe0', 'left', null); y += 7; } y += 6; }
-      T('NOW GO WIN!', 90, 268, '#b6ff4a', 8);
-      bs.forEach(drawBtn); return;
-    }
+    for (let k = 0; k < N; k++) C(90 - (N - 1) * 4.5 + k * 9, 290, k === page ? 3 : 2, k === page ? '#ffd23f' : k >= NM ? '#3a5a7a' : '#4a3a6a');
+    if (page >= NM){ tipPage(TIPPAGES[page - NM]); bs.forEach(b => b.label !== 'FLIP' && drawBtn(b)); return; }
     const m = ROSTER[page], c = CARDS[m.id] || CARDS.vamp, th = PLATE[m.power] || PLATE.frank;
     // the card turns over: squash to a sliver, swap sides, open back up
     const sq = Math.abs(Math.cos(flipT * Math.PI)), side = flipT < 0.5 ? !flipped : flipped;
-    ctx.save(); ctx.translate(90, 0); ctx.scale(Math.max(0.02, sq), 1); ctx.translate(-90, 0);
+    ctx.save(); ctx.translate(0, 153); ctx.scale(1, Math.max(0.02, sq)); ctx.translate(0, -153);   // flips top-over-bottom, like turning a real card
     R(7, 21, 166, 264, '#000'); R(8, 22, 164, 262, side ? shade(th.bg, 0.7) : th.bg); R(8, 22, 164, 2, th.hi); R(8, 282, 164, 2, th.hi);
     if (side) backSide(m, c, th); else front(m, c, th);
     ctx.restore();
     bs.forEach(drawBtn);
+    { const b = bs[1], ax = b.x + b.w - 11, ay = b.y + 6 + Math.round(Math.abs(Math.sin(TT * 5)) * -3) + 2, up = !flipped;   // bouncing arrow on FLIP
+      for (let k = 0; k < 4; k++){ const w = 1 + k * 2, yy = up ? ay + k : ay + 3 - k; R(ax - k - 1, yy, w + 1, 1, '#000'); R(ax - k, yy, w - 1 || 1, 1, '#ffffff'); } R(ax - 1, up ? ay + 4 : ay - 2, 2, 3, '#ffffff'); }
   };
   return S;
 }
