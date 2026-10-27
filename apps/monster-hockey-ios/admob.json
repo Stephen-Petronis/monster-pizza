@@ -1,4 +1,4 @@
 {
-  "_note": "Your AdMob iOS App ID (Apps > App settings in admob.google.com). Until you set it, Google's test app ID is used.",
-  "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+  "_note": "Monster Hockey's AdMob iOS App ID (admob.google.com > Apps > App settings).",
+  "iosAppId": "ca-app-pub-3741719178180276~2684839164"
 }
