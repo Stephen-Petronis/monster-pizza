@@ -858,8 +858,8 @@ addEventListener('keyup', e => { if (scene && scene.key) scene.key(e.code, false
 /* buttons */
 function btn(x, y, w, h, label, fn, col = '#ffd23f'){ return { x, y, w, h, label, fn, col }; }
 function drawBtn(b){
-  const sc = SCHEMES[schemeFor(b.col) || 'gold'] || SCHEMES.gold, sk = 5, x = b.x, y = b.y, w = b.w, h = b.h;
-  const dim = b.dim;
+  let sc = SCHEMES[schemeFor(b.col) || 'gold'] || SCHEMES.gold; const sk = 5, x = b.x, y = b.y, w = b.w, h = b.h;
+  const dim = b.dim; if (b.grey) sc = { c: ['#c4c4d0', '#a4a4b2', '#888898', '#6e6e7e'], ext: '#4a4a58' };   // locked
   const path = (ox, oy) => { ctx.beginPath(); ctx.moveTo(x + sk + ox, y + oy); ctx.lineTo(x + w + ox, y + oy); ctx.lineTo(x + w - sk + ox, y + h + oy); ctx.lineTo(x + ox, y + h + oy); ctx.closePath(); };
   path(4, 4); ctx.fillStyle = '#000'; ctx.fill();
   path(3, 3); ctx.fillStyle = dim ? '#3a2a5a' : sc.ext; ctx.fill();
@@ -1333,7 +1333,7 @@ function titleScene(){
     btn(92, 252, 80, 20, 'ZOMBONI', () => { if (zomboniOpen()){ G.twoP = false; G.online = null; G.wasOnline = false; go(zamboniScene({ timed: CFG.zamboni.time })); } else go(shopScene(null, true)); }, '#b6ff4a'),
     btn(8, 276, 80, 20, 'SCORES', () => go(scoresScene(() => go(titleScene()))), '#c9a0ff'),
     btn(92, 276, 80, 20, 'OPTIONS', () => go(optionsScene()), '#9ce8ff'),
-  ]; if (!zomboniOpen()) bs[3].lock = true; };
+  ]; if (!zomboniOpen()){ bs[3].lock = true; bs[3].grey = true; } };
   S.down = p => hitBtn(bs, p);
   S.key = (c, dn) => { if (dn && (c === 'Enter' || c === 'Space')) { SFX.tap(); G.twoP = false; G.online = null; go(diffScene()); } };
   S.draw = () => {
@@ -1364,7 +1364,13 @@ function titleScene(){
     });
     T('3 ON 3 SPOOKY HOCKEY', 90, 138, '#c9a0ff', 8);
     bs.forEach(drawBtn);
-    if (bs[3].lock){ const b = bs[3], x = b.x + b.w - 5, y = b.y - 6; ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 3.5, y + 4, 3, Math.PI, 0); ctx.stroke(); ctx.restore(); R(x - 1, y + 4, 9, 8, '#000'); R(x, y + 5, 7, 6, '#ffd23f'); R(x + 3, y + 7, 1, 2, '#000'); }
+    if (bs[3].lock){ const b = bs[3];   // locked: grey, cross-hatched, padlock (unlocks with NO ADS + ZOMBONI)
+      ctx.save(); ctx.beginPath(); ctx.moveTo(b.x + 5, b.y); ctx.lineTo(b.x + b.w, b.y); ctx.lineTo(b.x + b.w - 5, b.y + b.h); ctx.lineTo(b.x, b.y + b.h); ctx.closePath(); ctx.clip(); ctx.strokeStyle = 'rgba(20,12,36,.45)'; ctx.lineWidth = 1;
+      for (let k = -b.h; k < b.w; k += 5){ ctx.beginPath(); ctx.moveTo(b.x + k, b.y + b.h); ctx.lineTo(b.x + k + b.h, b.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(b.x + k, b.y); ctx.lineTo(b.x + k + b.h, b.y + b.h); ctx.stroke(); }
+      ctx.restore();
+      const x = b.x + b.w - 8, y = b.y - 7;   // padlock badge on the corner
+      ctx.save(); ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.beginPath(); ctx.arc(x + 5, y + 6, 3.5, Math.PI, 0); ctx.stroke(); ctx.lineWidth = 1.5; ctx.strokeStyle = '#ffe070'; ctx.beginPath(); ctx.arc(x + 5, y + 6, 3.5, Math.PI, 0); ctx.stroke(); ctx.restore();
+      R(x - 1, y + 5, 12, 10, '#000'); R(x, y + 6, 10, 8, '#ffd23f'); R(x, y + 6, 10, 2, '#fff3b0'); R(x + 4, y + 8, 2, 4, '#2a1446'); }
   };
   return S;
 }
