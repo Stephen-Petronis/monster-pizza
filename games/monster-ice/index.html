@@ -98,7 +98,7 @@ const CFG = {
   // the Zomboni: offered between periods (a timed run) and on the title screen (free drive)
   /* ADS + REMOVE ADS (iPhone / iPad app only; the website has neither). Google AdMob interstitial after every 3rd finished game,
      never the first. test: true shows Google's test ads (keep it on while testing on your own phone: tapping your own real ads can get the AdMob account suspended). Set false for the App Store build. */
-  ads: { test: true, every: 3, iosInterstitial: 'ca-app-pub-3741719178180276/7498182141', removeAdsId: 'com.stephenpetronis.monsterhockey.removeads', webZomboni: true },
+  ads: { test: true, every: 3, graceGames: 5, graceHours: 24, reviewAfter: 3, reviewDays: 30, iosInterstitial: 'ca-app-pub-3741719178180276/7498182141', removeAdsId: 'com.stephenpetronis.monsterhockey.removeads', webZomboni: true },
   zamboni: { offer: true, offerTime: 8, time: 15, speed: 55, turn: 4.0, boost: 1.7, brush: 13, edge: 3, size: 0.7, turbos: 3, turboTime: 3, turboMult: 1.8, ghosts: 3, slowTime: 1.5, slowMult: 0.45 },   // size = how big the machine draws (smaller reaches the edges); turbos = speed power-ups on the ice   // brush = half-width of the clean strip it lays down
   music: { on: true, tracks: { menu: 'skating-groove.mp3', game: 'halloween-arcade-run.mp3', fight: 'fight-fight-fight.mp3', zomboni: 'brains.mp3' }, gameVolume: 0.85, bpm: 132 },
 };
@@ -606,6 +606,17 @@ const CAPP = (n) => { try { const C = window.Capacitor; if (!C || !C.isPluginAva
 const STORE = CAPP('Store'), ADMOB = CAPP('AdMob');
 const SHOP = { prem: false, price: '$0.99', busy: false, games: 0, adReady: false, fails: 0, retry: 0 };
 try { SHOP.prem = localStorage.getItem(KEY + '-noads') === '1'; SHOP.games = +localStorage.getItem(KEY + '-games') || 0; } catch (e) {}
+// grace period: no ads until they've played a few games AND had the game a day. first = when it was first opened.
+SHOP.first = Date.now(); try { const f = +localStorage.getItem(KEY + '-first'); if (f) SHOP.first = f; else localStorage.setItem(KEY + '-first', SHOP.first); } catch (e) {}
+const inGrace = n => n <= CFG.ads.graceGames || Date.now() - SHOP.first < CFG.ads.graceHours * 3600e3;
+// Apple's "rate this app" pop-up, after a 1-player WIN (not every time: Apple also limits it to 3 times a year)
+function maybeAskReview(res){
+  if (!STORE || !STORE.requestReview || !res.win || res.twoP || res.online || SHOP.games < CFG.ads.reviewAfter) return;
+  let last = 0; try { last = +localStorage.getItem(KEY + '-review') || 0; } catch (e) {}
+  if (Date.now() - last < CFG.ads.reviewDays * 864e5) return;
+  try { localStorage.setItem(KEY + '-review', Date.now()); } catch (e) {}
+  setTimeout(() => { try { STORE.requestReview(); } catch (e) {} }, 1600);
+}
 function setPrem(on){ SHOP.prem = !!on; try { localStorage.setItem(KEY + '-noads', on ? '1' : '0'); } catch (e) {} }
 const zomboniOpen = () => SHOP.prem || (!STORE && CFG.ads.webZomboni);   // the bonus Zomboni mode: bought in the app, free on the website
 function shopInit(){
@@ -639,7 +650,7 @@ function shopRestore(){
 // a finished game counts once; every CFG.ads.every-th one (never the first) shows an ad before you leave the result screen
 function gameDone(){ SHOP.games++; try { localStorage.setItem(KEY + '-games', SHOP.games); } catch (e) {} return SHOP.games; }
 function adThen(n, fn){
-  const due = ADMOB && !SHOP.prem && SHOP.adReady && n >= CFG.ads.every && n % CFG.ads.every === 0;
+  const due = ADMOB && !SHOP.prem && SHOP.adReady && n > 0 && !inGrace(n) && n % CFG.ads.every === 0;   // n = -1: online game (never an ad)
   if (!due){ fn(); return; }
   let done = false; const hs = [];
   const finish = () => { if (done) return; done = true; hs.forEach(h => h && h.then && h.then(x => x.remove()).catch(() => {})); audioBack(); adLoad(); fn(); };
@@ -3634,7 +3645,7 @@ function scoresScene(back){
 /* ---------- RESULT ---------- */
 function resultScene(res){
   const S = { quit: false }; let bs, parts = [], t = 0;
-  if (res.gameNo === undefined) res.gameNo = gameDone();   // (coming back from HIGH SCORES doesn't count it again)
+  if (res.gameNo === undefined){ res.gameNo = res.online ? -1 : gameDone(); maybeAskReview(res); }   // online games with friends never get ads (or count); coming back from HIGH SCORES doesn't count again
   const viaAd = list => list.forEach(b => { if (b.label === 'PLAY AGAIN') return; const f = b.fn; b.fn = () => adThen(res.gameNo, f); });   // online rematch: no ad, the other player is waiting
   const enter0 = () => {
     if (res.online){

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import Capacitor
 import StoreKit
 
@@ -18,7 +19,8 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "products", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "buy", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "owned", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestReview", returnType: CAPPluginReturnPromise)
     ]
 
     // Everything below runs on the main thread (Task { @MainActor ... }), so `cache` is never touched from two threads at once
@@ -100,6 +102,17 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
         Task { @MainActor in
             let ids = await StorePlugin.ownedIds()
             call.resolve(["ids": ids])
+        }
+    }
+
+    /// Apple's own "Enjoying the app?" star rating pop-up. Apple decides whether it really shows (at most 3 times a year).
+    @objc func requestReview(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let scene = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first { $0.activationState == .foregroundActive }
+            if let scene = scene { SKStoreReviewController.requestReview(in: scene) }
+            call.resolve()
         }
     }
 
