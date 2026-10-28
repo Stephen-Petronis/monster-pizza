@@ -377,6 +377,16 @@ for (const k in FIGHT_PANELS){ const p = FIGHT_PANELS[k]; p.img = new Image(); p
    // add #nopanels to the link to compare with the plain controls
 const RINK = { x0: 24, x1: 157, y0: 36, y1: 250, r: 17, gt: 61, gb: 225, cx: 90, cy: 143, m0: 80, m1: 100 };
 const rinkArt = () => RINK_IMG.complete && RINK_IMG.naturalWidth;
+// tall phones: the room between the rink and the controls becomes more stands (the cheering crowd from the rink's sides)
+function drawStands(y, h){
+  if (!(RINK_IMG.complete && RINK_IMG.naturalWidth)) return;
+  const f = [0, 1, 2, 1][Math.floor(TT * 5) % 4];
+  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.beginPath(); ctx.rect(0, y, W, h); ctx.clip();
+  for (let i = 0, x = 0; x < W; i++, x += 17){ const sx = i % 2 ? 160 : 1, sy = 24 + (i * 53) % 150; ctx.drawImage(RINK_IMG, sx, f * 267 + sy, 17, Math.min(h, 90), x, y, 17, Math.min(h, 90)); if (h > 90) ctx.drawImage(RINK_IMG, sx, f * 267 + 24, 17, h - 90, x, y + 90, 17, h - 90); }
+  ctx.fillStyle = 'rgba(14,8,30,.35)'; ctx.fillRect(0, y, W, h);
+  ctx.restore();
+  R(0, y, W, 2, '#000'); R(0, y + 2, W, 1, '#ff7a1a');   // the boards
+}
 function drawRinkArt(){ const f = [0, 1, 2, 1][Math.floor(TT * 5) % 4]; ctx.imageSmoothingEnabled = false; ctx.drawImage(RINK_IMG, 0, f * 267, 178, 267, 0, 8, 178, 267); }   // the crowd cheers
 function drawGoalEnds(RK, tipT = [0, 0]){
   // goal lines, blue creases and checkered nets, in the art's style
@@ -908,6 +918,9 @@ const FIREBASE = { apiKey: 'AIzaSyBSJJ7azwFpZoPEjVgFvU4kvTmGFTWFlpA', projectId:
 const ONLINE = !!(FIREBASE.apiKey && FIREBASE.projectId);
 const FS_BASE = () => 'https://firestore.googleapis.com/v1/projects/' + FIREBASE.projectId + '/databases/(default)/documents';
 let hsOnline = false, hsLoading = false;
+// rude 3-letter initials: can't be entered, and show as ??? on the shared board (older versions could post them)
+const BADINI = new Set('ASS ARS AZZ FUK FUC FCK FKU FUQ FKN FAG FGT CUM CUK COK CNT KNT DIK DIC DIX DCK TIT TTS SEX SXY XXX PUS PSY PNS VAG NIG NGR NGA KKK NAZ HTL SHT BCH WTF KYS KMS JIZ JZZ FAP HOE WHR SLT RPE'.split(' '));
+const badIni = n => BADINI.has(String(n || '').toUpperCase());
 async function hsRefresh(){
   if (!ONLINE || hsLoading) return; hsLoading = true;
   try {
@@ -915,7 +928,7 @@ async function hsRefresh(){
     const r = await fetch(FS_BASE() + ':runQuery?key=' + FIREBASE.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error(r.status);
     const rows = await r.json();
-    HS = rows.filter(x => x.document).map(x => { const f = x.document.fields; return { n: f.n.stringValue, k: +(f.k.doubleValue ?? f.k.integerValue), d: f.d.stringValue }; });
+    HS = rows.filter(x => x.document).map(x => { const f = x.document.fields; return { n: badIni(f.n.stringValue) ? '???' : f.n.stringValue, k: +(f.k.doubleValue ?? f.k.integerValue), d: f.d.stringValue }; });
     hsOnline = true; saveHS();
   } catch (e) { hsOnline = false; }
   hsLoading = false;
@@ -3067,7 +3080,8 @@ function gameScene(){
   function drawPanel(pl){ withP(pl, () => {
     const g = GEO[geoKey()];
     if (geoKey() === 'L'){ R(0, 0, 110, 254, '#120a22'); R(290, 0, 110, 254, '#120a22'); R(109, 0, 1, 254, '#2a1446'); R(290, 0, 1, 254, '#2a1446'); }
-    else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446'); if (g.art && !g.fart) drawArtPanel(g); }
+    else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446');
+      if (g.art && !g.fart){ const gap = g.art.y0 - g.pt; if (gap > 6) drawStands(g.pt, gap + 8); drawArtPanel(g); } }
     else if (geoKey() === 'I'){ R(0, 254, W, P2H, '#120a22'); if (g.art) drawArtPanel(g); }
     else R(0, 254, W, 66, '#120a22');
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.kx * 14, joy.oy + joy.ky * 14, 7, pl.team === 1 ? 'rgba(74,176,255,.85)' : 'rgba(255,122,26,.85)'); }
@@ -3582,7 +3596,9 @@ function initialsScene(res){
   const XS = [54, 90, 126];
   S.enter = () => { SFX.win(); bs = [btn(36, 232, 108, 26, 'OK', save)]; for (let k = 0; k < 3; k++) burst(parts, 90, 60, 16, CONF, 90, 80, 1.4); };
   function save(){
-    lastIni = ini.map(n => L[n]).join('');
+    const pick = ini.map(n => L[n]).join('');
+    if (badIni(pick)){ SFX.nope(); toast('TRY DIFFERENT LETTERS'); return; }
+    lastIni = pick;
     const r = hsRank(res.key), entry = { n: lastIni, k: res.key, d: res.disp }; HS.splice(r, 0, entry); HS = HS.slice(0, 5); saveHS(); hsPost(entry);
     res.rank = r; go(res.after || resultScene(res));
   }
