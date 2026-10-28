@@ -182,6 +182,10 @@ function setLayout(L){
 const wantsLandscape = () => innerWidth > innerHeight * 1.15;
 const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 addEventListener('resize', () => { if (LAYOUT){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } else fit(); }); fit();
+// iOS sometimes reports the notch / home-bar space late (at launch, when screen recording starts). Re-check every second and re-fit if it changed.
+let safeSeen = '';
+setInterval(() => { try { const cs = getComputedStyle(safeProbe), r = stage.getBoundingClientRect(), now = cs.paddingTop + '|' + cs.paddingBottom + '|' + Math.round(r.width) + 'x' + Math.round(r.height);
+  if (safeSeen && now !== safeSeen && LAYOUT){ const L = LAYOUT; LAYOUT = ''; setLayout(L); } safeSeen = now; } catch (e) {} }, 1000);
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
