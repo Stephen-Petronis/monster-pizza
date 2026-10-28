@@ -236,6 +236,7 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
   .attract i,.caret{animation:none}
   .cab:hover .shell{animation:none}
 }
+#closePlayer.armed{background:#e8322a;color:#fff}
 </style>
 </head>
 <body>
@@ -987,7 +988,14 @@ document.addEventListener("visibilitychange", () => {
 });
 window.addEventListener("pagehide", () => { if (playing && playing.hiddenAt) playing.away += Date.now() - playing.hiddenAt; endPlay(); });
 function closePlayer() { endPlay(); player.hidden = true; frameEl.src = "about:blank"; hall.focus({ preventScroll: true }); }
-$("closePlayer").addEventListener("click", closePlayer);
+// Two taps to leave a game, so a stray tap while scrolling inside the game doesn't kick you out.
+let leaveArmed = null;
+$("closePlayer").addEventListener("click", () => {
+  const b = $("closePlayer");
+  if (leaveArmed) { clearTimeout(leaveArmed); leaveArmed = null; b.textContent = "\u2190 Back to the arcade"; b.classList.remove("armed"); closePlayer(); return; }
+  b.textContent = "Tap again to leave"; b.classList.add("armed");
+  leaveArmed = setTimeout(() => { leaveArmed = null; b.textContent = "\u2190 Back to the arcade"; b.classList.remove("armed"); }, 2500);
+});
 
 /* menu */
 const burger = $("burger"), menu = $("menu");
