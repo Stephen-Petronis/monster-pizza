@@ -242,6 +242,11 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 .pads{z-index:5}
 .overlay{z-index:20}
 @media (max-width:480px){.icard{width:80px}#game .icard canvas{width:56px;height:56px}.icard b{font-size:12px}.helpgrid,.tipicons{gap:12px 8px}.helpcard{padding-left:10px!important;padding-right:10px!important}}
+.btn,.tbtn,.sw,.tile{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.modepick{display:flex;gap:8px;justify-content:center;margin:4px 0 2px}
+.modepick button{border:0;border-radius:14px;padding:10px 18px;font-family:var(--font-fey);font-size:12px;color:var(--plum);cursor:pointer;background:#fff;box-shadow:0 0 0 3px var(--plum),0 4px 0 3px var(--plum)}
+.modepick button[aria-pressed="true"]{background:radial-gradient(circle at 50% 35%,#fffbe0,#ffe27a 60%,#f2b632 100%)}
+.modenote{font-size:15px;margin:2px 0 0;color:var(--ink-soft);min-height:1.2em}
 </style>
 </head>
 <body>
@@ -287,6 +292,8 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
     <div class="card">
       <button class="closex" id="mapClose" aria-label="Back to the garden" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <h2>Where to?</h2>
+      <div class="modepick" role="group" aria-label="Game mode"><button type="button" data-mode="normal" aria-pressed="true">Normal</button><button type="button" data-mode="easy" aria-pressed="false">Easy</button></div>
+      <p class="modenote"></p>
       <div class="tiles">
         <button class="tile" id="goLearn" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="20" fill="#ff5d8f"/><circle cx="28" cy="28" r="14" fill="#fff"/><circle cx="28" cy="28" r="8" fill="#ff5d8f"/><path d="M44 10l2 5 5 .3-4 3 1.4 5L44 20.6 39.6 23.3 41 18.3l-4-3 5-.3z" fill="#ffd23d"/></svg>Flying school</button>
         <button class="tile" id="goRose" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M28 54V30" stroke="#3f8f4e" stroke-width="4"/><ellipse cx="36" cy="42" rx="8" ry="4" fill="#5aa95c"/><circle cx="20" cy="22" r="10" fill="#ff7aa3"/><circle cx="36" cy="22" r="10" fill="#ff7aa3"/><circle cx="28" cy="14" r="10" fill="#ff5d8f"/><circle cx="28" cy="24" r="10" fill="#ff5d8f"/><circle cx="28" cy="20" r="7" fill="#e8336f"/></svg>Rose bed</button>
@@ -382,6 +389,8 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
       <h1>Fairy Garden</h1>
       <p>Find seeds out in the world. Bring them home and grow them.</p>
       <p class="keys">Arrows to move · Up or Space to fly · X for magic<br>In the garden: arrows to fly around · Space to use</p>
+      <div class="modepick" role="group" aria-label="Game mode"><button type="button" data-mode="normal" aria-pressed="true">Normal</button><button type="button" data-mode="easy" aria-pressed="false">Easy</button></div>
+      <p class="modenote"></p>
       <button class="play" id="playBtn" type="button">Play</button>
     </div>
   </div>
@@ -493,19 +502,34 @@ muteBtn.addEventListener('click', () => {
 // ---- Input ----
 const input = { left:false, right:false, fly:false, magic:false };
 const keyMap = { ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right', ArrowUp:'fly', KeyW:'fly', Space:'fly', KeyX:'magic', KeyJ:'magic', Enter:'magic' };
-addEventListener('keydown', e => { const k = keyMap[e.code]; if(k && (state === 'play' || state === 'race')){ input[k] = true; e.preventDefault(); } });
-addEventListener('keyup', e => { const k = keyMap[e.code]; if(k){ input[k] = false; } });
-document.querySelectorAll('.btn').forEach(b => {
-  const k = b.dataset.k;
-  const on = e => { e.preventDefault(); initAudio(); input[k] = true; b.classList.add('on'); b.classList.remove('hint'); try{ b.setPointerCapture(e.pointerId); }catch(_){} };
-  const off = () => { input[k] = false; b.classList.remove('on'); };
-  b.addEventListener('pointerdown', on);
-  b.addEventListener('pointerup', off);
-  b.addEventListener('pointercancel', off);
-  b.addEventListener('lostpointercapture', off);
+// Buttons and keys each keep their own "held" list, and the game input is worked out from both.
+// A finger can slide from one button to another (like a real d-pad), and lifting it anywhere lets go.
+const kbdHeld = {}, ptrKey = new Map();
+function syncInput(){
+  const held = new Set(ptrKey.values());
+  for(const k in input) input[k] = !!kbdHeld[k] || held.has(k);
+  document.querySelectorAll('.btn[data-k]').forEach(b => b.classList.toggle('on', held.has(b.dataset.k)));
+}
+addEventListener('keydown', e => { const k = keyMap[e.code]; if(k && (state === 'play' || state === 'race')){ kbdHeld[k] = true; syncInput(); e.preventDefault(); } });
+addEventListener('keyup', e => { const k = keyMap[e.code]; if(k){ kbdHeld[k] = false; syncInput(); } });
+const btnUnder = (x, y) => { const el = document.elementFromPoint(x, y); const b = el && el.closest ? el.closest('.btn[data-k]') : null; return b; };
+document.querySelectorAll('.btn[data-k]').forEach(b => {
+  b.addEventListener('pointerdown', e => {
+    e.preventDefault(); initAudio(); b.classList.remove('hint');
+    try{ b.releasePointerCapture(e.pointerId); }catch(_){}
+    ptrKey.set(e.pointerId, b.dataset.k); syncInput();
+  });
   b.addEventListener('contextmenu', e => e.preventDefault());
 });
-addEventListener('blur', () => { for(const k in input) input[k] = false; });
+addEventListener('pointermove', e => {
+  if(!ptrKey.has(e.pointerId)) return;
+  const b = btnUnder(e.clientX, e.clientY);
+  if(b && b.dataset.k !== ptrKey.get(e.pointerId)){ ptrKey.set(e.pointerId, b.dataset.k); syncInput(); }
+}, { passive:true });
+const ptrEnd = e => { if(ptrKey.delete(e.pointerId)) syncInput(); };
+addEventListener('pointerup', ptrEnd); addEventListener('pointercancel', ptrEnd);
+addEventListener('blur', () => { ptrKey.clear(); for(const k in kbdHeld) kbdHeld[k] = false; syncInput(); });
+document.addEventListener('visibilitychange', () => { if(document.hidden){ ptrKey.clear(); for(const k in kbdHeld) kbdHeld[k] = false; syncInput(); } });
 
 // ---- Level ----
 let L, state = 'title', time = 0, shake = 0;
@@ -546,7 +570,7 @@ function makeLevel(id, team = {}){
   const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : id === 'anthill' ? makeAnthill() : id === 'beehive' ? makeHive() : id === 'learn' ? makeLearn() : makeRoseTiles();
   WORLD = l.world; L = l; l.team = team;
   const pw = PW();
-  l.bubbles = pw.shield + (team.butterfly || 0); l.maxHearts = l.hearts = 3 + pw.heart; l.cd = 1; l.special = false; l.bonus = 0; l.decorGot = null;
+  l.bubbles = pw.shield + (team.butterfly || 0); l.maxHearts = l.hearts = ((typeof G !== 'undefined' && G.easy) ? 6 : 3) + pw.heart; l.cp = { x:l.player.x, y:l.player.y, flag:false }; l.cpT = 0; l.cd = 1; l.special = false; l.bonus = 0; l.decorGot = null;
   l.prizes = []; l.chestFx = [];
   if(id === 'compost') l.items.push({ x:cc(79), y:rr(17), type:'decor', id:'ball', got:false });
   if(id === 'feeder') l.items.push({ x:cc(86), y:rr(4), type:'decor', id:'chime', got:false });
@@ -1662,7 +1686,7 @@ function updateEshots(dt){
 }
 function homeTarget(s){
   let best = null, bd = s.range || 470;
-  const look = (x, y) => { const dx = x - s.x, dy = y - s.y, d = Math.hypot(dx, dy); if(d < bd && dx * s.vx + dy * s.vy > 0 && lineClear(s.x, s.y, x, y)){ bd = d; best = { x, y }; } };
+  const look = (x, y) => { const dx = x - s.x, dy = y - s.y, d = Math.hypot(dx, dy), w = d * (dx * s.vx + dy * s.vy < 0 ? 1.5 : 1); if(w < bd && lineClear(s.x, s.y, x, y)){ bd = w; best = { x, y }; } };
   for(const b of L.bugs) if(!b.dead && (b.need || b.stun <= 0)) look(b.x, b.y);
   const bo = L.boss; if(bo && bo.active && !bo.dead) look(bo.x, bo.y);
   const g = L.goblin; if(g && g.state !== 'run' && g.hp > 0) look(g.x, g.y);
@@ -2066,7 +2090,39 @@ function zapBug(b, s){
   if(mp >= 3){ b.dead = true; sfx.bloom(); burst(b.x, b.y, ['#fff3a8','#ffffff','#ff8fb0'], 22, 220); return; }
   b.stun = CONFIG.bugStun * (1 + .7 * mp); sfx.stun(); burst(b.x, b.y, ['#fff3a8','#ffffff'], 12, 150);
 }
-function loseHeart(){ L.hearts = Math.max(0, L.hearts - 1); updateHUD(); if(L.hearts <= 0 && state === 'play') outOfHearts(); }
+function loseHeart(){ L.hearts = Math.max(0, L.hearts - 1); updateHUD(); if(L.hearts <= 0 && state === 'play'){ if(G.easy) easyRespawn(); else outOfHearts(); } }
+// Easy mode: never lose. Pop back to the last checkpoint flower with every heart filled.
+function easyRespawn(){
+  const p = L.player;
+  burst(p.x, p.y, ['#ffffff','#ffd3e2','#ffd23d'], 24, 220);
+  if(L.id === 'pond' && p.safe){ p.x = p.safe.pl.x + clamp(p.safe.off, 20, p.safe.pl.w - 20); p.y = p.safe.pl.top - p.r - 30; }
+  else { p.x = L.cp.x; p.y = L.cp.y; }
+  p.vx = 0; p.vy = 0; p.inv = 2.5; L.hearts = L.maxHearts; updateHUD();
+  for(const b of L.bugs) if(b.chase && b.mode === 'chase'){ b.mode = 'return'; b.rest = 3; }
+  L.eshots = [];
+  burst(p.x, p.y, ['#ff9fc4','#ffffff','#ffd23d'], 30, 240); sfx.bloom();
+  L.ltexts.push({ x:p.x, y:p.y - 56, text:'Back to your flower! Hearts all filled!', life:2.6 });
+}
+function updateCheckpoint(dt){
+  if(!G.easy || !L.cp || L.id === 'pond' || L.id === 'learn') return;
+  const p = L.player;
+  L.cpT = p.inv > 0 ? 0 : L.cpT + dt;
+  if(L.cp.flag) L.cp.t = (L.cp.t || 0) + dt;
+  if(L.cpT < 1.2 || L.bugs.some(b => b.mode === 'chase')) return;
+  const far = L.id === 'anthill' ? Math.hypot(p.x - L.cp.x, p.y - L.cp.y) > 650 : p.x > L.cp.x + 600;
+  if(!far) return;
+  L.cp = { x:p.x, y:p.y, flag:true, t:0 };
+  L.ltexts.push({ x:p.x, y:p.y - 50, text:'Checkpoint!', life:1.4 }); tone(880, .1, 'sine', .06); tone(1320, .14, 'sine', .05, .08);
+}
+function drawCheckpoint(){
+  if(!L.cp || !L.cp.flag) return;
+  const x = L.cp.x, y = L.cp.y + Math.sin(time * 2) * 4, pop = Math.min(1, (L.cp.t || 0) * 4);
+  ctx.save(); ctx.translate(x, y + 26); ctx.scale(pop, pop);
+  ctx.fillStyle = 'rgba(255,240,200,.45)'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ff9fc4'; for(let k = 0; k < 5; k++){ const a = k * 1.256 + time * .6; ctx.beginPath(); ctx.arc(Math.cos(a) * 9, Math.sin(a) * 9, 7, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#ffd23d'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.fill();
+  ctx.restore();
+}
 function hurt(nx, ny){
   const p = L.player;
   if(p.inv > 0) return;
@@ -2109,9 +2165,12 @@ function update(dt){
   L.cool -= dt;
   if(input.magic && L.cool <= 0){
     const pw = PW(), mp = pw.magic, sp = CONFIG.magicSpeed * (1 + .12 * mp);
-    const hl = 1 + mp + (pw.homing ? 2 : 0);   // magic always aims a little; Power potions and the crystal ball aim better
+    const hl = 1 + mp + (pw.homing ? 2 : 0) + (G.easy ? 1 : 0);   // magic always aims; Power potions, the crystal ball and Easy mode aim even better
+    const range = 400 + 60 * hl, aimAt = homeTarget({ x:p.x, y:p.y - 8, vx:p.face, vy:0, range });
+    let base = p.face > 0 ? 0 : Math.PI;
+    if(aimAt){ base = Math.atan2(aimAt.y - (p.y - 8), aimAt.x - p.x); p.face = aimAt.x < p.x ? -1 : 1; }   // zap whoever is closest, even behind you
     for(const a of pw.spread ? [-.24, 0, .24] : [0])
-      L.shots.push({x:p.x + p.face * 24, y:p.y - 8, vx:p.face * sp * Math.cos(a), vy:sp * Math.sin(a), sp, home:true, turn:2.6 + 1.3 * hl, range:300 + 60 * hl, rt:0, tg:null, hue:Math.random() * 360, life:CONFIG.magicLife * (1.15 + .1 * hl), size:1 + .3 * mp, dmg:mp >= 2 ? 2 : 1});
+      L.shots.push({x:p.x + Math.cos(base) * 24, y:p.y - 8 + Math.sin(base) * 24, vx:sp * Math.cos(base + a), vy:sp * Math.sin(base + a), sp, home:true, turn:5 + 1.5 * hl, range, rt:0, tg:aimAt, hue:Math.random() * 360, life:CONFIG.magicLife * (1.3 + .1 * hl), size:1 + .3 * mp, dmg:mp >= 2 ? 2 : 1});
     L.cool = L.cd = CONFIG.wandRecharge[Math.min(4, PW().speed || 0)]; sfx.zap();
   }
   for(const s of L.shots){
@@ -2175,7 +2234,7 @@ function update(dt){
     else if(d < b.r + p.r - 4) hurt(dx / (d || 1), dy / (d || 1));
   }
 
-  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt); if(L.ants) updateAnts(dt); if(L.tut) updateTut(dt);
+  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt); if(L.ants) updateAnts(dt); if(L.tut) updateTut(dt); updateCheckpoint(dt);
   playSong((L.boss && L.boss.active && !L.boss.dead) || ((L.id === 'feeder' || L.id === 'beehive') && L.bugs.some(b => b.mode === 'chase')) ? 'boss' : L.id);
   for(const t of L.ltexts){ t.life -= dt; t.y -= 14 * dt; } L.ltexts = L.ltexts.filter(t => t.life > 0);
   for(const c of L.chestFx) c.t += dt; L.chestFx = L.chestFx.filter(c => c.t < 4);
@@ -2558,7 +2617,7 @@ function render(){
     for(const th of L.thorns) drawThorn(th);
     for(const b of L.buds) drawBud(b, L.player);
   }
-  drawTargets();
+  drawTargets(); drawCheckpoint();
   for(const it of L.items) if(!it.got) drawItem(it);
   for(const c of L.chestFx){ ctx.globalAlpha = Math.max(0, Math.min(1, 4 - c.t)); drawChest(c.x, c.y, true, c.t); ctx.globalAlpha = 1; }
   if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else if(L.flowerKind === 'anthill') drawAnthillExit(); else if(L.flowerKind === 'hive') drawHiveFinale(); else if(L.flowerKind === 'learn'){} else drawRoseFinale();
@@ -4102,6 +4161,15 @@ function openHelp(){
 function closeHelp(){ helpScreen.hidden = true; paused = false; for(const k in input) input[k] = false; }
 helpBtn.addEventListener('click', () => { initAudio(); if(helpScreen.hidden) openHelp(); else closeHelp(); });
 document.getElementById('helpClose').addEventListener('click', closeHelp);
+
+
+// ---- Game mode: Normal or Easy ----
+function syncModes(){
+  document.querySelectorAll('.modepick button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.mode === 'easy') === !!G.easy)));
+  document.querySelectorAll('.modenote').forEach(p => p.textContent = G.easy ? 'Easy: 6 hearts, and you never lose. You start again at a checkpoint.' : 'Normal: 3 hearts. Run out and the trip ends.');
+}
+document.querySelectorAll('.modepick button').forEach(b => b.addEventListener('click', () => { initAudio(); G.easy = b.dataset.mode === 'easy'; saveGarden(); syncModes(); tone(740, .08, 'sine', .08); }));
+syncModes();
 
 // ---- Music: a little chiptune song for each place ----
 let mbus = null, fxIn = null, noiseBuf = null, curSong = null, nextT = 0, stepI = 0, schedTimer = null;
