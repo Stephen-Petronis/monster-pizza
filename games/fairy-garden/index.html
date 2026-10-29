@@ -222,6 +222,26 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
 #mapScreen .tiles{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 @media (max-width:480px){.hud{gap:5px;left:calc(8px + env(safe-area-inset-left,0px))}.hud .pill{padding:3px 7px 3px 4px;font-size:11px;gap:3px;border-width:2px}.hud .pill svg{width:16px;height:16px}.hud .hearts svg{width:15px;height:15px}}
 @media (max-height:500px){:root{--topH:calc(54px + env(safe-area-inset-top,0px))}.hud{top:calc(8px + env(safe-area-inset-top,0px))}.mute,.homeb{width:40px;height:40px;top:calc(7px + env(safe-area-inset-top,0px))}.homeb{right:calc(58px + env(safe-area-inset-right,0px))}.hud .pill{padding:3px 9px 3px 5px;font-size:12px}}
+
+#helpBtn{right:calc(120px + env(safe-area-inset-right,0px));font-family:var(--font-fey);font-size:20px;color:var(--plum)}
+@media (max-height:500px){#helpBtn{right:calc(104px + env(safe-area-inset-right,0px))}}
+#skipBtn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));border:0;border-radius:14px;padding:10px 16px;font-family:var(--font-fey);font-size:11px;color:var(--plum);cursor:pointer;
+  background:linear-gradient(180deg,#fffaff 0%,#ffe4f4 55%,#ffc2e4 100%);box-shadow:0 0 0 3px var(--plum),0 4px 0 3px var(--plum),inset 0 2px 3px #fff}
+.tipicons,.helpgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%}
+.icard{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:92px;padding:6px 4px 8px;border-radius:16px;background:#fff;box-shadow:0 0 0 3px var(--plum),0 4px 0 3px var(--plum)}
+#game .icard canvas{width:68px;height:68px;margin:0;display:block}
+.icard b{font-family:var(--font-display);font-size:14px;line-height:1.1;color:var(--plum);text-align:center}
+.icard i{position:absolute;top:-10px;right:-10px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:15px;color:#fff;box-shadow:0 0 0 2px var(--plum)}
+.icard.good{background:#effbe8}.icard.good i{background:#45c950}
+.icard.bad{background:#ffecef}.icard.bad i{background:#ff4f6b}
+.icard.hide{background:#eef3ff}.icard.hide i{background:#6f9bff;font-size:13px}
+.helpcard{max-width:min(640px,100%)!important;width:100%}
+.helpcard h3{margin:6px 0 4px;font-family:var(--font-fey);font-size:12px;font-weight:400}
+.helpcard h3.g{color:#2f9a3a}.helpcard h3.b{color:#e0344f}.helpcard h3.h{color:#4a74d6}
+.tipcard p{font-size:19px;margin:4px 0}
+.pads{z-index:5}
+.overlay{z-index:20}
+@media (max-width:480px){.icard{width:80px}#game .icard canvas{width:56px;height:56px}.icard b{font-size:12px}.helpgrid,.tipicons{gap:12px 8px}.helpcard{padding-left:10px!important;padding-right:10px!important}}
 </style>
 </head>
 <body>
@@ -237,6 +257,7 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
   </div>
 
   <button class="homeb" id="resetGameBtn" aria-label="Reset the game" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg></button>
+  <button class="homeb" id="helpBtn" aria-label="What's what? Help" type="button" hidden>?</button>
   <button class="homeb" id="homeBtn" aria-label="Go home to the garden" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10" fill="#ffd3e2"/><path d="M10 20v-5h4v5"/></svg></button>
   <button class="mute" id="mute" aria-label="Sound on" type="button"><svg id="muteIcon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path id="waves" d="M16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/></svg></button>
 
@@ -267,6 +288,7 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
       <button class="closex" id="mapClose" aria-label="Back to the garden" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <h2>Where to?</h2>
       <div class="tiles">
+        <button class="tile" id="goLearn" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="20" fill="#ff5d8f"/><circle cx="28" cy="28" r="14" fill="#fff"/><circle cx="28" cy="28" r="8" fill="#ff5d8f"/><path d="M44 10l2 5 5 .3-4 3 1.4 5L44 20.6 39.6 23.3 41 18.3l-4-3 5-.3z" fill="#ffd23d"/></svg>Flying school</button>
         <button class="tile" id="goRose" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M28 54V30" stroke="#3f8f4e" stroke-width="4"/><ellipse cx="36" cy="42" rx="8" ry="4" fill="#5aa95c"/><circle cx="20" cy="22" r="10" fill="#ff7aa3"/><circle cx="36" cy="22" r="10" fill="#ff7aa3"/><circle cx="28" cy="14" r="10" fill="#ff5d8f"/><circle cx="28" cy="24" r="10" fill="#ff5d8f"/><circle cx="28" cy="20" r="7" fill="#e8336f"/></svg>Rose bed</button>
         <button class="tile" id="goPond" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><ellipse cx="28" cy="34" rx="24" ry="13" fill="#7ec8ff"/><ellipse cx="22" cy="32" rx="9" ry="4" fill="#5aa95c"/><circle cx="36" cy="34" r="4" fill="#ff9fbd"/></svg>Pond</button>
         <button class="tile" id="goVeg" type="button"><svg viewBox="0 0 56 56" aria-hidden="true"><path d="M20 14l10 34 6-34z" fill="#ff9a3d"/><path d="M28 14c-4-8-10-8-12-6M28 14c2-8 8-10 12-8M28 14V4" stroke="#5aa95c" stroke-width="4" stroke-linecap="round" fill="none"/></svg>Veggie patch</button>
@@ -327,6 +349,30 @@ form.namef{display:flex;flex-direction:column;gap:10px;align-items:center;width:
       <p id="racePrize"></p>
       <button class="play" id="raceAgain" type="button">Race again</button>
       <button class="linkbtn" id="raceHome" type="button">Go home</button>
+    </div>
+  </div>
+
+  <button id="skipBtn" type="button" hidden>SKIP</button>
+  <div class="overlay" id="tipScreen" hidden>
+    <div class="card tipcard">
+      <span class="tag">Something new!</span>
+      <h2 id="tipTitle">Tip</h2>
+      <div class="tipicons" id="tipIcons"></div>
+      <p id="tipText"></p>
+      <button class="play" id="tipGo" type="button">Let's go!</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="helpScreen" hidden>
+    <div class="card helpcard">
+      <button class="closex" id="helpClose" aria-label="Close help" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <h2>What's what?</h2>
+      <h3 class="g">Grab these!</h3>
+      <div class="helpgrid" id="helpGood"></div>
+      <h3 class="b">Watch out!</h3>
+      <div class="helpgrid" id="helpBad"></div>
+      <h3 class="h">Hide here!</h3>
+      <div class="helpgrid" id="helpHide"></div>
     </div>
   </div>
 
@@ -474,6 +520,7 @@ const PW = () => { const g = typeof G !== 'undefined' ? G : null, p = (g && g.po
   return { magic:(p.magic || 0) + (d.rock ? 1 : 0), float:p.float || 0, shield:p.shield || 0, heart:(p.heart || 0) + (d.gnome ? 1 : 0), speed:(p.speed || 0) + (d.frog ? 1 : 0), bounce:p.bounce || 0, sneak:p.sneak || 0, homing:d.ball ? 1 : 0, spread:d.chime ? 1 : 0 }; };
 // Extra hearts scattered through every level so kids can heal easily
 function addHearts(l){
+  if(l.id === 'learn') return;
   const near = (x, y, d) => l.items.some(it => Math.hypot(it.x - x, it.y - y) < d);
   if(!l.grid){
     l.plats.forEach((pl, i) => { if(pl.w >= 80){ const x = pl.x + pl.w / 2, y = pl.y - 90; if(!l.items.some(it => it.type === 'heart' && Math.abs(it.x - x) < 500)) l.items.push({ x, y, type:'heart', got:false }); } });
@@ -496,7 +543,7 @@ function addHearts(l){
   }
 }
 function makeLevel(id, team = {}){
-  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : id === 'anthill' ? makeAnthill() : id === 'beehive' ? makeHive() : makeRoseTiles();
+  const l = id === 'pond' ? makePond2() : id === 'veg' ? makeVeg() : id === 'compost' ? makeCompost() : id === 'feeder' ? makeFeeder() : id === 'anthill' ? makeAnthill() : id === 'beehive' ? makeHive() : id === 'learn' ? makeLearn() : makeRoseTiles();
   WORLD = l.world; L = l; l.team = team;
   const pw = PW();
   l.bubbles = pw.shield + (team.butterfly || 0); l.maxHearts = l.hearts = 3 + pw.heart; l.cd = 1; l.special = false; l.bonus = 0; l.decorGot = null;
@@ -1621,6 +1668,7 @@ function homeTarget(s){
   const g = L.goblin; if(g && g.state !== 'run' && g.hp > 0) look(g.x, g.y);
   for(const f of L.fish) if(f.on && !(f.stun > 0)) look(f.cx, f.cy);
   for(const a of (L.ants || [])) if(!a.dead) look(a.x, a.y);
+  if(L.targets && L.tut.step >= 3) for(const tg of L.targets) if(!tg.hit) look(tg.x, tg.y);
   return best;
 }
 function hitBoss(s){
@@ -1635,7 +1683,7 @@ function hitBoss(s){
 function drawTileBack(){
   if(L.theme === 'feeder'){ drawFeederBack(); return; }
   if(L.theme === 'beehive'){ drawHiveBack(); return; }
-  if(L.theme === 'veg' || L.theme === 'compost' || L.theme === 'anthill'){
+  if(L.theme === 'veg' || L.theme === 'compost' || L.theme === 'anthill' || L.theme === 'learn'){
     const gy = L.theme === 'anthill' ? L.tops[0] * T : L.gr * T;
     ctx.fillStyle = '#b5e39a';
     for(let x = -100; x < WORLD.w; x += 300){ ctx.beginPath(); ctx.ellipse(x, gy, 220, 90, 0, Math.PI, 0); ctx.fill(); }
@@ -2079,7 +2127,7 @@ function update(dt){
     }
     for(const th of L.thorns) if(s.life > 0 && inRect(s.x, s.y, th)){ s.life = 0; burst(s.x, s.y, ['#fff3a8'], 6, 90); }
     shotTiles(s);
-    ratBlocksShot(s); antShot(s);
+    ratBlocksShot(s); antShot(s); targetShot(s);
     hitBoss(s);
     for(const bug of L.bugs) if(s.life > 0 && !bug.dead && (bug.need || bug.stun <= 0) && Math.hypot(s.x - bug.x, s.y - bug.y) < bug.r + 12 * s.size){
       s.life = 0; zapBug(bug, s);
@@ -2098,11 +2146,13 @@ function update(dt){
   // items
   for(const it of L.items){
     if(it.got) continue;
+    if(it.step !== undefined && (!L.tut || it.step !== L.tut.step)) continue;
     if(Math.hypot(it.x - p.x, it.y - p.y) < p.r + 18){
       it.got = true;
       if(it.type === 'sparkle'){ L.sparkles++; sfx.pickup(); burst(it.x, it.y, ['#ffe27a','#ffffff'], 8, 120); }
       else if(it.type === 'heart'){ L.hearts = Math.min(L.maxHearts, L.hearts + 1); sfx.item(); burst(it.x, it.y, ['#ff4f7b','#ffd3e2'], 16, 160); }
       else if(it.type === 'chest') openChest(it);
+      else if(it.type === 'tstar'){ sfx.item(); burst(it.x, it.y, ['#ffd23d','#ffffff','#ff9fc4'], 26, 220); L.ltexts.push({ x:it.x, y:it.y - 40, text:['Yay!','Great!','Wow!','Nice!'][Math.floor(Math.random() * 4)], life:1.4 }); }
       else if(it.type === 'bonus'){ L.bonus++; sfx.win(); burst(it.x, it.y, ['#ffd23d','#ffffff','#9be37a'], 30, 240); }
       else if(it.type === 'decor'){ L.decorGot = it.id; sfx.win(); burst(it.x, it.y, ['#ffd23d','#ffffff','#8fd3ff'], 34, 260); }
       else if(it.type === 'star'){ L.special = true; sfx.win(); burst(it.x, it.y, ['#8f7bff','#ffffff','#ffd23d'], 34, 260); }
@@ -2125,7 +2175,7 @@ function update(dt){
     else if(d < b.r + p.r - 4) hurt(dx / (d || 1), dy / (d || 1));
   }
 
-  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt); if(L.ants) updateAnts(dt);
+  updateBoss(dt); updateEshots(dt); updateHelpers(dt); updateRats(dt); if(L.ants) updateAnts(dt); if(L.tut) updateTut(dt);
   playSong((L.boss && L.boss.active && !L.boss.dead) || ((L.id === 'feeder' || L.id === 'beehive') && L.bugs.some(b => b.mode === 'chase')) ? 'boss' : L.id);
   for(const t of L.ltexts){ t.life -= dt; t.y -= 14 * dt; } L.ltexts = L.ltexts.filter(t => t.life > 0);
   for(const c of L.chestFx) c.t += dt; L.chestFx = L.chestFx.filter(c => c.t < 4);
@@ -2184,6 +2234,7 @@ const SKIES = {
   rose:['#b99cf2','#c9a8f2','#d9b4f0','#e8c2ee','#f6d0ea','#ffdfe8'],
   pond:['#7fb0f0','#90bcf2','#a2c8f4','#b4d4f6','#c8e0f8','#dcecfa'],
   veg:['#8fa8e8','#a0b6ec','#b2c4f0','#c4d2f4','#d6e0f8','#e8eefc'],
+  learn:['#c4dcff','#d4d2ff','#ead0ff','#ffd6ec','#ffe6d6','#fff2c8'],
   beehive:['#ffe9a0','#ffeeb0','#fff2c0','#fff5cf','#fff8dd','#fffbea'],
   anthill:['#ffd9a8','#ffe0b5','#ffe7c2','#ffeecf','#fff4dc','#fffae8'],
   feeder:['#9fd8ff','#b0e0ff','#c2e8ff','#d4f0ff','#e6f7ff','#f4fcff'],
@@ -2329,6 +2380,7 @@ function drawItem(it){
     ctx.fillStyle = '#ffd3e2'; ctx.beginPath(); ctx.ellipse(x - 7, y - 5, 3, 4, -.5, 0, 7); ctx.fill();
     return;
   }
+  if(it.step !== undefined){ if(L.tut && it.step === L.tut.step) drawTutStar(it); return; }
   if(it.type === 'aseed'){ drawAntSeed(it); return; }
   if(it.type === 'chest'){ drawChest(it.x, it.y + bob, false); return; }
   if(it.type === 'bonus'){ drawSeed({ x:it.x, y:it.y + bob }); return; }
@@ -2506,9 +2558,10 @@ function render(){
     for(const th of L.thorns) drawThorn(th);
     for(const b of L.buds) drawBud(b, L.player);
   }
+  drawTargets();
   for(const it of L.items) if(!it.got) drawItem(it);
   for(const c of L.chestFx){ ctx.globalAlpha = Math.max(0, Math.min(1, 4 - c.t)); drawChest(c.x, c.y, true, c.t); ctx.globalAlpha = 1; }
-  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else if(L.flowerKind === 'anthill') drawAnthillExit(); else if(L.flowerKind === 'hive') drawHiveFinale(); else drawRoseFinale();
+  if(L.flowerKind === 'lily') drawLily(); else if(L.flowerKind === 'sunflower') drawSunflower(); else if(L.flowerKind === 'mushroom') drawCompostFinale(); else if(L.flowerKind === 'tulip') drawFeederFinale(); else if(L.flowerKind === 'anthill') drawAnthillExit(); else if(L.flowerKind === 'hive') drawHiveFinale(); else if(L.flowerKind === 'learn'){} else drawRoseFinale();
   if(L.seed.state !== 'got') drawSeed(L.seed);
   drawGoblin(L.goblin);
   for(const b of L.bugs) if(!b.dead) drawBug(b);
@@ -2538,6 +2591,7 @@ function render(){
   drawFirefly(L.ff);
   storybookOverlay();
   if(L.id === 'anthill') drawAntBag();
+  if(L.tut && state === 'play') drawTutBanner();
 }
 
 // ---- Wardrobe: dresses, wings, hair, wands and magic colors ----
@@ -3081,6 +3135,7 @@ function openMap(){ state = 'map'; tool = null; updateTools(); showUI(); mapScre
   { const lvl = fr().grasshopper || 0, gb = document.getElementById('goRace'); gb.disabled = !lvl; document.getElementById('raceNote').textContent = lvl ? 'Uses 1 grasshopper snack' : 'Feed the grasshopper first'; }
   resetArm = false; resetBtn.textContent = 'Start a new garden'; }
 document.getElementById('mapClose').addEventListener('click', goGarden);
+document.getElementById('goLearn').addEventListener('click', () => startLevel('learn'));
 document.getElementById('goRose').addEventListener('click', () => startLevel('rose'));
 document.getElementById('goPond').addEventListener('click', () => startLevel('pond'));
 document.getElementById('goVeg').addEventListener('click', () => startLevel('veg'));
@@ -3613,6 +3668,8 @@ function showRaceScreen(){
 function startRace(){
   initAudio();
   const lvl = fr().grasshopper || 0; if(!lvl) return;
+  if(needTip('race')){ showTip('race', startRace); return; }
+  paused = false; helpScreen.hidden = true;
   G.friends.grasshopper = lvl - 1; if(!G.friends.grasshopper) delete G.friends.grasshopper; saveGarden();
   R = makeRace(lvl);
   mapScreen.hidden = true; document.getElementById('raceScreen').hidden = true; winScreen.hidden = true; loseScreen.hidden = true;
@@ -3724,6 +3781,302 @@ function renderRace(){
   storybookOverlay();
 }
 
+// ---- Talking: read tips out loud for kids who are still learning to read ----
+function speak(text){
+  try{
+    if(muted || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/[!]/g, '!').replace(/MAGIC|FLY|JUMP|RIGHT|LEFT|SEED|EXIT/g, w => w.toLowerCase()));
+    u.rate = .95; u.pitch = 1.3; speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ---- The very beginning: a fairy is born from a flower ----
+let I = null;
+const skipBtn = document.getElementById('skipBtn');
+function startIntro(){
+  I = { t:0, said:0, parts:[] };
+  state = 'intro'; showUI(); playSong('garden');
+  titleScreen.hidden = true; skipBtn.hidden = false;
+}
+function endIntro(){
+  if(state !== 'intro') return;
+  G.born = true; saveGarden(); skipBtn.hidden = true;
+  if(typeof speechSynthesis !== 'undefined') try{ speechSynthesis.cancel(); }catch(e){}
+  startLevel('learn');
+}
+skipBtn.addEventListener('click', endIntro);
+cv.addEventListener('pointerdown', () => { if(state === 'intro' && I.t > 6.5) endIntro(); });
+addEventListener('keydown', e => { if(state === 'intro' && I.t > 6.5 && (e.code === 'Space' || e.code === 'Enter')) endIntro(); });
+function updateIntro(dt){
+  const prev = I.t; I.t += dt;
+  const at = s => prev < s && I.t >= s;
+  if(at(1.9)) tone(523, .3, 'sine', .07);
+  if(at(2.8)) tone(659, .3, 'sine', .07);
+  if(at(3.7)) tone(784, .3, 'sine', .07);
+  if(at(4.3)){ sfx.bloom(); introBurst(60); }
+  if(at(5.2)){ sfx.win(); introBurst(40); }
+  if(at(5.6)) speak('A new fairy is born!');
+  if(at(8.2)) speak('Hello, little fairy! Let’s learn to fly!');
+  if(I.t > 16) endIntro();
+  for(const q of I.parts){ q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 60 * dt; }
+  I.parts = I.parts.filter(q => q.life > 0);
+}
+function introBurst(n){
+  for(let i = 0; i < n; i++){ const a = Math.random() * 7, s = 60 + Math.random() * 220;
+    I.parts.push({ x:0, y:0, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 40, life:.8 + Math.random() * .8, max:1.6, c:['#ffd23d','#ffffff','#ff9fc4','#c9a7ff'][i % 4], size:2 + Math.random() * 4 }); }
+}
+function renderIntro(){
+  const t = I.t, ease = u => u <= 0 ? 0 : u >= 1 ? 1 : 1 - Math.pow(1 - u, 3);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  bandSky(SKIES.garden);
+  smileSun(W - 90, 90, 34);
+  const s = Math.min(W / 700, H / 640), cx = W / 2, gy = H * .8;
+  ctx.setTransform(dpr * s, 0, 0, dpr * s, cx * dpr, gy * dpr);
+  // meadow
+  ctx.fillStyle = '#b5e39a'; ctx.beginPath(); ctx.ellipse(-260, 10, 420, 150, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#a4d98a'; ctx.beginPath(); ctx.ellipse(300, 10, 380, 120, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#8fd46e'; ctx.fillRect(-W / s, 0, 2 * W / s, H / s);
+  for(let k = -6; k <= 6; k++){ if(!k) continue; const x = k * 90, h = 50 + (k * k * 7) % 40;
+    ctx.strokeStyle = '#5aa95c'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x, 4); ctx.lineTo(x, -h); ctx.stroke();
+    ctx.fillStyle = ['#ff9fc4','#ffd23d','#c9a7ff','#ffffff'][(k + 6) % 4]; for(let p = 0; p < 5; p++){ const a = p * 1.256; ctx.beginPath(); ctx.arc(x + Math.cos(a) * 8, -h + Math.sin(a) * 8, 6, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#ffb43d'; ctx.beginPath(); ctx.arc(x, -h, 5, 0, 7); ctx.fill(); }
+  // the magic flower grows, swells and opens
+  const stemH = 230 * ease(t / 1.8), by = -stemH, swell = t > 1.8 ? 1 + Math.min(1, (t - 1.8) / 2.4) * .35 + Math.sin(t * 9) * .03 * (t < 4.3 ? 1 : 0) : .6 + .4 * ease(t / 1.8);
+  const open = ease((t - 4.2) / 1.1);
+  ctx.strokeStyle = '#3f8f4e'; ctx.lineWidth = 12; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 4); ctx.quadraticCurveTo(-24, by / 2, 0, by); ctx.stroke(); ctx.lineCap = 'butt';
+  if(stemH > 80){ ctx.fillStyle = '#5aa95c'; const lf = ease((t - .8) / 1);
+    ctx.beginPath(); ctx.ellipse(-44 * lf, by * .45, 40 * lf, 13 * lf, .5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(40 * lf, by * .65, 36 * lf, 12 * lf, -.5, 0, 7); ctx.fill(); }
+  if(t > 3.5){ ctx.fillStyle = `rgba(255,246,190,${.25 + .35 * Math.min(1, (t - 3.5) / 1) * (1 - open * .4)})`; ctx.beginPath(); ctx.arc(0, by - 30, 90 * swell + 60 * open, 0, 7); ctx.fill(); }
+  ctx.save(); ctx.translate(0, by); ctx.scale(swell, swell);
+  const petals = 7;
+  for(let k = 0; k < petals; k++){
+    const side = (k - (petals - 1) / 2) / ((petals - 1) / 2);
+    const a = -Math.PI / 2 + side * (.28 + open * 1.25);
+    ctx.save(); ctx.rotate(a + Math.PI / 2);
+    ctx.fillStyle = k % 2 ? '#ff7aa3' : '#ff9fc4';
+    ctx.beginPath(); ctx.ellipse(0, -36 - open * 14, 20 + open * 6, 42 + open * 8, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(-5, -48 - open * 14, 5, 18, 0, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#5aa95c'; ctx.beginPath(); ctx.moveTo(-26, -2); ctx.lineTo(0, 16); ctx.lineTo(26, -2); ctx.lineTo(0, 6); ctx.closePath(); ctx.fill();
+  if(open > .3){ ctx.fillStyle = '#ffd23d'; ctx.beginPath(); ctx.arc(0, -20, 16 * open, 0, 7); ctx.fill(); }
+  ctx.restore();
+  // the fairy rises out of the flower
+  if(t > 4.9){
+    const u = ease((t - 4.9) / 1.6), fy = by - 20 - u * 95, fs = 1.1 + u * 1.1 + Math.sin(t * 3) * .03;
+    ctx.save(); ctx.translate(Math.sin(t * 1.7) * 14 * u, fy + Math.sin(t * 4) * 6 * u); ctx.scale(fs, fs);
+    ctx.globalAlpha = Math.min(1, (t - 4.9) * 2);
+    drawFairy({ x:0, y:0, face:1, inv:0, flying:true, onGround:false });
+    ctx.globalAlpha = 1; ctx.restore();
+  }
+  ctx.save(); ctx.translate(0, by - 40);
+  for(const q of I.parts){ ctx.globalAlpha = Math.max(0, q.life / q.max); ctx.fillStyle = q.c; star(q.x, q.y, q.size * 1.6, .45, t * 3); ctx.fill(); }
+  ctx.globalAlpha = 1; ctx.restore();
+  // words
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const say = t > 8 ? 'Hello, little fairy! Let’s learn to fly!' : t > 5.4 ? 'A new fairy is born!' : '';
+  if(say) bubbleText(say, W / 2, Math.max(70, H * .14));
+  if(t > 6.5){ const py = H - 46 + Math.sin(t * 4) * 3; ctx.fillStyle = '#ff6fae'; ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3;
+    ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(W / 2 - 110, py - 22, 220, 44, 22); else ctx.rect(W / 2 - 110, py - 22, 220, 44); ctx.fill(); ctx.stroke();
+    ctx.font = '400 13px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff'; ctx.fillText('TAP TO START', W / 2, py + 1); }
+  storybookOverlay();
+}
+function bubbleText(text, x, y, maxW){
+  ctx.font = '700 22px "Pixelify Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const words = text.split(' '), lines = [], lim = Math.min(maxW || 560, W - 60);
+  let cur = '';
+  for(const w of words){ const tryL = cur ? cur + ' ' + w : w; if(ctx.measureText(tryL).width > lim - 30 && cur){ lines.push(cur); cur = w; } else cur = tryL; }
+  if(cur) lines.push(cur);
+  const bw = Math.min(lim, Math.max(...lines.map(l => ctx.measureText(l).width)) + 40), bh = lines.length * 28 + 22;
+  ctx.fillStyle = '#fffaff'; ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3;
+  ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x - bw / 2, y - bh / 2, bw, bh, 16); else ctx.rect(x - bw / 2, y - bh / 2, bw, bh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3a2350';
+  lines.forEach((l, i) => ctx.fillText(l, x, y - (lines.length - 1) * 14 + i * 28 + 1));
+  return bh;
+}
+
+// ---- Flying school: the first level teaches flying, then magic ----
+const TUT_STEPS = [
+  { text:'Hold the FLY button to fly up to the star!', hint:'.btn.jelly.fly' },
+  { text:'Now hold RIGHT to fly over to the next star!', hint:'.btn.jelly.arrow[data-k="right"]' },
+  { text:'Great flying! Grab all the stars over the hill!', hint:'' },
+  { text:'Now tap MAGIC to zap the targets!', hint:'.btn.jelly.magic' },
+  { text:'You did it! Here comes your seed!', hint:'' }
+];
+function makeLearn(){
+  const COLS = 44, ROWS = 12, GR = 10;
+  const g = makeGrid(COLS, ROWS, (r, c) => r < GR ? '.' : r === GR ? '=' : '#');
+  for(let c = 17; c <= 20; c++){ g[6][c] = '='; for(let r = 7; r < GR; r++) g[r][c] = '#'; }
+  const st = (c, r, step) => ({ x:cc(c), y:rr(r), type:'tstar', step, got:false });
+  return baseLevel({
+    id:'learn', mode:'fly', seedKind:'rose', flowerKind:'learn', theme:'learn', cols:COLS, rows:ROWS, gr:GR, grid:g,
+    world:{ w:COLS * T, top:30, ground:null, bottom:ROWS * T },
+    player:{ x:cc(2), y:rr(9), vx:0, vy:0, r:18, face:1, inv:0, onGround:false, flying:false },
+    items:[st(2, 4, 0), st(11, 5, 1), st(15, 3, 2), st(19, 3, 2), st(23, 5, 2), st(26, 8, 2)],
+    targets:[31, 35, 39].map((c, i) => ({ x:cc(c), y0:rr(6), y:rr(6), amp:90 + i * 15, sp:1.3 + i * .35, ph:i * 1.7, hit:false })),
+    bugs:[], tut:{ step:0, t:0 },
+    rose:{ x:cc(2), y:rr(4) },
+    goblin:{ x:-999, y:1e6, hp:0, state:'run', hitT:0, vx:0, vy:0 },
+    seed:{ x:cc(41), y:rr(8), state:'got', t:0 },
+    waypoints:[]
+  });
+}
+function tutHint(sel){
+  clearTimeout(window._hintT);
+  document.querySelectorAll('.btn.jelly').forEach(b => b.classList.remove('hint'));
+  if(sel) document.querySelectorAll(sel).forEach(b => b.classList.add('hint'));
+}
+function tutGo(step){
+  const tt = L.tut; tt.step = step; tt.t = 0;
+  const s = TUT_STEPS[step]; tutHint(s.hint); speak(s.text);
+  L.lastProg = time;
+  if(step === 4){ const sd = L.seed; sd.state = 'free'; sd.t = 0; sd.x = L.player.x + 160; sd.y = L.player.y - 60; sfx.win(); }
+}
+function updateTut(dt){
+  const tt = L.tut; tt.t += dt;
+  if(tt.t > .05 && !tt.started){ tt.started = true; tutGo(0); }
+  if(tt.step <= 2){
+    const left = L.items.filter(it => it.type === 'tstar' && it.step === tt.step && !it.got);
+    if(!left.length){ tutGo(tt.step + 1); return; }
+    L.rose = { x:left[0].x, y:left[0].y };
+  } else if(tt.step === 3){
+    for(const tg of L.targets) if(!tg.hit) tg.y = tg.y0 + Math.sin(time * tg.sp + tg.ph) * tg.amp;
+    const left = L.targets.filter(tg => !tg.hit);
+    if(!left.length){ tutGo(4); return; }
+    L.rose = { x:left[0].x - 200, y:left[0].y };
+  }
+  if(tt.step < 3) for(const tg of L.targets) tg.y = tg.y0 + Math.sin(time * tg.sp + tg.ph) * tg.amp;
+  if(tt.t > 9 && tt.step < 4 && !tt.again){ tt.again = true; speak(TUT_STEPS[tt.step].text); }
+}
+function targetShot(s){
+  if(!L.targets || L.tut.step < 3) return;
+  for(const tg of L.targets){
+    if(tg.hit || s.life <= 0 || Math.hypot(s.x - tg.x, s.y - tg.y) > 34 + 10 * s.size) continue;
+    s.life = 0; tg.hit = true; sfx.bloom(); burst(tg.x, tg.y, ['#ff5d8f','#ffffff','#ffd23d'], 30, 260); shake = 4;
+    L.ltexts.push({ x:tg.x, y:tg.y - 50, text:['Bullseye!', 'Wow!', 'Super zap!'][L.targets.filter(q => q.hit).length - 1] || 'Yay!', life:1.6 });
+  }
+}
+function drawTargets(){
+  if(!L.targets) return;
+  for(const tg of L.targets){
+    const gy = L.gr * T;
+    ctx.strokeStyle = '#b07a48'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(tg.x, gy); ctx.lineTo(tg.x, tg.y); ctx.stroke();
+    if(tg.hit){ ctx.fillStyle = '#ffd23d'; star(tg.x, tg.y - 6, 18, .45, time * 3); ctx.fill(); continue; }
+    const on = L.tut.step >= 3;
+    ctx.globalAlpha = on ? 1 : .55;
+    for(const [r, c] of [[32, '#ff5d8f'], [24, '#ffffff'], [16, '#ff5d8f'], [8, '#ffffff']]){ ctx.fillStyle = c; ctx.beginPath(); ctx.arc(tg.x, tg.y, r, 0, 7); ctx.fill(); }
+    ctx.strokeStyle = '#3a2350'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(tg.x, tg.y, 32, 0, 7); ctx.stroke();
+    smile(tg.x, tg.y + 1, .9);
+    ctx.globalAlpha = 1;
+  }
+}
+function drawTutStar(it){
+  const y = it.y + Math.sin(time * 3 + it.x) * 6, pulse = 1 + Math.sin(time * 6) * .08;
+  ctx.fillStyle = 'rgba(255,240,150,.45)'; ctx.beginPath(); ctx.arc(it.x, y, 40 * pulse, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ffd23d'; ctx.strokeStyle = '#e6a400'; ctx.lineWidth = 3; star(it.x, y, 26 * pulse, .5, -Math.PI / 2 + Math.sin(time * 2) * .2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ffffff'; star(it.x - 6, y - 6, 6, .5, time); ctx.fill();
+}
+function drawTutBanner(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const tt = L.tut, s = TUT_STEPS[tt.step];
+  if(!s) return;
+  const pop = Math.min(1, tt.t * 5);
+  ctx.globalAlpha = pop;
+  bubbleText(s.text, W / 2, 50 + (1 - pop) * -20, 520);
+  ctx.globalAlpha = 1;
+  // a little progress row of dots for the 4 lessons
+  for(let k = 0; k < 4; k++){ ctx.fillStyle = k < tt.step ? '#ff6fae' : k === tt.step ? '#ffd23d' : 'rgba(58,35,80,.2)'; ctx.beginPath(); ctx.arc(W / 2 - 36 + k * 24, 98, 7, 0, 7); ctx.fill(); }
+}
+
+// ---- New things to know: a quick tip card the first time you visit a place ----
+const TIPS = {
+  rose:{ title:'The Rose Bed', text:'Zap bugs with MAGIC. Don’t touch the thorns! Find the seed at the end.', icons:[['bug','bad'], ['thorn','bad'], ['seed','good']] },
+  pond:{ title:'The Pond', text:'Too windy to fly! Tap JUMP to hop and hold it to float. Watch out for jumping fish!', icons:[['fish','bad'], ['mushroom','hide'], ['seed','good']] },
+  veg:{ title:'Veggie Patch', text:'Big bugs block the tunnels. Make Power potions in your garden to beat them!', icons:[['tough','bad'], ['potion','good']] },
+  compost:{ title:'Compost Heap', text:'Magic can’t stop rats! Wait for them to run past, then go.', icons:[['rat','bad'], ['raven','bad'], ['seed','good']] },
+  feeder:{ title:'Bird Feeder', text:'Be sneaky! Birds see you in their yellow zone. Hide in bushes until they look away.', icons:[['jay','bad'], ['bush','hide'], ['seed','good']] },
+  anthill:{ title:'Ant Hill', text:'Grab seeds, then fly out the EXIT to keep them. If you run out of hearts, the ants take it all back!', icons:[['ant','bad'], ['seed','good'], ['exit','good']] },
+  beehive:{ title:'Beehive', text:'Sneak past the bees! Hide in big flowers and honeycomb until they look away.', icons:[['bee','bad'], ['flower','hide'], ['seed','good']] },
+  race:{ title:'Grasshopper Race', text:'Tap JUMP to hop. Tap JUMP again in the air to flap over tall walls!', icons:[['hopper','good'], ['wall','bad'], ['pot','bad']] }
+};
+const tipScreen = document.getElementById('tipScreen');
+let tipNext = null;
+function needTip(id){ if(!G.tips) G.tips = {}; return TIPS[id] && !G.tips[id]; }
+function showTip(id, next){
+  const tp = TIPS[id]; G.tips[id] = true; saveGarden();
+  tipNext = next; state = 'tip'; showUI(); mapScreen.hidden = true;
+  document.getElementById('tipTitle').textContent = tp.title;
+  document.getElementById('tipText').textContent = tp.text;
+  const box = document.getElementById('tipIcons'); box.innerHTML = '';
+  for(const [k, kind] of tp.icons) box.appendChild(iconCard(k, kind));
+  tipScreen.hidden = false; speak(tp.text);
+  document.getElementById('tipGo').focus();
+}
+document.getElementById('tipGo').addEventListener('click', () => { tipScreen.hidden = true; try{ speechSynthesis.cancel(); }catch(e){} const n = tipNext; tipNext = null; if(n) n(); });
+
+// ---- Little pictures for tips and the ? sheet ----
+const ICONS = {
+  sparkle:['Sparkles', () => drawItem({ type:'sparkle', x:0, y:0 })],
+  water:['Water', () => drawItem({ type:'water', x:0, y:0 })],
+  food:['Food', () => drawItem({ type:'food', x:0, y:0 })],
+  heart:['Hearts', () => drawItem({ type:'heart', x:0, y:0 })],
+  seed:['Seeds', () => drawSeed({ x:0, y:0 })],
+  chest:['Treasure', () => drawChest(0, 6, false)],
+  decor:['Garden gifts', () => drawDecorIcon('gnome', 0, 4, 1.2)],
+  potion:['Potions', () => { ctx.fillStyle = '#c06cf0'; ctx.beginPath(); ctx.arc(0, 8, 18, 0, 7); ctx.fill(); ctx.fillStyle = '#e8e0f5'; ctx.fillRect(-7, -22, 14, 16); ctx.fillStyle = '#b07a48'; ctx.fillRect(-8, -28, 16, 7); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(-7, 2, 5, 0, 7); ctx.fill(); }],
+  exit:['Exit', () => { ctx.fillStyle = '#ff6fae'; ctx.fillRect(-30, -16, 60, 30); ctx.font = '400 11px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText('EXIT', 0, 0); }],
+  hopper:['Grasshopper', () => drawGrasshopper(0, 4, 1.4, 1)],
+  bug:['Bugs', () => drawBug({ kind:'beetle', x:0, y:0, dir:1, axis:'x', stun:0 })],
+  tough:['Big bugs', () => { ctx.scale(.75, .75); drawToughBug({ kind:'grub', r:20, x:0, y:0, dir:1, need:1, hp:3, flash:0, tink:0 }); }],
+  thorn:['Thorns', () => drawThorn({ x:-22, y:-26, w:44, h:52 })],
+  fish:['Jumping fish', () => { ctx.scale(.9, .9); drawFish({ cx:0, cy:0, ang:0, stun:0, on:true }); }],
+  rat:['Rats', () => { ctx.scale(.8, .8); drawRat({ x:0, y:0, ang:0, dir:1 }); }],
+  raven:['Big birds', () => drawCrow({ x:0, y:0, dir:1, stun:0 })],
+  jay:['Guard birds', () => drawJay({ x:0, y:0, dir:1, mode:'idle', watch:false })],
+  bee:['Guard bees', () => { ctx.scale(.9, .9); drawBee({ x:0, y:0, dir:1, mode:'idle', watch:false, stun:0 }); }],
+  ant:['Ants', () => { const a = { x:cam.x + 200, y:cam.y + 200, ang:0, step:time * 9, dead:false }; ctx.translate(-a.x, -a.y); drawAnt(a); }],
+  goblin:['Goblins', () => { ctx.scale(.8, .8); drawGoblin({ x:0, y:0, state:'idle', hitT:0, hp:3 }); }],
+  rock:['Goblin rocks', () => { ctx.fillStyle = '#8a7a6a'; ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill(); ctx.fillStyle = '#b8a896'; ctx.beginPath(); ctx.arc(-3, -3, 4, 0, 7); ctx.fill(); }],
+  wall:['Walls', () => { for(let y = 0; y < 3; y++) for(let x = 0; x < 2; x++){ ctx.fillStyle = (x + y) % 2 ? '#e2856a' : '#cf6f56'; ctx.fillRect(-24 + x * 25 + (y % 2) * 6, 12 - y * 16, 23, 14); } }],
+  pot:['Flower pots', () => { ctx.fillStyle = '#d9743f'; ctx.beginPath(); ctx.moveTo(-24, -14); ctx.lineTo(24, -10); ctx.lineTo(24, 14); ctx.lineTo(-24, 18); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#5a3a1e'; ctx.beginPath(); ctx.ellipse(-24, 2, 6, 15, 0, 0, 7); ctx.fill(); }],
+  bush:['Bushes', () => drawBush(-30, -30, 'rose')],
+  mushroom:['Mushrooms', () => { ctx.fillStyle = '#f3e6d0'; ctx.fillRect(-6, -4, 12, 30); ctx.fillStyle = '#d9433f'; ctx.beginPath(); ctx.ellipse(0, -4, 30, 20, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-12, -12, 4, 0, 7); ctx.arc(8, -16, 5, 0, 7); ctx.fill(); }],
+  flower:['Big flowers', () => { ctx.scale(.9, .9); drawHiveHide(-30, -30, 13); }]
+};
+function iconCanvas(key, size = 76){
+  const c = document.createElement('canvas'); c.width = size; c.height = size; c.setAttribute('aria-hidden', 'true');
+  const main = ctx; ctx = c.getContext('2d');
+  try{ ctx.translate(size / 2, size / 2); ctx.scale(size / 80, size / 80); ICONS[key][1](); }catch(e){}
+  ctx = main;
+  return c;
+}
+function iconCard(key, kind){
+  const d = document.createElement('div'); d.className = 'icard ' + kind;
+  d.appendChild(iconCanvas(key));
+  const b = document.createElement('b'); b.textContent = ICONS[key][0]; d.appendChild(b);
+  const m = document.createElement('i'); m.textContent = kind === 'good' ? '✓' : kind === 'bad' ? '✕' : '♥'; m.setAttribute('aria-hidden', 'true'); d.appendChild(m);
+  d.setAttribute('aria-label', ICONS[key][0] + (kind === 'good' ? ': collect' : kind === 'bad' ? ': avoid' : ': hide here'));
+  return d;
+}
+
+// ---- The ? button: what's good, what's bad, where to hide ----
+const helpScreen = document.getElementById('helpScreen'), helpBtn = document.getElementById('helpBtn');
+let paused = false, helpFrom = null;
+function openHelp(){
+  helpFrom = state; paused = true; for(const k in input) input[k] = false;
+  const fill = (id, keys, kind) => { const box = document.getElementById(id); box.innerHTML = ''; for(const k of keys) box.appendChild(iconCard(k, kind)); };
+  fill('helpGood', ['sparkle','water','food','heart','seed','chest','decor','potion'], 'good');
+  fill('helpBad', ['bug','tough','thorn','fish','rat','raven','jay','bee','ant','goblin','rock'], 'bad');
+  fill('helpHide', ['bush','mushroom','flower'], 'hide');
+  helpScreen.hidden = false; tone(740, .08, 'sine', .08);
+}
+function closeHelp(){ helpScreen.hidden = true; paused = false; for(const k in input) input[k] = false; }
+helpBtn.addEventListener('click', () => { initAudio(); if(helpScreen.hidden) openHelp(); else closeHelp(); });
+document.getElementById('helpClose').addEventListener('click', closeHelp);
+
 // ---- Music: a little chiptune song for each place ----
 let mbus = null, fxIn = null, noiseBuf = null, curSong = null, nextT = 0, stepI = 0, schedTimer = null;
 const mf = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -3799,6 +4152,7 @@ const SONGS = {
   get compost(){ return this.veg; },
   get anthill(){ return this.veg; },
   get beehive(){ return this.feeder; },
+  get learn(){ return this.rose; },
   // Bird feeders: a tiptoe tune for sneaking
   feeder:{ bpm:104, len:4,
     root:[45,45,41,43],
@@ -3874,6 +4228,9 @@ function showUI(){
   padsEl.hidden = !inLevel;
   if(gameEl.classList.contains('inlevel') !== inLevel){ gameEl.classList.toggle('inlevel', inLevel); resize(); }
   homeBtn.hidden = state !== 'play' && state !== 'race';
+  helpBtn.hidden = !(state === 'play' || state === 'race' || state === 'garden');
+  skipBtn.hidden = state !== 'intro';
+  document.getElementById('mute').hidden = state === 'intro';
   toolsEl.hidden = state !== 'garden';
   document.getElementById('resetGameBtn').hidden = state !== 'garden';
   if(state !== 'garden'){ document.getElementById('seedPick').hidden = true; ctipEl.hidden = true; }
@@ -3881,12 +4238,14 @@ function showUI(){
 function goGarden(){
   playSong('garden');
   state = 'garden';
-  titleScreen.hidden = true; winScreen.hidden = true; mapScreen.hidden = true; nameScreen.hidden = true; potionScreen.hidden = true; loseScreen.hidden = true; document.getElementById('resetScreen').hidden = true; dressScreen.hidden = true; document.getElementById('raceScreen').hidden = true;
+  titleScreen.hidden = true; winScreen.hidden = true; mapScreen.hidden = true; nameScreen.hidden = true; potionScreen.hidden = true; loseScreen.hidden = true; document.getElementById('resetScreen').hidden = true; dressScreen.hidden = true; document.getElementById('raceScreen').hidden = true; tipScreen.hidden = true; helpScreen.hidden = true; paused = false;
   for(const k in input) input[k] = false;
   updateTools(); showUI();
 }
 function startLevel(id, team){
   initAudio();
+  if(!team && needTip(id)){ showTip(id, () => startLevel(id)); return; }
+  paused = false; helpScreen.hidden = true;
   if(!team){ team = Object.assign({}, G.friends); G.friends = {}; saveGarden(); }
   L = makeLevel(id, team); L.lastProg = time; updateHUD();
   cam.x = 0; cam.y = clamp(L.player.y - viewH * .55, 0, Math.max(0, WORLD.bottom - viewH));
@@ -3928,6 +4287,7 @@ const loseScreen = document.getElementById('loseScreen');
 document.getElementById('retryBtn').addEventListener('click', () => startLevel(L.id, L.team));
 document.getElementById('loseHome').addEventListener('click', goGarden);
 function winText(){
+  if(L.id === 'learn') return 'You can fly and do magic! Take this rose seed home and plant it.';
   if(L.id === 'anthill'){
     const ks = L.gotSeeds.map(k => KIND_NAME[k]);
     if(!ks.length) return 'You made it out safe!';
@@ -3955,9 +4315,11 @@ function bankLoot(main){
 function takeHome(){
   bankLoot(true); tool = null;
   gf.x = 230; gf.y = 300; gf.tx = 300; gf.ty = 260; gCamX = null;
+  const fromSchool = L.id === 'learn';
   goGarden(); sfx.item();
+  if(fromSchool && !G.coached){ G.coached = true; saveGarden(); setTimeout(() => { gTexts.push({ x:plotX(1), y:GROUND - 190, text:'Tap SEED, then tap the dirt!', life:6 }); speak('This is your garden! Tap the seed button, then tap the dirt to plant your seed.'); }, 700); }
 }
-document.getElementById('playBtn').addEventListener('click', () => { initAudio(); goGarden(); });
+document.getElementById('playBtn').addEventListener('click', () => { initAudio(); if(!G.born) startIntro(); else goGarden(); });
 document.getElementById('takeHome').addEventListener('click', takeHome);
 homeBtn.addEventListener('click', () => {
   if(state === 'play' && L.id === 'anthill' && (L.gotSeeds.length || L.water || L.food || L.sparkles) && !(L.homeArm > time - 3)){
@@ -3974,11 +4336,12 @@ const magicBtnEl = document.querySelector('.btn.jelly.magic');
 let last = performance.now();
 function frame(now){
   const dt = Math.min(.033, (now - last) / 1000); last = now; time += dt;
-  if(state === 'play'){ update(dt); magicBtnEl.style.setProperty('--charge', L.cool > 0 ? (1 - L.cool / L.cd).toFixed(3) : 1); }
-  else if(state === 'race' || state === 'raceEnd') updateRace(dt);
+  if(state === 'play'){ if(!paused) update(dt); magicBtnEl.style.setProperty('--charge', L.cool > 0 ? (1 - L.cool / L.cd).toFixed(3) : 1); }
+  else if(state === 'race' || state === 'raceEnd'){ if(!paused) updateRace(dt); }
+  else if(state === 'intro') updateIntro(dt);
   else if(state === 'win' || state === 'lose'){ for(const q of L.parts){ q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; } L.parts = L.parts.filter(q => q.life > 0); }
   else updateGarden(dt);
-  if(state === 'play' || state === 'win' || state === 'lose') render(); else if(state === 'race' || state === 'raceEnd') renderRace(); else renderGarden();
+  if(state === 'play' || state === 'win' || state === 'lose') render(); else if(state === 'race' || state === 'raceEnd') renderRace(); else if(state === 'intro') renderIntro(); else renderGarden();
   if(state === 'dress') drawDressPreview();
   requestAnimationFrame(frame);
 }
