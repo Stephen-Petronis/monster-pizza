@@ -11,8 +11,7 @@
   "dependencies": {
     "@capacitor/core": "latest",
     "@capacitor/ios": "latest",
-    "monster-game-center": "file:./plugins/game-center",
-    "@capacitor-community/admob": "^8.0.0"
+    "monster-game-center": "file:./plugins/game-center"
   },
   "devDependencies": {
     "@capacitor/cli": "latest",

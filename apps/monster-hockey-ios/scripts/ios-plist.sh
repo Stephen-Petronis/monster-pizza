@@ -10,7 +10,8 @@ setp UIViewControllerBasedStatusBarAppearance bool false
 setp UIRequiresFullScreen bool true
 setp ITSAppUsesNonExemptEncryption bool false
 setp CFBundleDisplayName string "Monster Hockey"
-# AdMob: the app ID (from admob.json) and Google's ad network ID
+# AdMob: only when the AdMob plugin is installed (ads come back in 1.2: npm install @capacitor-community/admob@^8)
+if [ -d node_modules/@capacitor-community/admob ]; then
 APPID=$(node -e "console.log(require('./admob.json').iosAppId)")
 setp GADApplicationIdentifier string "$APPID"
 /usr/libexec/PlistBuddy -c "Delete :SKAdNetworkItems" "$PL" 2>/dev/null || true
@@ -27,3 +28,8 @@ for id in cstr6suwn9 4fzdc2evr5 2fnua5tdw4 ydx93a7ass p78axxw29g v72qych5uu ludv
   i=$((i+1))
 done
 echo "Info.plist updated (AdMob app ID: $APPID)."
+else
+  /usr/libexec/PlistBuddy -c "Delete :GADApplicationIdentifier" "$PL" 2>/dev/null || true
+  /usr/libexec/PlistBuddy -c "Delete :SKAdNetworkItems" "$PL" 2>/dev/null || true
+  echo "Info.plist updated (no ads in this build)."
+fi
