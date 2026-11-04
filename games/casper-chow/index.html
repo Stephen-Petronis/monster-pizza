@@ -111,7 +111,7 @@ function initAudio() {
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
     master = AC.createGain(); master.gain.value = muted ? 0 : 0.5; master.connect(AC.destination);
-    musicGain = AC.createGain(); musicGain.gain.value = 0.32; musicGain.connect(master);
+    musicGain = AC.createGain(); musicGain.gain.value = 0.55; musicGain.connect(master);
     musicNext = AC.currentTime + 0.1;
   } catch (e) { AC = null; }
 }
@@ -171,7 +171,7 @@ const MEL = [76, 79, 84, 79, 81, 79, 76, 0, 77, 81, 86, 81, 79, 77, 74, 0, 76, 7
 const BASS = [48, 45, 50, 43, 48, 45, 41, 43];
 // Music speed follows Casper: slow = slow, fast = fast.
 function musicRate() { return G.mrate || 1; }
-function targetRate() { return (G.state === 'ride' || G.state === 'ready') ? clamp(0.6 + P.speed / 250, 0.6, 1.55) : 1; }
+function targetRate() { return (G.state === 'ride' || G.state === 'ready') ? clamp(0.55 + P.speed / 333, 0.6, 1.4) : 1; }
 // Drop a song file named casper-theme.mp3 next to index.html and it replaces the chiptune.
 const TRACK = { buf: null, src: null, g: null, ab: null, tried: false };
 fetch('casper-theme.mp3').then(r => r.ok ? r.arrayBuffer() : null).then(ab => { TRACK.ab = ab; }).catch(() => { });
@@ -179,21 +179,133 @@ function playTrack() {
   if (!TRACK.src) { TRACK.g = AC.createGain(); TRACK.g.gain.value = 0; TRACK.g.connect(master); TRACK.src = AC.createBufferSource(); TRACK.src.buffer = TRACK.buf; TRACK.src.loop = true; TRACK.src.connect(TRACK.g); TRACK.src.start(); }
   TRACK.src.playbackRate.setTargetAtTime(musicRate(), AC.currentTime, 0.1);
 }
+
+/* =========================================================
+   "Brooklyn Scooter" — lo-fi boom bap x Game Boy overworld
+   88 BPM, A minor pentatonic, Rhodes, warm bass, plucks, vinyl crackle.
+   Built live with WebAudio so it can speed up / slow down with Casper.
+   ========================================================= */
+const LOFI = { bus: null, step: 0, next: 0, pulse: null, bar: 0 };
+const LF_BPM = 88;
+// 4-bar progression: Am9 | Dm9 | Fmaj7 | E7(b9)
+const LF_CH = [
+  { root: 45, notes: [60, 64, 67, 71] },
+  { root: 50, notes: [60, 64, 65, 69] },
+  { root: 41, notes: [64, 67, 69, 72] },
+  { root: 40, notes: [62, 65, 68, 71] },
+];
+// the hook: [step, midi, length-in-16ths] per bar (A minor pentatonic, Game Boy square)
+const LF_HOOK = [
+  [[0, 76, 2], [3, 79, 1], [4, 81, 3], [8, 79, 2], [10, 76, 2], [12, 74, 3]],
+  [[0, 72, 2], [2, 74, 2], [4, 76, 5], [12, 69, 2], [14, 72, 2]],
+  [[0, 76, 2], [3, 79, 1], [4, 81, 3], [8, 84, 2], [10, 81, 2], [12, 79, 3]],
+  [[0, 76, 2], [2, 74, 2], [4, 72, 4], [8, 69, 6]],
+];
+const LF_PENTA = [69, 72, 74, 76, 79, 81, 84, 86, 88];
+function lofiInit() {
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3600; lp.Q.value = 0.4;
+  const sat = AC.createWaveShaper(); const curve = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 255.5 - 1; curve[i] = Math.tanh(x * 1.6) / Math.tanh(1.6); } sat.curve = curve;
+  const g = AC.createGain(); g.gain.value = 0.9;
+  g.connect(sat); sat.connect(lp); lp.connect(musicGain);
+  LOFI.bus = g;
+  // Game Boy 25% pulse wave
+  const n = 32, re = new Float32Array(n), im = new Float32Array(n); for (let k = 1; k < n; k++) im[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * 0.25); LOFI.pulse = AC.createPeriodicWave(re, im);
+  // vinyl crackle + hiss loop
+  const len = AC.sampleRate * 3, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < len; i++) { d[i] = (Math.random() * 2 - 1) * 0.012; if (Math.random() < 0.00035) d[i] += (Math.random() < .5 ? -1 : 1) * (0.25 + Math.random() * 0.5); }
+  const src = AC.createBufferSource(); src.buffer = b; src.loop = true; const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 900; const cg = AC.createGain(); cg.gain.value = 0.5;
+  src.connect(hp); hp.connect(cg); cg.connect(LOFI.bus); src.start();
+  LOFI.crackle = cg;
+  LOFI.next = AC.currentTime + 0.1;
+}
+function lfEnv(g, t, a, peak, dec) { g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0008, t + a + dec); }
+function lfKick(t, v = 1) {
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine';
+  o.frequency.setValueAtTime(115, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+  lfEnv(g, t, 0.004, 0.85 * v, 0.32); o.connect(g); g.connect(LOFI.bus); o.start(t); o.stop(t + 0.4);
+}
+function lfNoise(t, dur, v, type, f, q = 0.8) {
+  const len = Math.floor(AC.sampleRate * dur), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const s = AC.createBufferSource(); s.buffer = b; const fl = AC.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; const g = AC.createGain();
+  lfEnv(g, t, 0.002, v, dur); s.connect(fl); fl.connect(g); g.connect(LOFI.bus); s.start(t); s.stop(t + dur + 0.02);
+}
+function lfSnare(t, v = 1) { lfNoise(t, 0.22, 0.32 * v, 'bandpass', 1700, 0.6); const o = AC.createOscillator(), g = AC.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.08); lfEnv(g, t, 0.002, 0.22 * v, 0.12); o.connect(g); g.connect(LOFI.bus); o.start(t); o.stop(t + 0.2); }
+function lfHat(t, v = 1) { lfNoise(t, 0.05, 0.07 * v, 'highpass', 7000); }
+function lfBass(t, midi, dur) {
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
+  o.type = 'sine'; o2.type = 'triangle'; o.frequency.value = o2.frequency.value = mtof(midi);
+  f.type = 'lowpass'; f.frequency.value = 420; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.42, t + 0.015); g.gain.setTargetAtTime(0.18, t + 0.05, 0.12); g.gain.setTargetAtTime(0.0001, t + dur, 0.05);
+  const g2 = AC.createGain(); g2.gain.value = 0.35; o.connect(g); o2.connect(g2); g2.connect(g); g.connect(f); f.connect(LOFI.bus);
+  o.start(t); o2.start(t); o.stop(t + dur + 0.3); o2.stop(t + dur + 0.3);
+}
+function lfRhodes(t, midi, dur, v = 1) {
+  const f0 = mtof(midi), o = AC.createOscillator(), tine = AC.createOscillator(), g = AC.createGain(), tg = AC.createGain(), lp = AC.createBiquadFilter();
+  o.type = 'sine'; tine.type = 'sine'; o.frequency.value = f0; tine.frequency.value = f0 * 4.01; o.detune.value = (Math.random() - .5) * 8;
+  lp.type = 'lowpass'; lp.frequency.value = 2200;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.07 * v, t + 0.01); g.gain.setTargetAtTime(0.0001, t + 0.02, dur * 0.45);
+  tg.gain.setValueAtTime(0.025 * v, t); tg.gain.exponentialRampToValueAtTime(0.0005, t + 0.25);
+  o.connect(g); tine.connect(tg); tg.connect(g); g.connect(lp); lp.connect(LOFI.bus);
+  o.start(t); tine.start(t); o.stop(t + dur * 2); tine.stop(t + 0.3);
+}
+function lfSquare(t, midi, dur, v = 1) {
+  const o = AC.createOscillator(), g = AC.createGain(); o.setPeriodicWave(LOFI.pulse); o.frequency.value = mtof(midi);
+  // tiny Game Boy-style vibrato on longer notes
+  if (dur > 0.25) { const lfo = AC.createOscillator(), lg = AC.createGain(); lfo.frequency.value = 5.5; lg.gain.value = 6; lfo.connect(lg); lg.connect(o.detune); lfo.start(t + 0.12); lfo.stop(t + dur + 0.1); }
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.045 * v, t + 0.006); g.gain.setValueAtTime(0.045 * v, t + dur * 0.8); g.gain.exponentialRampToValueAtTime(0.0005, t + dur + 0.05);
+  o.connect(g); g.connect(LOFI.bus); o.start(t); o.stop(t + dur + 0.1);
+}
+function lfPluck(t, midi, v = 1) {
+  // koto-ish pluck: bright attack, quick decay, little pitch dip
+  const o = AC.createOscillator(), g = AC.createGain(), f = AC.createBiquadFilter();
+  o.type = 'triangle'; o.frequency.setValueAtTime(mtof(midi) * 1.012, t); o.frequency.exponentialRampToValueAtTime(mtof(midi), t + 0.06);
+  f.type = 'lowpass'; f.frequency.setValueAtTime(4200, t); f.frequency.exponentialRampToValueAtTime(900, t + 0.4);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09 * v, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.7);
+  o.connect(f); f.connect(g); g.connect(LOFI.bus); o.start(t); o.stop(t + 0.8);
+}
+function lofiTick() {
+  if (!LOFI.bus) lofiInit();
+  const sixteenth = 60 / (LF_BPM * musicRate()) / 4;
+  const key = MODE === 'endless' && ZONES[G.curZone] ? ((ZONES[G.curZone].key % 5) + 5) % 5 - 2 : 0;   // gentle key shifts per neighborhood
+  if (LOFI.next < AC.currentTime - 0.2) LOFI.next = AC.currentTime + 0.05;
+  while (LOFI.next < AC.currentTime + 0.18) {
+    const st = LOFI.step % 16, bar = Math.floor(LOFI.step / 16), cyc = bar % 8, ch = LF_CH[bar % 4];
+    const swing = (st % 2) ? sixteenth * 0.22 : 0, t = LOFI.next + swing;
+    const r = (n) => Math.abs(Math.sin(bar * 12.9898 + st * 78.233 + n) * 43758.5453) % 1;  // repeatable "random" per step
+    const dropDrums = cyc === 7 && st >= 12;                        // tiny breath before the loop comes around
+    // drums: boom bap
+    if (!dropDrums) {
+      if (st === 0 || st === 10 || (st === 7 && bar % 2) || (st === 14 && cyc === 3)) lfKick(t, st === 0 ? 1 : 0.8);
+      if (st === 4 || st === 12) lfSnare(t);
+      if (st === 15 && r(1) < 0.35) lfSnare(t, 0.3);
+      if (st % 2 === 0 && !(st === 6 && r(2) < 0.3)) lfHat(t, st % 4 === 2 ? 1 : 0.6);
+    }
+    // bass
+    if (st === 0) lfBass(t, ch.root + key, sixteenth * 6);
+    if (st === 7) lfBass(t, ch.root + 12 + key, sixteenth * 2);
+    if (st === 10) lfBass(t, ch.root + (bar % 4 === 3 ? 2 : 7) + key, sixteenth * 4);
+    // Rhodes chords
+    if (st === 0) ch.notes.forEach((m, k) => lfRhodes(t + k * 0.012, m + key, sixteenth * 14, 1));
+    if (st === 10 && bar % 2 === 0) ch.notes.slice(1).forEach((m, k) => lfRhodes(t + k * 0.01, m + key, sixteenth * 4, 0.55));
+    // hook on the Game Boy square in bars 1-4, plucked answers in bars 5-8
+    if (cyc < 4) { for (const [s0, m, l] of LF_HOOK[cyc]) if (s0 === st) lfSquare(t, m + key, sixteenth * l); }
+    else {
+      if ([2, 6, 9, 14].includes(st) && r(3) < 0.7) lfPluck(t, LF_PENTA[Math.floor(r(4) * LF_PENTA.length)] + key);
+      if (cyc === 6 && st === 0) lfSquare(t, 81 + key, sixteenth * 3, 0.7);
+      if (cyc === 6 && st === 4) lfSquare(t, 79 + key, sixteenth * 2, 0.7);
+      if (cyc === 6 && st === 6) lfSquare(t, 76 + key, sixteenth * 6, 0.7);
+    }
+    LOFI.next += sixteenth; LOFI.step++;
+  }
+}
+
 function musicTick() {
   if (AC && TRACK.ab && !TRACK.buf && !TRACK.tried) { TRACK.tried = true; AC.decodeAudioData(TRACK.ab.slice(0)).then(b => { TRACK.buf = b; }).catch(() => { }); }
   G.mrate = lerp(G.mrate || 1, targetRate(), 0.08);
   if (TRACK.src && TRACK.g) TRACK.g.gain.setTargetAtTime((SETTINGS.music && !muted && (G.state === 'ride' || G.state === 'title' || G.state === 'ready')) ? 0.55 : 0, AC.currentTime, 0.15);
   if (!AC || !SETTINGS.music || muted || (G.state !== 'ride' && G.state !== 'title')) { if (AC) musicNext = Math.max(musicNext, AC.currentTime + 0.05); return; }
   if (TRACK.buf) return playTrack();
-  const step = 60 / (152 * musicRate()) / 2;
-  while (musicNext < AC.currentTime + 0.15) {
-    const w = musicNext - AC.currentTime, i = musicStep % 32;
-    const key = MODE === 'endless' && ZONES[G.curZone] ? ZONES[G.curZone].key : 0;
-    if (MEL[i]) tone(mtof(MEL[i] + key), step * 0.9, 'square', 0.06, w, 0, musicGain);
-    if (i % 4 === 0) tone(mtof(BASS[(i / 4) | 0] + key), step * 3.2, 'triangle', 0.16, w, 0, musicGain);
-    if (i % 2 === 1) tone(mtof(BASS[(i / 4) | 0] + 12 + key), step * .6, 'triangle', 0.07, w, 0, musicGain);
-    musicNext += step; musicStep++;
-  }
+  lofiTick();
 }
 
 /* ---------- level ---------- */
