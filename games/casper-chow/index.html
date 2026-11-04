@@ -1512,7 +1512,7 @@ function onButton(b) {
     case 'tabLevel': BOARD.tab = 'level'; break;
     case 'tabEndless': BOARD.tab = 'endless'; break;
     case 'changeIni': openInitials(); break;
-    case 'post': if (!INI) openInitials(); else { G.posted = null; postScore(); } break;
+    case 'post': openInitials(); break;
     case 'mute': toggleMute(); break;
     case 'level': resetGame('level'); break;
     case 'endless': resetGame('endless'); break;
@@ -2698,20 +2698,39 @@ function cleanRow(id, d) {
   return { id, ini: String((d && d.ini) || '???').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || '???', level: sec(d && d.level), endless: sec(d && d.endless) };
 }
 // one normalized list per board: { id, ini, score, detail, me }
+// Local top-10 (always works, even offline) — the online board is used whenever it can be reached
+let LOCALB = { level: [], endless: [] };
+try { const v = JSON.parse(localStorage.getItem('cc_board_local') || 'null'); if (v && Array.isArray(v.level) && Array.isArray(v.endless)) LOCALB = v; } catch (e) { }
+function saveLocalB() { try { localStorage.setItem('cc_board_local', JSON.stringify(LOCALB)); } catch (e) { } }
+// one normalized list per board: { id, ini, score, detail, me }
 function boardList(mode) {
   if (BOARD.src === 'fs') return BOARD.fs[mode].map(r => Object.assign({}, r, { me: MYPOSTS.includes(r.id) }));
-  return BOARD.rows.filter(r => r[mode] && r[mode].score > 0).sort((a, b) => b[mode].score - a[mode].score)
+  if (BOARD.src === 'claude') return BOARD.rows.filter(r => r[mode] && r[mode].score > 0).sort((a, b) => b[mode].score - a[mode].score)
     .map(r => ({ id: r.id, ini: r.ini, score: r[mode].score, detail: mode === 'level' ? `${r[mode].teeth} teeth` : (ZONES[r[mode].zone] ? ZONES[r[mode].zone].name : `${fmtN(r[mode].dist)} m`), me: r.id === BOARD.uid }));
+  return LOCALB[mode].map(r => Object.assign({}, r, { me: r.id === G.lastLocalId }));
 }
 function myRank(mode) { if (G.myRank && G.myRank.mode === mode) return G.myRank.rank; const i = boardList(mode).findIndex(r => r.me); return i < 0 ? 0 : i + 1; }
 function runDetail() { return MODE === 'level' ? `${P.teeth} TEETH` : ZONES[G.curZone].name.toUpperCase().slice(0, 16); }
+function qualifies(mode, sc) {
+  if (sc <= 0) return false;
+  if (BOARD.src === 'claude') return !(BOARD.mine && BOARD.mine[mode] && BOARD.mine[mode].score >= sc);
+  const list = boardList(mode);
+  return list.length < 10 || sc > list[list.length - 1].score;
+}
 let boardBusy = false;
 async function postScore() {
   if (!INI || !G.final || boardBusy) return;
   const mode = MODE, sc = G.final.total;
+  // 1) always keep it on this device's board
+  if (!G.savedLocal) {
+    G.savedLocal = true; const id = 'l' + Date.now();
+    LOCALB[mode].push({ id, ini: INI, score: sc, detail: runDetail() });
+    LOCALB[mode].sort((a, b) => b.score - a.score); LOCALB[mode] = LOCALB[mode].slice(0, 10); saveLocalB();
+    G.lastLocalId = id;
+  }
+  // 2) online if we can reach it (retry in case the server came back)
+  if (!BOARD.src) { try { await fsRefresh(); } catch (e) { } }
   if (BOARD.src === 'fs') {
-    const list = BOARD.fs[mode];
-    if (list.length >= 10 && sc <= list[list.length - 1].score) { G.posted = 'notop'; return; }
     boardBusy = true; G.posted = 'saving';
     try {
       const r = await fetch(FS_BASE + '/' + FS_COL[mode] + '?key=' + FIREBASE.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2721,28 +2740,29 @@ async function postScore() {
       if (doc && doc.name) { MYPOSTS.push(doc.name); MYPOSTS = MYPOSTS.slice(-40); try { localStorage.setItem('cc_posts', JSON.stringify(MYPOSTS)); } catch (e) { } }
       await fsRefresh().catch(() => { });
       const idx = BOARD.fs[mode].findIndex(x => x.id === (doc && doc.name));
-      G.myRank = { mode, rank: idx + 1 };
-      G.posted = 'saved';
-    } catch (e) { G.posted = 'fail'; }
+      G.myRank = { mode, rank: idx + 1 }; G.posted = 'saved';
+    } catch (e) { G.posted = 'local'; }
     boardBusy = false; return;
   }
-  if (!BOARD.db || !BOARD.uid) return;
-  const cur = BOARD.mine && BOARD.mine[mode] ? BOARD.mine[mode].score : 0;
-  if (sc <= cur && BOARD.mine && BOARD.mine.ini === INI) { G.posted = 'kept'; return; }
-  const keep = m => BOARD.mine && BOARD.mine[m] ? { score: BOARD.mine[m].score, teeth: BOARD.mine[m].teeth, stars: BOARD.mine[m].stars, dist: BOARD.mine[m].dist, zone: BOARD.mine[m].zone } : null;
-  const body = { ini: INI, level: keep('level'), endless: keep('endless'), at: Date.now() };
-  if (sc > cur) body[mode] = { score: sc, teeth: P.teeth, stars: P.stars, dist: Math.floor(Math.max(0, P.wy) / 10), zone: G.curZone };
-  boardBusy = true; G.posted = 'saving';
-  try { await BOARD.db.doc('scores/' + BOARD.uid).set(body); G.posted = 'saved'; }
-  catch (e) { G.posted = e && e.code === 'invalid_argument' ? 'noperm' : e && e.code === 'quota_exceeded' ? 'full' : 'fail'; }
-  boardBusy = false;
+  if (BOARD.src === 'claude' && BOARD.db && BOARD.uid) {
+    const cur = BOARD.mine && BOARD.mine[mode] ? BOARD.mine[mode].score : 0;
+    const keep = m => BOARD.mine && BOARD.mine[m] ? { score: BOARD.mine[m].score, teeth: BOARD.mine[m].teeth, stars: BOARD.mine[m].stars, dist: BOARD.mine[m].dist, zone: BOARD.mine[m].zone } : null;
+    const body = { ini: INI, level: keep('level'), endless: keep('endless'), at: Date.now() };
+    if (sc > cur) body[mode] = { score: sc, teeth: P.teeth, stars: P.stars, dist: Math.floor(Math.max(0, P.wy) / 10), zone: G.curZone };
+    boardBusy = true; G.posted = 'saving';
+    try { await BOARD.db.doc('scores/' + BOARD.uid).set(body); G.posted = 'saved'; }
+    catch (e) { G.posted = e && e.code === 'invalid_argument' ? 'noperm' : 'local'; }
+    boardBusy = false; return;
+  }
+  const li = LOCALB[mode].findIndex(r => r.id === G.lastLocalId); G.myRank = { mode, rank: li + 1 }; G.posted = 'local';
 }
-function canPost() { return !!((BOARD.src === 'fs' || BOARD.db) && G.final && !(MODE === 'level' && G.carHit)); }
+function canPost() { return !!(G.final && !(MODE === 'level' && G.carHit)); }
 function afterScore() {
-  G.posted = null; G.myRank = null;
+  G.posted = null; G.myRank = null; G.savedLocal = false; G.iniAsked = false; G.wantIni = false;
   if (!canPost()) return;
-  if (BOARD.src === 'fs') { const list = BOARD.fs[MODE]; if (list.length >= 10 && G.final.total <= list[list.length - 1].score) { G.posted = 'notop'; return; } }
-  if (INI) postScore();
+  if (!BOARD.src) fsRefresh().catch(() => { });          // maybe the online board is reachable now
+  G.wantIni = qualifies(MODE, G.final.total);
+  if (!G.wantIni) G.posted = 'notop';
 }
 
 /* --- initials picker (arcade style) --- */
@@ -2765,7 +2785,7 @@ function drawInitials() {
 }
 function iniButton(id) {
   if (id.startsWith('iniUp') || id.startsWith('iniDn')) { const k = +id.slice(5), d = id.startsWith('iniUp') ? -1 : 1, i = ABC.indexOf(G.iniBuf[k]); G.iniBuf[k] = ABC[(i + d + 26) % 26]; return true; }
-  if (id === 'iniOk') { INI = G.iniBuf.join(''); try { localStorage.setItem('cc_ini', INI); } catch (e) { } G.state = G.iniFrom || 'end'; if (G.state === 'end') { G.posted = null; postScore(); } return true; }
+  if (id === 'iniOk') { INI = G.iniBuf.join(''); try { localStorage.setItem('cc_ini', INI); } catch (e) { } G.state = G.iniFrom || 'end'; if (G.state === 'end' && G.wantIni && !G.savedLocal) { G.posted = null; postScore(); } return true; }
   if (id === 'iniCancel') { G.state = G.iniFrom || 'title'; return true; }
   return false;
 }
@@ -2779,10 +2799,10 @@ function drawBoard() {
   const top = 122, rowH = Math.min(34, (H - top - 150) / 10);
   rr(16, top, W - 32, rowH * 10 + 20, 20); fso('rgba(255,255,255,.96)', 3);
   const list = boardList(BOARD.tab);
-  if (!BOARD.src) {
+  if (!BOARD.src && !list.length) {
     ctx.font = `600 14px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    [BOARD.fsFail ? 'Can\u2019t reach the high score server.' : 'Loading the high scores…', BOARD.fsFail ? 'Play it on Monster Pizza to compete!' : '', '', `Your best here: ${fmtN(HS[BOARD.tab] ? HS[BOARD.tab].score : 0)}`].forEach((l, i) => ctx.fillText(l, W / 2, top + 50 + i * 24));
-  } else if (!BOARD.ready && !list.length) {
+    ['No scores yet on this device.', BOARD.fsFail ? 'The online board is offline right now.' : 'Loading the online board…', '', `Your best here: ${fmtN(HS[BOARD.tab] ? HS[BOARD.tab].score : 0)}`].forEach((l, i) => ctx.fillText(l, W / 2, top + 50 + i * 24));
+  } else if (BOARD.src && !BOARD.ready && !list.length) {
     bubbleText(BOARD.err ? 'Scores can’t be reached right now' : BOARD.slow ? 'Still loading scores…' : 'Loading scores…', W / 2, top + 60, 15, '#36cfc9', 'center', INK, 4);
   } else if (!list.length) {
     bubbleText('No scores yet — be the first!', W / 2, top + 60, 16, '#ff6b9a', 'center', INK, 4);
@@ -2798,6 +2818,7 @@ function drawBoard() {
     });
     const rk = myRank(BOARD.tab); if (rk > 10 && BOARD.src === 'claude') bubbleText(`You're #${rk}`, W / 2, top + rowH * 10 + 34, 14, '#ffffff', 'center', INK, 4);
   }
+  if (!BOARD.src && list.length) bubbleText('Saved on this device · online board offline', W / 2, top + rowH * 10 + 4, 12, '#ffffff', 'center', INK, 3);
   const by = Math.min(H - 44, top + rowH * 10 + 70);
   drawButton('changeIni', INI ? `INITIALS: ${INI}` : 'SET INITIALS', null, W / 2, by - 54, 190, 38, '#c77dff', 15);
   drawButton('back', 'BACK', null, W / 2, by, 150, 44, '#36cfc9', 20);
@@ -3027,9 +3048,12 @@ function drawEnd() {
     else bubbleText(MODE === 'level' && G.carHit ? 'Make it home to set a high score!' : `High score: ${fmtN(HS[MODE] ? HS[MODE].score : 0)}`, W / 2, by, 15, '#ffffff', 'center', INK, 4);
   }
   if (tallyDone && canPost()) {
-    const rk = myRank(MODE), msg = { saving: 'Posting score…', saved: rk ? `Posted! You're #${rk} on the board` : 'Posted to high scores!', kept: rk ? `Your best is still #${rk}` : 'Your best is still on the board', noperm: 'Ask for Contributor access to post', notop: 'Beat the top 10 to get on the board!', full: 'Leaderboard is full', fail: 'Couldn\u2019t post — try again' }[G.posted];
-    if ((!INI && G.posted !== 'notop') || G.posted === 'fail') drawButton('post', INI ? 'TRY POSTING AGAIN' : 'POST TO HIGH SCORES', null, W / 2, H - 140, 230, 40, '#c77dff', 15);
+    const tEnd = 0.35 + rows * 0.32 + 0.4;
+    if (G.wantIni && !G.iniAsked && t > tEnd + 0.7) { G.iniAsked = true; openInitials(); }
+    const rk = myRank(MODE), msg = { saving: 'Posting score…', saved: rk ? `Posted! You're #${rk} on the board` : 'Posted to high scores!', local: rk ? `Saved! #${rk} on this device's board` : 'Saved on this device', noperm: 'Saved here (ask for Contributor access to post online)', notop: 'Beat the top 10 to get on the board!' }[G.posted];
+    if (G.wantIni && !G.savedLocal && G.iniAsked) drawButton('post', 'ADD MY INITIALS', null, W / 2, H - 140, 220, 40, '#c77dff', 16);
     else if (msg) bubbleText(msg, W / 2, H - 140, 14, '#ffffff', 'center', INK, 4);
+    else if (G.wantIni && !G.iniAsked) bubbleText('TOP 10! Get ready to sign in…', W / 2, H - 140, 14, '#ffe066', 'center', INK, 4);
   }
   if (t > 1.0) {
     drawButton('again', 'RIDE AGAIN', null, W / 2, H - 86, 210, 50, '#ff6b9a', 22, 0.03);
