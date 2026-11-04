@@ -168,6 +168,14 @@ window.MONSTER_PIZZA = {
       color: "#7a3fd1",
     },
     {
+      id: "casper-chow",
+      title: "Casper Chow",
+      blurb: "Scooter home through Carroll Gardens without losing your teeth, then blow out the birthday candles. Endless ride all the way to the woods.",
+      url: "games/casper-chow/index.html",           // lives inside this repo
+      screen: "games/casper-chow/screen.gif",         // no drawn cabinet yet: uses the built-in one
+      color: "#ff6b9a",
+    },
+    {
       id: "stand-clear",
       title: "Stand Clear of the Closing Doors",
       blurb: "Strike the right pose and squeeze onto the train before the doors shut. Bonus chalk murals every 3 trains.",

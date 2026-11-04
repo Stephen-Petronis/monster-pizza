@@ -5,7 +5,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{board}/{doc} {
-      allow read: if board.matches('ss_g[0-3]') || board == 'wag' || board == 'mi_hockey' || board == 'mi_zomboni';
+      allow read: if board.matches('ss_g[0-3]') || board == 'wag' || board == 'mi_hockey' || board == 'mi_zomboni' || board == 'cc_level' || board == 'cc_endless';
 
       allow create: if
         // Super Sullivan: one collection per minigame (ss_g0 .. ss_g3)
@@ -31,6 +31,15 @@ service cloud.firestore {
           && request.resource.data.n is string && request.resource.data.n.size() == 3
           && request.resource.data.k is number
           && request.resource.data.d is string && request.resource.data.d.size() <= 12
+          && request.resource.data.t is timestamp)
+        ||
+        // Casper Chow: initials, score, detail ("20 TEETH" or the neighborhood reached), time
+        ((board == 'cc_level' || board == 'cc_endless')
+          && request.resource.data.keys().hasOnly(['n', 'k', 'd', 't'])
+          && request.resource.data.keys().hasAll(['n', 'k', 'd', 't'])
+          && request.resource.data.n is string && request.resource.data.n.matches('[A-Z]{3}')
+          && request.resource.data.k is number && request.resource.data.k >= 0 && request.resource.data.k <= 9999999
+          && request.resource.data.d is string && request.resource.data.d.size() <= 16
           && request.resource.data.t is timestamp);
 
       allow update, delete: if false;
