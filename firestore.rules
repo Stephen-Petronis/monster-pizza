@@ -33,7 +33,7 @@ service cloud.firestore {
           && request.resource.data.d is string && request.resource.data.d.size() <= 12
           && request.resource.data.t is timestamp)
         ||
-        // Casper Chow: initials, score, detail ("20 TEETH" or the neighborhood reached), time
+        // Jasper Chow: initials, score, detail ("20 TEETH" or the neighborhood reached), time
         ((board == 'cc_level' || board == 'cc_endless')
           && request.resource.data.keys().hasOnly(['n', 'k', 'd', 't'])
           && request.resource.data.keys().hasAll(['n', 'k', 'd', 't'])

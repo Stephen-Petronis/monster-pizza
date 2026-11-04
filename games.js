@@ -168,11 +168,11 @@ window.MONSTER_PIZZA = {
       color: "#7a3fd1",
     },
     {
-      id: "casper-chow",
-      title: "Casper Chow",
+      id: "jasper-chow",
+      title: "Jasper Chow",
       blurb: "Scooter home through Carroll Gardens without losing your teeth, then blow out the birthday candles. Endless ride all the way to the woods.",
-      url: "games/casper-chow/index.html",           // lives inside this repo
-      screen: "games/casper-chow/screen.gif",         // no drawn cabinet yet: uses the built-in one
+      url: "games/jasper-chow/index.html",           // lives inside this repo
+      screen: "games/jasper-chow/screen.gif",         // no drawn cabinet yet: uses the built-in one
       color: "#ff6b9a",
     },
     {
