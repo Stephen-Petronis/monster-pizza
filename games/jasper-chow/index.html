@@ -448,7 +448,7 @@ function safeTop() { return 0; }
 function doHop() { if (G.state === 'ride' && P.hop <= 0) { P.hop = CONFIG.hopTime; sfx('hop'); } }
 
 /* ---------- helpers ---------- */
-const anchor = () => H * 0.72;
+const anchor = () => H * 0.8;
 const sy = wy => anchor() - (wy - G.camY);
 function floatText(txt, x, wy, col = '#fff', size = 18) { G.texts.push({ txt, x, wy, col, size, t: 0 }); }
 function burst(x, wy, n, cols, spd = 120, kind = 'dot') { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = spd * (0.4 + Math.random() * 0.8); G.parts.push({ x, wy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.5 + Math.random() * 0.5, t: 0, c: cols[i % cols.length], r: 2 + Math.random() * 3, kind }); } }
@@ -1600,8 +1600,7 @@ function drawPause() {
   drawButton('options', 'OPTIONS', null, W / 2, H * 0.28 + 158, 210, 44, '#c77dff', 19);
   drawButton('quit', 'QUIT TO MENU', null, W / 2, H * 0.28 + 212, 210, 40, '#ff6b9a', 17);
 }
-function drawPauseBtn() {
-  const x = W - 62, y = 27;
+function drawPauseBtn(x = W - 62, y = 27) {
   circ(x, y, 15); fso('rgba(255,255,255,.92)', 2.5);
   ctx.fillStyle = INK; rr(x - 6, y - 7, 4, 14, 1.5); ctx.fill(); rr(x + 2, y - 7, 4, 14, 1.5); ctx.fill();
   btn('pause', x - 18, y - 18, 36, 36);
@@ -2224,13 +2223,13 @@ function drawSignalHUD() {
   let nx = null;
   for (const i of inters) { const d = i.y - P.wy; if (d > -CONFIG.interH - 10 && d < 430 && (!nx || i.y < nx.y)) nx = i; }
   if (!nx) return;
-  const st = sigState(nx), x = 10, y = 94;
+  const st = sigState(nx), x = 10, y = 10;
   rr(x, y, 112, 52, 16); fso('#1f1a24', 3);
   drawSignalBox(x + 26, y + 26, 17, nx);
   if (st === 'walk') bubbleText('WALK!', x + 80, y + 27, 18, '#7ee8c4', 'center', INK, 4);
   else if (st === 'flash') bubbleText('HURRY', x + 80, y + 27, 16, '#ffca3a', 'center', INK, 4);
   else bubbleText('WAIT', x + 80, y + 27, 19, '#ff8c1a', 'center', INK, 4);
-  if (st === 'wait' && P.speed < 8 && nx.y > P.wy) bubbleText('good stop!', x + 56, y + 62, 11, '#ffffff', 'center', INK, 3);
+  if (st === 'wait' && P.speed < 8 && nx.y > P.wy) bubbleText('good stop!', x + 138, y + 27, 12, '#ffffff', 'center', INK, 3);
 }
 
 /* ---------- new sprites ---------- */
@@ -2933,8 +2932,7 @@ function dogLogic(e, dt, anchorX, anchorY, reach, notice) {
 }
 
 /* ---------- HUD ---------- */
-function drawMute() {
-  const x = W - 24, y = 27;
+function drawMute(x = W - 24, y = 27) {
   circ(x, y, 15); fso('rgba(255,255,255,.92)', 2.5);
   ctx.fillStyle = INK; poly([[x - 7, y - 3], [x - 3, y - 3], [x + 2, y - 8], [x + 2, y + 8], [x - 3, y + 3], [x - 7, y + 3]]); ctx.fill();
   ctx.strokeStyle = muted ? '#ff4d6d' : INK; ctx.lineWidth = 2;
@@ -2948,61 +2946,66 @@ function dirtIcon(x, y, s) {
   ctx.closePath(); fso('#9a6634', 2); circ(x - s * .25, y - s * .25, s * .2); fs('rgba(255,255,255,.4)');
 }
 function drawHUD() {
-  const top = 10;
-  rr(8, top, 90, 34, 17); fso('rgba(255,255,255,.92)', 2.5);
-  toothIcon(27, top + 17, 9);
-  bubbleText(String(P.teeth), 60, top + 18, 22, P.teeth > 15 ? '#36cfc9' : P.teeth > 9 ? '#ffca3a' : '#ff6b6b', 'center', INK, 4);
-  rr(102, top, 70, 34, 17); fso('rgba(255,255,255,.92)', 2.5);
-  drawStar(120, top + 17, 9, 0);
-  bubbleText(String(P.stars), 149, top + 18, 19, '#ffe066', 'center', INK, 4);
-  rr(176, top, 62, 34, 17); fso('rgba(255,255,255,.92)', 2.5);
-  dirtIcon(194, top + 17, 9);
-  bubbleText(String(P.dirt), 218, top + 18, 18, '#c08a50', 'center', INK, 4);
-  if (P.helmet) { ctx.save(); ctx.translate(258, top + 20); ctx.beginPath(); ctx.arc(0, 2, 11, Math.PI, 0); ctx.lineTo(11, 4); ctx.lineTo(-11, 4); ctx.closePath(); fso('#4d96ff', 2); ctx.fillStyle = '#ffe066'; ctx.fillRect(-1.5, -9, 3, 12); ctx.restore(); }
-  drawPauseBtn();
-  drawMute();
+  // bottom shelf: everything lives down here so the road ahead stays clear
+  const by = H - 30;                                   // main row (pills + buttons)
+  const ry = H - 66;                                   // second row (speed + progress / distance)
+  ctx.fillStyle = 'rgba(59,42,82,.28)'; rr(-4, H - 80, W + 8, 84, 18); ctx.fill();
+  rr(8, by - 17, 84, 34, 17); fso('rgba(255,255,255,.95)', 2.5);
+  toothIcon(26, by, 9);
+  bubbleText(String(P.teeth), 58, by + 1, 21, P.teeth > 15 ? '#36cfc9' : P.teeth > 9 ? '#ffca3a' : '#ff6b6b', 'center', INK, 4);
+  rr(96, by - 17, 66, 34, 17); fso('rgba(255,255,255,.95)', 2.5);
+  drawStar(113, by, 9, 0);
+  bubbleText(String(P.stars), 140, by + 1, 18, '#ffe066', 'center', INK, 4);
+  rr(166, by - 17, 60, 34, 17); fso('rgba(255,255,255,.95)', 2.5);
+  dirtIcon(183, by, 9);
+  bubbleText(String(P.dirt), 207, by + 1, 17, '#c08a50', 'center', INK, 4);
+  if (P.helmet) { ctx.save(); ctx.translate(246, by + 3); ctx.beginPath(); ctx.arc(0, 2, 11, Math.PI, 0); ctx.lineTo(11, 4); ctx.lineTo(-11, 4); ctx.closePath(); fso('#4d96ff', 2); ctx.fillStyle = '#ffe066'; ctx.fillRect(-1.5, -9, 3, 12); ctx.restore(); }
+  drawPauseBtn(W - 60, by);
+  drawMute(W - 24, by);
+  // speed meter (left of the second row)
+  const sp = clamp((P.speed - CONFIG.minSpeed) / (CONFIG.maxSpeed - CONFIG.minSpeed), 0, 1);
+  rr(10, ry - 7, 70, 14, 7); fso('rgba(255,255,255,.9)', 2);
+  rr(12, ry - 5, Math.max(10, 66 * sp), 10, 5); fs(sp > .75 ? '#ff6b6b' : sp > .45 ? '#ffca3a' : '#7ee8c4');
+  bubbleText(P.speed < 8 ? 'STOPPED' : 'SPEED', 45, ry + 0.5, 8, '#fff', 'center', INK, 2.5);
   if (MODE === 'level') {
-    const bx = W - 18, by0 = 64, by1 = Math.min(H - 70, 320);
-    rr(bx - 6, by0, 12, by1 - by0, 6); fso('rgba(255,255,255,.85)', 2);
-    const k = clamp(P.wy / L, 0, 1);
-    rr(bx - 4, lerp(by1, by0, k), 8, by1 - lerp(by1, by0, k) - 2, 4); fs('#7ee8c4');
-    bubbleText('🏠', bx, by0 - 12, 16, '#fff', 'center', 'rgba(0,0,0,0)', 1);
-    for (const i of inters) { const iy = lerp(by1, by0, i.y / L); ctx.fillStyle = INK; ctx.fillRect(bx - 6, iy, 12, 3); }
-    circ(bx, lerp(by1, by0, k), 7); fso('#1f1a24', 2);
+    // horizontal trip bar: school → home
+    const x0 = 96, x1 = W - 34, k = clamp(P.wy / L, 0, 1);
+    rr(x0, ry - 6, x1 - x0, 12, 6); fso('rgba(255,255,255,.9)', 2);
+    rr(x0 + 2, ry - 4, Math.max(8, (x1 - x0 - 4) * k), 8, 4); fs('#7ee8c4');
+    for (const i of inters) { const ix = lerp(x0, x1, i.y / L); ctx.fillStyle = INK; ctx.fillRect(ix - 1.5, ry - 6, 3, 12); }
+    circ(lerp(x0, x1, k), ry, 7); fso('#1f1a24', 2);
+    bubbleText('🏠', x1 + 16, ry, 15, '#fff', 'center', 'rgba(0,0,0,0)', 1);
   } else {
     const m = Math.floor(Math.max(0, P.wy) / 10), Z = ZONES[G.curZone];
-    rr(W - 128, H - 52, 118, 42, 14); fso('rgba(255,255,255,.92)', 2.5);
-    bubbleText(`${fmtN(m)} m`, W - 69, H - 38, 17, '#36cfc9', 'center', INK, 4);
-    ctx.font = `700 10px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    let zn = Z.name; while (ctx.measureText(zn).width > 108 && zn.length > 4) zn = zn.slice(0, -2);
-    ctx.fillText(zn === Z.name ? zn : zn + '…', W - 69, H - 20);
-    // welcome banner when you enter a new neighborhood
+    rr(88, ry - 11, W - 98, 22, 11); fso('rgba(255,255,255,.92)', 2);
+    bubbleText(`${fmtN(m)} m`, 128, ry + 0.5, 13, '#36cfc9', 'center', INK, 3);
+    ctx.font = `700 11px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    let zn = Z.name; while (ctx.measureText(zn).width > W - 190 && zn.length > 4) zn = zn.slice(0, -2);
+    ctx.fillText(zn === Z.name ? zn : zn + '…', (170 + W - 10) / 2, ry + 0.5);
+    // welcome banner when you enter a new neighborhood (slim, just above the shelf, under Jasper)
     if (G.zoneT < 3.2 && G.zonesSeen > 1) {
-      const a = G.zoneT < 0.35 ? G.zoneT / 0.35 : G.zoneT > 2.7 ? (3.2 - G.zoneT) / 0.5 : 1, yb = 200 - (1 - Math.min(1, G.zoneT / 0.35)) * 40;
+      const a = G.zoneT < 0.35 ? G.zoneT / 0.35 : G.zoneT > 2.7 ? (3.2 - G.zoneT) / 0.5 : 1;
       ctx.globalAlpha = clamp(a, 0, 1);
-      ctx.save(); ctx.translate(W / 2, yb); ctx.rotate(-0.03);
-      rr(-150, -30, 300, 64, 22); fso('#fff7d6', 3.5);
-      bubbleText('WELCOME TO', 0, -12, 13, '#ff6b9a', 'center', INK, 3.5);
-      let fz = 24; ctx.font = `700 ${fz}px ${FONT}`; while (ctx.measureText(Z.name.toUpperCase()).width > 270 && fz > 12) { fz--; ctx.font = `700 ${fz}px ${FONT}`; }
-      bubbleText(Z.name.toUpperCase(), 0, 12, fz, '#ffe066', 'center', INK, 5);
-      ctx.restore(); ctx.globalAlpha = 1;
+      const txt = 'WELCOME TO ' + Z.name.toUpperCase() + '!';
+      let fz = 16; ctx.font = `700 ${fz}px ${FONT}`; while (ctx.measureText(txt).width > W - 50 && fz > 10) { fz--; ctx.font = `700 ${fz}px ${FONT}`; }
+      const w = ctx.measureText(txt).width + 30, hy = H - 100;
+      rr(W / 2 - w / 2, hy - 16, w, 32, 16); fso('#fff7d6', 3);
+      bubbleText(txt, W / 2, hy + 0.5, fz, '#ff6b9a', 'center', INK, 3.5);
+      ctx.globalAlpha = 1;
     }
   }
-  drawSignalHUD();
-  const sp = clamp((P.speed - CONFIG.minSpeed) / (CONFIG.maxSpeed - CONFIG.minSpeed), 0, 1);
-  rr(10, H - 26, 70, 14, 7); fso('rgba(255,255,255,.85)', 2);
-  rr(12, H - 24, Math.max(10, 66 * sp), 10, 5); fs(sp > .75 ? '#ff6b6b' : sp > .45 ? '#ffca3a' : '#7ee8c4');
-  bubbleText('SPEED', 45, H - 36, 10, '#fff', 'center', INK, 3);
+  // tips pop up just above the shelf, never over the road ahead
   if (G.hint) {
     const a = G.hintT < .2 ? G.hintT / .2 : G.hintT > 2.8 ? (3.2 - G.hintT) / .4 : 1;
     ctx.globalAlpha = clamp(a, 0, 1);
     let fsz = 15; ctx.font = `700 ${fsz}px ${FONT}`;
-    while (ctx.measureText(G.hint).width > W - 90 && fsz > 10) { fsz--; ctx.font = `700 ${fsz}px ${FONT}`; }
-    const w = ctx.measureText(G.hint).width + 30;
-    rr(W / 2 - w / 2 - 12, 54, w, 32, 16); fso('#fff7d6', 2.5);
-    ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(G.hint, W / 2 - 12, 70.5);
+    while (ctx.measureText(G.hint).width > W - 50 && fsz > 10) { fsz--; ctx.font = `700 ${fsz}px ${FONT}`; }
+    const w = ctx.measureText(G.hint).width + 30, hy = (MODE === 'endless' && G.zoneT < 3.2 && G.zonesSeen > 1) ? H - 136 : H - 100;
+    rr(W / 2 - w / 2, hy - 16, w, 32, 16); fso('#fff7d6', 2.5);
+    ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(G.hint, W / 2, hy + 0.5);
     ctx.globalAlpha = 1;
   }
+  drawSignalHUD();
 }
 
 /* ---------- end screen with score tally ---------- */
