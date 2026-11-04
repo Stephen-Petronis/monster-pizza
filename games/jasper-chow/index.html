@@ -469,7 +469,7 @@ function crash(reason, big) {
   if (P.inv > 0 || G.state !== 'ride') return false;
   if (reason === 'car') G.carHit = true;
   if (P.helmet && reason !== 'car') {
-    P.helmet = false; P.inv = 1.4; P.speed *= 0.45; P.thr = 0; G.shake = 8;
+    P.helmet = false; P.inv = 1.4; P.speed *= 0.45; P.thr = 0; P.boost = 0; G.shake = 8;
     floatText('HELMET SAVE!', P.x, P.wy + 40, '#7cf7ff', 20); burst(P.x, P.wy + 20, 14, ['#4d96ff', '#fff', '#ffe066']); sfx('bonk');
     return true;
   }
@@ -499,7 +499,12 @@ function updateRide(dt) {
   if (!touch && !kl && !kr && Math.abs(P.tx - P.x) < 0.5) P.tx = P.x;
 
   const sm = MODE === 'endless' ? 1 + Math.min(0.45, Math.max(0, P.wy) / 60000) : 1;
-  let target = (CONFIG.baseSpeed + P.thr) * sm;
+  // Endless "turbo": keep it pinned at top speed and you keep getting faster, slowly
+  if (MODE === 'endless') {
+    const pinned = P.thr >= (CONFIG.maxSpeed - CONFIG.baseSpeed) * 0.9;
+    P.boost = clamp((P.boost || 0) + (pinned ? dt / 30 : (P.thr < 0 ? -dt / 2 : -dt / 6)), 0, 1);
+  } else P.boost = 0;
+  let target = (CONFIG.baseSpeed + P.thr) * sm * (1 + 0.6 * (P.boost || 0));
   const onLawn = false, onStrip = false;
   if (onLawn) target *= CONFIG.lawnSlow; else if (onStrip) target *= CONFIG.stripSlow;
   if (P.wet > 0) target *= 0.8;
@@ -2061,7 +2066,7 @@ function drawGround(top, bot) {
   let y = bot;
   while (y < top) {
     const zk = zoneAt(y + 1), zEnd = MODE === 'endless' ? (zoneIndex(y + 1) + 1) * ZL : Infinity, segTop = Math.min(top, zEnd);
-    ctx.save(); const sa = sy(segTop), sb = sy(y); ctx.beginPath(); ctx.rect(-4, sa - 0.5, W + 8, sb - sa + 1); ctx.clip();
+    ctx.save(); const sa = sy(segTop), sb = sy(y); ctx.beginPath(); ctx.rect(-240, sa - 0.5, W + 480, sb - sa + 1); ctx.clip();
     drawZoneGround(zk, segTop, y);
     ctx.restore();
     y = segTop;
@@ -3263,7 +3268,7 @@ function endFace() {
   if (G.carHit) { G.state = 'end'; G.t = 0; G.over = true; saveScore(MODE === 'endless'); sfx('honk'); return; }
   if (MODE === 'endless' && P.teeth <= 0) { G.state = 'end'; G.t = 0; G.over = true; saveScore(); sfx('win'); return; }
   G.state = 'ride'; G.t = 0;
-  P.inv = CONFIG.invulnTime; P.speed = 60; P.thr = 0; P.hop = 0; P.slip = 0;
+  P.inv = CONFIG.invulnTime; P.speed = 60; P.thr = 0; P.boost = 0; P.hop = 0; P.slip = 0;
   P.x = clamp(G.fall.x, PMIN, PMAX); P.tx = clamp(Math.max(P.x, 150), PMIN, PMAX); P.x = P.tx;
   P.wy = G.fall.wy;
   for (const i of inters) if (P.wy > i.y - 10 && P.wy < i.y + CONFIG.interH + 10) P.wy = i.y - 14;
@@ -3278,7 +3283,7 @@ function update(dt) {
   if (G.state === 'title' || G.state === 'paused' || G.state === 'end' || G.state === 'initials' || G.state === 'board') return;
   if (G.hint) { G.hintT += dt; if (G.hintT > 3.2) G.hint = null; }
   G.zoneT += dt;
-  { const zt = MODE === 'endless' && G.state !== 'title' ? 1 - 0.3 * clamp((P.speed - 150) / 140, 0, 1) - (P.hop > 0 && (P.hopMax || 0) > 40 ? 0.08 : 0) : 1; G.zoom = lerp(G.zoom || 1, zt, Math.min(1, dt * 1.6)); }
+  { const zt = MODE === 'endless' && G.state !== 'title' ? 1 - 0.42 * Math.pow(clamp((P.speed - 160) / 420, 0, 1), 0.85) - (P.hop > 0 && (P.hopMax || 0) > 40 ? 0.05 : 0) : 1; G.zoom = lerp(G.zoom || 1, zt, Math.min(1, dt * 0.7)); }
 
   if (G.state === 'ride') updateRide(dt);
   else if (G.state === 'fall') {
@@ -3365,7 +3370,8 @@ function drawHUD() {
   const sp = clamp((P.speed - CONFIG.minSpeed) / (CONFIG.maxSpeed - CONFIG.minSpeed), 0, 1);
   rr(10, ry - 7, 70, 14, 7); fso('rgba(255,255,255,.9)', 2);
   rr(12, ry - 5, Math.max(10, 66 * sp), 10, 5); fs(sp > .75 ? '#ff6b6b' : sp > .45 ? '#ffca3a' : '#7ee8c4');
-  bubbleText(P.speed < 8 ? 'STOPPED' : 'SPEED', 45, ry + 0.5, 8, '#fff', 'center', INK, 2.5);
+  if ((P.boost || 0) > 0.05) { rr(12, ry - 5, Math.max(10, 66 * P.boost), 10, 5); fs('hsl(' + ((G.time * 240) % 360) + ',90%,65%)'); }
+  bubbleText(P.speed < 8 ? 'STOPPED' : (P.boost || 0) > 0.05 ? 'TURBO!' : 'SPEED', 45, ry + 0.5, 8, '#fff', 'center', INK, 2.5);
   if (MODE === 'level') {
     // horizontal trip bar: school → home
     const x0 = 96, x1 = W - 34, k = clamp(P.wy / L, 0, 1);
