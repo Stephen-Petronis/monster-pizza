@@ -445,19 +445,26 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 function toggleMute() { muted = !muted; try { localStorage.setItem('jc_muted', muted ? '1' : '0'); } catch (e) { } if (master) master.gain.value = muted ? 0 : 0.5; }
 function safeTop() { return 0; }
-function doHop() { if (G.state === 'ride' && P.hop <= 0) { P.hop = CONFIG.hopTime; sfx('hop'); } }
+function doHop() {
+  if (G.state !== 'ride' || P.hop > 0) return;
+  // in Endless, the faster you go the farther you fly (fast enough clears a whole intersection)
+  const f = MODE === 'endless' ? clamp((P.speed - 170) / 110, 0, 1) : 0;
+  P.hopT = CONFIG.hopTime * (1 + 1.7 * f); P.hopMax = CONFIG.hopHeight * (1 + 1.1 * f); P.hop = P.hopT; P.flip = false;
+  sfx('hop'); if (f > 0.6) { floatText('MEGA JUMP!', P.x, P.wy + 50, '#7cf7ff', 18); sfx('zone'); }
+}
 
 /* ---------- helpers ---------- */
 const anchor = () => H * 0.8;
+let VY0 = -40, VY1 = 900;   // visible draw range (wider when zoomed out)
 const sy = wy => anchor() - (wy - G.camY);
 function floatText(txt, x, wy, col = '#fff', size = 18) { G.texts.push({ txt, x, wy, col, size, t: 0 }); }
 function burst(x, wy, n, cols, spd = 120, kind = 'dot') { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = spd * (0.4 + Math.random() * 0.8); G.parts.push({ x, wy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.5 + Math.random() * 0.5, t: 0, c: cols[i % cols.length], r: 2 + Math.random() * 3, kind }); } }
 function showHint(h) { if (!h) return; G.hint = h; G.hintT = 0; }
-function hopH() { return P.hop > 0 ? Math.sin(Math.PI * (1 - P.hop / CONFIG.hopTime)) * CONFIG.hopHeight : 0; }
+function hopH() { const T = P.hopT || CONFIG.hopTime, M = P.hopMax || CONFIG.hopHeight; return P.hop > 0 ? Math.sin(Math.PI * clamp(1 - P.hop / T, 0, 1)) * M : 0; }
 function onGround() { return P.hop <= 0 || hopH() < 6; }
 
 /* ---------- crashing ---------- */
-const REASONS = { person: 'Bonked a person!', dog: 'Spooked by a dog!', crack: 'Flew over a crack!', poop: 'Slipped in poop!', trash: 'Crashed into garbage bags!', subway: 'Bonked the subway stairs!', car: 'Hit by a car! Wait for WALK!', hydrant: 'Hit a hydrant!', tree: 'Bonked a tree!', mailbox: 'Hit a mailbox!', stroller: 'Bumped a baby stroller!', bike: 'Watch out for bikes!', cart: 'Crashed into a food cart!', crate: 'Toppled the crates!', bull: 'Bonked the bronze bull!', fruit: 'Knocked over the fruit!', lion: 'Tangled in the lion dance!', dragon: 'Swallowed by the dragon!', rat: 'EEK! A rat!', steam: 'Hit the steam pipe!', mascot: 'Hugged by a mascot!', bear: 'A BEAR!!', snake: 'Snake surprise!', skunk: 'Tripped on a skunk!', deer: 'Oh deer!', rock: 'Hit a rock!' };
+const REASONS = { bat: 'Bonked by a bat!', float: 'Ran into a parade float!', gator: 'Chomped by a gator!', skate: 'Crashed into a skateboarder!', ufo: 'Zapped by a UFO!', racecar: 'Race car crash!', sled: 'Sled collision!', tractor: 'Bonked a tractor!', ghost: 'Spooked by a ghost!', person: 'Bonked a person!', dog: 'Spooked by a dog!', crack: 'Flew over a crack!', poop: 'Slipped in poop!', trash: 'Crashed into garbage bags!', subway: 'Bonked the subway stairs!', car: 'Hit by a car! Wait for WALK!', hydrant: 'Hit a hydrant!', tree: 'Bonked a tree!', mailbox: 'Hit a mailbox!', stroller: 'Bumped a baby stroller!', bike: 'Watch out for bikes!', cart: 'Crashed into a food cart!', crate: 'Toppled the crates!', bull: 'Bonked the bronze bull!', fruit: 'Knocked over the fruit!', lion: 'Tangled in the lion dance!', dragon: 'Swallowed by the dragon!', rat: 'EEK! A rat!', steam: 'Hit the steam pipe!', mascot: 'Hugged by a mascot!', bear: 'A BEAR!!', snake: 'Snake surprise!', skunk: 'Tripped on a skunk!', deer: 'Oh deer!', rock: 'Hit a rock!' };
 function crash(reason, big) {
   if (P.inv > 0 || G.state !== 'ride') return false;
   if (reason === 'car') G.carHit = true;
@@ -510,7 +517,7 @@ function updateRide(dt) {
   const prevY = P.wy;
   P.wy += P.speed * dt;
   P.wheel += P.speed * dt;
-  if (P.hop > 0) { P.hop -= dt; if (P.hop <= 0) { sfx('land'); burst(P.x, P.wy, 5, ['#fff', '#ddd'], 50); } }
+  if (P.hop > 0) { P.hop -= dt; if (P.hop <= 0) { P.flip = false; P.hopT = 0; P.hopMax = 0; sfx('land'); burst(P.x, P.wy, 5, ['#fff', '#ddd'], 50); } }
   if (P.inv > 0) P.inv -= dt;
   if (P.wet > 0) { P.wet -= dt; if (Math.random() < dt * 14) G.parts.push({ x: P.x + (Math.random() - .5) * 14, wy: P.wy + 4, vx: 0, vy: -10, life: .5, t: 0, c: '#6ec6ff', r: 2, kind: 'dot' }); }
   if (P.stink > 0) P.stink -= dt;
@@ -526,29 +533,29 @@ function updateRide(dt) {
 function inInter(wy) { return inters.some(i => wy > i.y && wy < i.y + CONFIG.interH); }
 
 function collide(prevY) {
-  const px = P.x, py = P.wy, g = onGround();
+  const px = P.x, py = P.wy, g = onGround(), air = hopH() > 20;
   for (const e of ents) {
     if (e.y < py - 200 || e.y > py + 200) { if (e.t !== 'interHint' || e.y > py + 600) continue; }
     if (e.hint && !e.hinted && e.y - py < 280 && e.y > py - 20) { e.hinted = true; showHint(e.hint); }
     switch (e.t) {
       case 'star': if (!e.got) { const ey = e.y, h = e.arc || 0; if (Math.abs(px - e.x) < 15 && Math.abs(py - ey) < 16 && hopH() >= h * 0.7) { e.got = true; P.stars++; sfx('star'); burst(e.x, ey, 6, ['#ffe066', '#fff'], 90, 'star'); } } break;
       case 'helmet': if (!e.got && Math.hypot(px - e.x, py - e.y) < 18) { e.got = true; P.helmet = true; sfx('helmet'); floatText('HELMET!', e.x, e.y + 30, '#7cf7ff', 22); burst(e.x, e.y, 14, ['#4d96ff', '#fff', '#ffe066'], 130, 'star'); } break;
-      case 'walker': case 'dogwalk': if (Math.hypot(px - e.x, py - e.y) < 15 && P.inv <= 0) { if (crash('person')) floatText('OOF!', e.x, e.y + 40, '#ffe066'); } else if (e.stroller && Math.hypot(px - e.x, py - (e.y - 16)) < 14) crash('stroller'); break;
-      case 'trash': if (Math.abs(px - e.x) < 16 && Math.abs(py - e.y) < 18) crash('trash'); break;
-      case 'hydrant': if (Math.hypot(px - e.x, py - e.y) < 13) crash('hydrant'); break;
-      case 'mailbox': if (Math.hypot(px - e.x, py - e.y) < 13) crash('mailbox'); break;
-      case 'subway': if (Math.abs(px - e.x) < 17 && Math.abs(py - e.y) < 28) crash('subway'); break;
+      case 'walker': case 'dogwalk': if (!air && Math.hypot(px - e.x, py - e.y) < 15 && P.inv <= 0) { if (crash('person')) floatText('OOF!', e.x, e.y + 40, '#ffe066'); } else if (e.stroller && Math.hypot(px - e.x, py - (e.y - 16)) < 14) crash('stroller'); break;
+      case 'trash': if (!air && Math.abs(px - e.x) < 16 && Math.abs(py - e.y) < 18) crash('trash'); break;
+      case 'hydrant': if (!air && Math.hypot(px - e.x, py - e.y) < 13) crash('hydrant'); break;
+      case 'mailbox': if (!air && Math.hypot(px - e.x, py - e.y) < 13) crash('mailbox'); break;
+      case 'subway': if (!air && Math.abs(px - e.x) < 17 && Math.abs(py - e.y) < 28) crash('subway'); break;
       case 'poop': if (!e.hit && g && Math.hypot(px - e.x, py - e.y) < 11) {
         e.hit = true; sfx('squish'); P.stink = 4; addDirt(2, px, py); burst(e.x, e.y, 8, ['#8a5a2b', '#6b4423'], 90);
         if (P.speed > CONFIG.poopCrashSpeed) crash('poop'); else { P.slip = CONFIG.poopSlipTime; floatText('EWWW!', px, py + 36, '#b6f26b'); }
       } break;
       case 'puddle': if (g && ((px - e.x) / (e.rx + 4)) ** 2 + ((py - e.y) / (e.ry + 4)) ** 2 < 1) {
         if (!e.hit || P.wet <= 0.2) {
-          const k = e.kind || 'water', col = { water: '#6ec6ff', coffee: '#8a5a2b', mud: '#7a5230' }[k];
-          if (!e.hit) addDirt(k === 'mud' ? 2 : 1, px, py);
-          e.hit = true; sfx(k === 'water' ? 'splash' : 'squish'); floatText({ water: 'SPLASH!', coffee: 'SPLAT!', mud: 'SPLORCH!' }[k], px, py + 36, k === 'water' ? '#8fd8ff' : '#e0b07a');
-          for (let i = 0; i < 14; i++) G.parts.push({ x: px, wy: py, vx: (Math.random() - .5) * 160, vy: 60 + Math.random() * 120, life: .6, t: 0, c: col, r: 2.5, kind: 'drop' });
-          P.speed *= k === 'mud' ? 0.4 : CONFIG.puddleSlow; P.wet = 1.6;
+          const k = e.kind || 'water', pd = PUD[k] || PUD.water;
+          if (!e.hit && pd.dirt) addDirt(pd.dirt, px, py);
+          e.hit = true; sfx(k === 'water' ? 'splash' : 'squish'); floatText(pd.txt, px, py + 36, k === 'water' ? '#8fd8ff' : '#e0b07a');
+          for (let i = 0; i < 14; i++) G.parts.push({ x: px, wy: py, vx: (Math.random() - .5) * 160, vy: 60 + Math.random() * 120, life: .6, t: 0, c: pd.col, r: 2.5, kind: 'drop' });
+          P.speed *= pd.slow; if (pd.slip) P.slip = CONFIG.poopSlipTime; else P.wet = 1.6;
         }
       } break;
       case 'crack': if (prevY < e.y && py >= e.y && px > e.x0 - 4 && px < e.x1 + 4) {
@@ -556,14 +563,14 @@ function collide(prevY) {
         if (e.big) crash('crack', true);
         else { sfx('bump'); P.bump = 0.25; G.shake = 4; P.speed *= 0.85; }
       } break;
-      default: collideExtra(e, px, py, g);
+      default: collideExtra(e, px, py, g, air);
     }
   }
   // trees on the strip
   for (const t of trees) if (!t.forest && Math.abs(t.y - py) < 14 && Math.abs(t.x - px) < 10) crash('tree');
   // intersection cars
   for (const i of inters) for (const c of i.cars) {
-    if (Math.abs(px - c.x) < c.w / 2 + 6 && Math.abs(py - c.y) < c.h / 2 + 6) { if (crash('car')) sfx('honk'); }
+    if (!air && Math.abs(px - c.x) < c.w / 2 + 6 && Math.abs(py - c.y) < c.h / 2 + 6) { if (crash('car')) sfx('honk'); }
   }
 }
 
@@ -649,6 +656,22 @@ function proj(x, y, s) { const cx = CXp(), cy = CYp(); return [cx + (x - cx) * s
 
 function drawGarden(h) {
   const ya = sy(h.y1), yb = sy(h.y0), hh = yb - ya;
+  if (h.theme === 'spooky') {
+    ctx.fillStyle = '#4a5a3a'; ctx.fillRect(92, ya, 48, hh);
+    rr(102, ya + hh * 0.2, 9, 12, 4); fso('#9aa3b5', 1.4); ctx.fillStyle = INK; ctx.fillRect(104, ya + hh * 0.2 + 4, 5, 1.5);
+    for (let k = 0; k < 3; k++) { const px = 118 + (k % 2) * 10, py = ya + 10 + k * hh / 3.5; ell(px, py, 5, 4); fso('#ff9f1c', 1.2); circ(px - 1.5, py - 1, 0.9); fs('#ffe066'); circ(px + 1.5, py - 1, 0.9); fs('#ffe066'); }
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(92, ya + 4); ctx.lineTo(120, ya + 16); ctx.moveTo(100, ya + 2); ctx.lineTo(104, ya + 18); ctx.stroke();
+    ctx.strokeStyle = '#2b2335'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(92, yb); ctx.lineTo(140, yb); ctx.stroke();
+    rr(92, sy(h.stoopY) - 7, 5, 14, 2); fso('#2b2335', 1.4); return;
+  }
+  if (h.theme === 'xmas') {
+    ctx.fillStyle = '#f4f8ff'; ctx.fillRect(92, ya, 48, hh);
+    const tx = 112, ty = ya + hh * 0.45; poly([[tx - 9, ty + 8], [tx + 9, ty + 8], [tx, ty - 14]]); fso('#2a8a4e', 1.6); drawStar(tx, ty - 15, 3, 0, '#ffe066');
+    for (let k = 0; k < 4; k++) { circ(tx - 5 + k * 3.4, ty + 2 - (k % 2) * 5, 1.3); fs(['#e63946', '#ffd166', '#4d96ff', '#ffffff'][k]); }
+    rr(124, ya + hh * 0.65, 8, 7, 1.5); fso('#e63946', 1.2); rr(130, ya + hh * 0.7, 7, 6, 1.5); fso('#4d96ff', 1.2);
+    ctx.strokeStyle = '#2b2335'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(92, yb); ctx.lineTo(140, yb); ctx.stroke();
+    rr(92, sy(h.stoopY) - 7, 5, 14, 2); fso('#5c3d2e', 1.4); return;
+  }
   if (h.paved) { ctx.fillStyle = '#eadfce'; ctx.fillRect(92, ya, 48, hh); ctx.strokeStyle = 'rgba(160,140,120,.35)'; ctx.lineWidth = 1; ctx.beginPath(); for (let x = 104; x < 140; x += 12) { ctx.moveTo(x, ya); ctx.lineTo(x, yb); } ctx.stroke(); }
   else { ctx.fillStyle = '#86d863'; ctx.fillRect(92, ya, 48, hh); }
   // flower bed along the fence
@@ -700,12 +723,19 @@ function drawStoopFence(h) {
     ctx.fillStyle = '#2b2335'; for (let y = a + 2; y < b; y += 5) { circ(138.5, y, 1.6); ctx.fill(); }
   };
   seg(ya, g0); seg(g1, yb);
+  if (h.theme === 'xmas') for (let y = ya + 3; y < yb; y += 6) { if (y > g0 - 2 && y < g1 + 2) continue; circ(140, y, 1.8); fs(['#e63946', '#ffd166', '#4d96ff', '#06d6a0'][Math.floor((y + G.time * 8) / 6) % 4 < 0 ? 0 : Math.floor((y + G.time * 8) / 6) % 4]); }
+  if (h.theme === 'spooky' && hash(Math.floor(h.y0)) < 0.5) { const py = sy(h.stoopY); ell(132, py - 12, 4.5, 3.5); fso('#ff9f1c', 1.2); }
   circ(138.5, g0, 2.6); fso('#2b2335', 1); circ(138.5, g1, 2.6); fso('#2b2335', 1);
 }
 
 function drawCrack(e) {
   if (e.big && e.style && e.style !== 'slab') {
     const y = sy(e.y), R = mulberry(e.sd);
+    if (e.style === 'chasm') { ctx.fillStyle = '#0d0a14'; ctx.beginPath(); ctx.moveTo(140, y - 7); let x = 140; while (x < 262) { x = Math.min(262, x + 8); ctx.lineTo(x, y - 7 - R() * 4); } ctx.lineTo(262, y + 7); x = 262; while (x > 140) { x = Math.max(140, x - 8); ctx.lineTo(x, y + 7 + R() * 4); } ctx.closePath(); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = INK; ctx.stroke(); }
+    else if (e.style === 'laser') { const fl = 0.6 + 0.4 * Math.sin(G.time * 20); ctx.fillStyle = `rgba(255,40,80,${0.35 * fl})`; ctx.fillRect(140, y - 6, 122, 12); ctx.fillStyle = `rgba(255,120,150,${fl})`; ctx.fillRect(140, y - 1.5, 122, 3); for (const ex of [140, 262]) { rr(ex - 5, y - 8, 10, 16, 3); fso('#9aa3b5', 1.6); circ(ex, y, 2.5); fs('#ff3b5c'); } }
+    else if (e.style === 'log') { rr(132, y - 8, 140, 15, 7); fso('#7a4b2a', 2.5); ctx.strokeStyle = '#5b3d2a'; ctx.lineWidth = 1.5; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(145 + k * 25, y - 5); ctx.lineTo(160 + k * 25, y - 5); ctx.stroke(); } ell(272, y - 0.5, 4, 7.5); fso('#c99a64', 1.6); circ(160, y - 9, 3); fs('#6fbf3a'); }
+    else if (e.style === 'rainbowgap') { ctx.fillStyle = '#cfe8ff'; ctx.fillRect(140, y - 7, 122, 14); for (let k = 0; k < 5; k++) drawStar(150 + k * 26 + Math.sin(G.time * 3 + k) * 3, y, 3.5, G.time + k, '#ffe066'); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(140, y - 7, 122, 14); }
+    if (['chasm', 'laser', 'log', 'rainbowgap'].includes(e.style)) { if (Math.sin(G.time * 8) > 0 && e.y > P.wy && e.y - P.wy < 300) bubbleText('!', X.sideL - 10, y - 10, 18, '#ffca3a'); return; }
     if (e.style === 'plank') {
       ctx.fillStyle = 'rgba(59,42,82,.25)'; ctx.fillRect(140, y - 6, 122, 14);
       ctx.beginPath(); ctx.moveTo(140, y - 6); let x = 140; while (x < 262) { x = Math.min(262, x + 6 + R() * 6); ctx.lineTo(x, y - 6 + R() * 5); } ctx.lineTo(262, y + 6); x = 262; while (x > 140) { x = Math.max(140, x - 6 - R() * 6); ctx.lineTo(x, y + 6 - R() * 5); } ctx.closePath(); fso('#2a4a6b', 2.5);
@@ -758,7 +788,7 @@ function drawCrack(e) {
 }
 
 function drawPuddle(e) {
-  const y = sy(e.y), pc = { water: ['#5cc3ff', '#8fdcff'], coffee: ['#8a5a2b', '#b07a45'], mud: ['#7a5230', '#946a42'] }[e.kind || 'water'];
+  const y = sy(e.y), pc = (PUD[e.kind || 'water'] || PUD.water).fill;
   ell(e.x, y, e.rx, e.ry); fso(pc[0], 2);
   ell(e.x - e.rx * .2, y - e.ry * .2, e.rx * .65, e.ry * .5); fs(pc[1]);
   if (e.kind === 'coffee') { rr(e.x + e.rx * 0.6, y - 9, 8, 10, 2); fso('#ffffff', 1.4); rr(e.x + e.rx * 0.6, y - 5, 8, 3, 1); fs('#3a7d44'); }
@@ -983,7 +1013,7 @@ function drawPigeon(x, y, h, ph, flying) {
 }
 function drawPigeons(e, y) {
   if (e.fled && e.ft > 2.5) return;
-  for (const b of e.birds) drawPigeon(e.x + b.dx, sy(e.y + b.dy), b.h, b.ph, e.fled);
+  for (const b of e.birds) { if (e.skin) { ctx.save(); const bx = e.x + b.dx, byy = sy(e.y + b.dy); ctx.translate(bx, byy); const sc = e.skin === 'geese' ? 1.5 : 1.1; ctx.scale(sc, sc); ctx.translate(-bx, -byy); ctx.filter = e.skin === 'crow' ? 'brightness(0.25)' : 'brightness(1.6) saturate(0)'; drawPigeon(bx, byy, b.h, b.ph, e.fled); ctx.restore(); } else drawPigeon(e.x + b.dx, sy(e.y + b.dy), b.h, b.ph, e.fled); }
 }
 function drawNonno(x, y, wave) {
   // folding lawn chair
@@ -1077,7 +1107,7 @@ function facadeRect(A, B, RA, RB, u0, u1, v0, v1) { return [quadPt(A, B, RA, RB,
 
 function drawHouseClassic(h) {
   const y0 = sy(h.y1), y1 = sy(h.y0);
-  if (y1 < -120 || y0 > H + 160) return;
+  if (y1 < VY0 - 120 || y0 > VY1 + 160) return;
   const s = h.s;
   const facade = (b, r) => {
     const A = b[1], B = b[2], RA = r[1], RB = r[2];
@@ -1164,7 +1194,7 @@ function drawAwning(h, y0, y1) {
 }
 
 function drawCanopy(t) {
-  const y = sy(t.y); if (y < -60 || y > H + 60) return;
+  const y = sy(t.y); if (y < VY0 - 60 || y > VY1 + 60) return;
   const [cx, cy] = proj(t.x, y - 4, 1.18), r = t.r;
   const blobs = [[0, 0, 1], [-r * .45, r * .25, .7], [r * .45, r * .2, .72], [0, -r * .45, .68]];
   ctx.fillStyle = INK;
@@ -1174,7 +1204,7 @@ function drawCanopy(t) {
   if (t.fruit) for (let k = 0; k < 4; k++) { circ(cx + Math.cos(k * 1.7 + t.y) * r * .55, cy + Math.sin(k * 1.7 + t.y) * r * .45, 2.6); fso('#ff4d6d', 1.2); }
 }
 function drawTrunk(t) {
-  const y = sy(t.y); if (y < -40 || y > H + 40) return;
+  const y = sy(t.y); if (y < VY0 - 40 || y > VY1 + 40) return;
   ell(t.x + 8, y + 3, t.r * .9, t.r * .45); fs('rgba(59,42,82,.18)');
   const [cx, cy] = proj(t.x, y - 4, 1.18);
   ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(t.x, y); ctx.lineTo(cx, cy); ctx.stroke();
@@ -1182,13 +1212,16 @@ function drawTrunk(t) {
 }
 
 function drawWorld() {
-  const top = G.camY + anchor() + 60, bot = G.camY - (H - anchor()) - 60;
+  const z = G.state === 'title' ? 1 : (G.zoom || 1);
+  VY0 = anchor() - anchor() / z; VY1 = anchor() + (H - anchor()) / z;
+  const top = G.camY + anchor() / z + 60, bot = G.camY - (H - anchor()) / z - 60;
   drawGround(top, bot);
   // decals
   for (const e of ents) {
     if (e.y < bot - 40 || e.y > top + 40) continue;
     if (e.t === 'crack') drawCrack(e); else if (e.t === 'puddle') drawPuddle(e); else if (e.t === 'poop') drawPoop(e);
     else if (e.t === 'wind') drawWind(e);
+    else if (e.t === 'ramp') drawRamp(e);
   }
   // dog warning zones
   for (const e of ents) {
@@ -1214,7 +1247,7 @@ function drawWorld() {
   if (HOME_Y + 60 > bot && HOME_Y - 60 < top) list.push({ y: HOME_Y + 14, mom: true });
   list.sort((a, b) => b.y - a.y);
   for (const it of list) {
-    if (it.player) { drawPlayer(P.x, sy(P.wy), hopH(), P.lean); continue; }
+    if (it.player) { drawPlayer(P.x, sy(P.wy), hopH(), P.lean, P.flip && P.hopT ? (1 - P.hop / P.hopT) * Math.PI * 2 : 0); continue; }
     if (it.tree) { drawTrunk(it.tree); continue; }
     if (it.car) { const c = it.car; drawCarTop(c.x, sy(c.y), 30, 52, c.c, false, c.down ? 1 : -1, c.taxi); continue; }
     if (it.park) { drawCarTop(285, sy(it.park.y), 28, 50, it.park.c, false, -1, it.park.taxi); continue; }
@@ -1225,7 +1258,7 @@ function drawWorld() {
     if (it.dog) { const e = it.dog; drawDog(e.dog.x, sy(e.dog.y), e.dog.c, e.dog.spot, e.dog.st, G.time + e.y, true); continue; }
     const e = it.e, y = sy(e.y);
     switch (e.t) {
-      case 'walker': drawPerson(e.x, y, e.p, e.face, e.p.phase, false); drawWalkerExtras(e, y); break;
+      case 'walker': if (!(e.skin && drawWalkerSkin(e, y))) { drawPerson(e.x, y, e.p, e.face, e.p.phase, false); drawWalkerExtras(e, y); } break;
       case 'dogwalk': {
         drawPerson(e.x, y, e.p, e.face, e.p.phase, e.dog.st === 'lunge');
         // leash
@@ -1254,10 +1287,11 @@ function drawWorld() {
   }
   if (G.state === 'fall') drawFallen();
   // tall stuff
-  const cyp = CYp(), vis = houses.filter(h => sy(h.y0) > -160 && sy(h.y1) < H + 200);
+  const cyp = CYp(), vis = houses.filter(h => sy(h.y0) > VY0 - 160 && sy(h.y1) < VY1 + 200);
   vis.sort((a, b) => Math.abs(sy((b.y0 + b.y1) / 2) - cyp) - Math.abs(sy((a.y0 + a.y1) / 2) - cyp));
   for (const h of vis) drawHouse(h);
   for (const t of trees) if (t.pine) drawPine(t); else drawCanopy(t);
+  for (const e of ents) if (e.t === 'balloon') drawBalloon(e);
   if (MODE === 'endless') { drawBridgeTall(top, bot); drawLanterns(top, bot); }
   for (const i of inters) if (i.y + CONFIG.interH > bot - 60 && i.y < top + 60) drawTrafficLight(i);
   // particles
@@ -1525,7 +1559,7 @@ function onButton(b) {
     case 'again': resetGame(MODE); break;
   }
 }
-function goTitle() { MODE = 'level'; buildLevel(); G.cars = []; G.parts = []; G.texts = []; G.state = 'title'; G.titleT = 0; }
+function goTitle() { G.zoom = 1; MODE = 'level'; buildLevel(); G.cars = []; G.parts = []; G.texts = []; G.state = 'title'; G.titleT = 0; }
 
 /* ---------- options screen ---------- */
 G.prev = { x: W / 2, tx: W / 2 };
@@ -1632,7 +1666,7 @@ function addDirt(n, x, wy) { P.dirt += n; floatText(`+${n} DIRTY`, x + 26, wy + 
 /* =========================================================
    ENDLESS MODE — neighborhoods, streaming world, new critters
    ========================================================= */
-const ZL = 2800, CHK = 400;
+const ZL = 4200, CHK = 400;   // longer neighborhoods
 const TREEC = ['#4cc96b', '#3fb85f', '#5ad67a', '#79d45e', '#f78fb3'];
 const FORESTC = ['#2f9e5a', '#3fb85f', '#2a8a4e', '#4cbf6a', '#5fae3e'];
 const ADS = ['WOW!', 'SHOW', 'PIZZA', 'CHOW!', '★★★', 'SALE', 'FUN!', 'NYC', 'YUM', 'LOL', 'HI!', 'DANCE'];
@@ -1670,7 +1704,7 @@ function buildEndless() {
   L = 1e12; HOME_Y = 1e12;
   houses = []; trees = []; ents = []; inters = []; parked = [];
   GR = mulberry((Date.now() ^ 0x5f3759df) >>> 0);
-  houses.push({ kind: 'school', y0: -260, y1: 190, x0: -20, x1: 140, s: 1.22, wall: '#d9694f', roof: '#c9c1d6' });
+  houses.push({ kind: 'school', y0: -260, y1: 190, x0: -180, x1: 140, s: 1.22, wall: '#d9694f', roof: '#c9c1d6' });
   G.gen = { y: 0, by: 190, hazY: 480, py: -220, ty: 140, first: {} };
   for (let i = 0; i < 5; i++) ents.push({ t: 'star', x: 188, y: 260 + i * 34 });
   streamWorld();
@@ -1683,8 +1717,10 @@ function pruneWorld() {
   ents = ents.filter(e => e.y > lim); inters = inters.filter(i => i.y + CONFIG.interH > lim);
 }
 function endlessDiff(y) { return clamp(0.22 + y / 24000, 0.22, 1); }
-function bldWidth(zk) { return { carroll: grnd(62, 78), downtown: grnd(80, 140), wallst: grnd(80, 130), chinatown: grnd(48, 70), midtown: grnd(110, 170), timessq: grnd(90, 140) }[zk] || 80; }
-function bld(zk, y0, y1, corner) {
+function bldWidth(zk) { zk = BLD_AS[zk] || zk; return { carroll: grnd(62, 78), downtown: grnd(80, 140), wallst: grnd(80, 130), chinatown: grnd(48, 70), midtown: grnd(110, 170), timessq: grnd(90, 140) }[zk] || 80; }
+const BLD_AS = { dumbo: 'wallst', unionsq: 'downtown', broadway: 'timessq', halloween: 'carroll', xmas: 'carroll' };
+function bld(zk0, y0, y1, corner) {
+  const zk = BLD_AS[zk0] || zk0, theme = ZONES[zk0].theme;
   let h;
   if (zk === 'carroll') {
     if (corner) h = { kind: 'store', s: grnd(1.24, 1.3), wall: gpick(['#e07a5f', '#81b29a', '#f2cc8f', '#3d84a8', '#e9a6a6']), sign: gpick(STORES), aw: gpick([['#ff595e', '#ffffff'], ['#1982c4', '#ffffff'], ['#2a9d8f', '#ffffff'], ['#6a4c93', '#ffe066']]) };
@@ -1699,11 +1735,15 @@ function bld(zk, y0, y1, corner) {
   else if (zk === 'chinatown') h = { kind: 'china', s: grnd(1.25, 1.4), wall: gpick(['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f78c6b', '#e9c46a']), sign: gpick(['#e63946', '#d62828', '#2a9d8f']), wt: GR() < 0.3 };
   else if (zk === 'midtown') h = { kind: 'sky', s: grnd(1.8, 2.05), wall: gpick(['#7ec8e3', '#a7c7e7', '#8fb8de', '#b8c6db', '#9ad1d4']), ant: GR() < 0.5 };
   else h = { kind: 'bill', s: grnd(1.6, 1.85), wall: gpick(['#3a2a52', '#2b2d42', '#4a2c5e']), hue: GR() * 360, ads: [gpick(ADS), gpick(ADS), gpick(ADS), gpick(ADS)] };
-  Object.assign(h, { y0, y1, x0: -20, x1: h.x1 || 140, roof: h.roof || gpick(ROOFTOP) });
+  if (zk0 === 'dumbo' && h.kind === 'bank') { h.kind = 'brick'; h.s = grnd(1.25, 1.4); h.wall = gpick(['#b5553c', '#a34a35', '#c76b4f', '#8f4a3a']); }
+  if (theme === 'spooky') { h.wall = gpick(['#5b4a6b', '#3d3552', '#6a4c93', '#4a3d5c', '#2b2d42']); h.trim = '#ff9f1c'; h.door = gpick(['#ff9f1c', '#8ac926', '#e63946']); h.roof = '#4a3d5c'; h.mary = false; h.nonno = false; }
+  if (theme === 'xmas') { h.roof = '#ffffff'; h.trim = '#ffffff'; h.door = gpick(['#e63946', '#2a9d8f']); h.mary = false; }
+  h.theme = theme;
+  Object.assign(h, { y0, y1, x0: -180, x1: h.x1 || 140, roof: h.roof || gpick(ROOFTOP) });
   houses.push(h); return h;
 }
-function addTower(kind, ty) {
-  const s = kind === 'bbtower' ? 1.75 : 1.95, wall = kind === 'bbtower' ? '#c9a97a' : '#8f9aa6';
+function addTower(kind, ty, col) {
+  const s = kind === 'bbtower' ? 1.75 : 1.95, wall = col || (kind === 'bbtower' ? '#c9a97a' : '#8f9aa6');
   houses.push({ kind, side: 'L', y0: ty, y1: ty + 70, x0: -40, x1: 134, s, wall, roof: shade(wall, 0.15) });
   houses.push({ kind, side: 'R', y0: ty, y1: ty + 70, x0: 268, x1: 420, s, wall, roof: shade(wall, 0.15) });
 }
@@ -1711,7 +1751,7 @@ function genChunk() {
   const g = G.gen, y0 = g.y, y1 = y0 + CHK, zk = zoneAt(y0), Z = ZONES[zk], zs = zoneIndex(y0) * ZL, zEnd = zs + ZL, ci = Math.round((y0 - zs) / CHK);
   const IH = CONFIG.interH;
   let inter = null;
-  if (Z.street && (ci === 2 || ci === 5)) {
+  if (Z.street && (ci === 2 || ci === 5 || ci === 8)) {
     inter = { y: y0 + 140, cars: [], tA: 1, tB: 2.2, hold: false, guardUp: 0, name: gpick(Z.streets) };
     inters.push(inter);
     const e = { t: 'interHint', y: inter.y - 260, inter };
@@ -1732,14 +1772,17 @@ function genChunk() {
     }
     g.by = y;
   } else g.by = Math.max(g.by, y1);
-  if (zk === 'bbridge') for (const off of [700, 2000]) { const ty = zs + off; if (ty >= y0 && ty < y1) addTower('bbtower', ty); }
-  if (zk === 'gwb') { const ty = zs + 1300; if (ty >= y0 && ty < y1) addTower('gwtower', ty); }
+  if (zk === 'bbridge') for (const off of [1100, 3000]) { const ty = zs + off; if (ty >= y0 && ty < y1) addTower('bbtower', ty); }
+  if (zk === 'gwb' || zk === 'mbridge') { const ty = zs + 2100; if (ty >= y0 && ty < y1) addTower('gwtower', ty, zk === 'mbridge' ? '#6f9fd0' : null); }
+  if (zk === 'parade' && GR() < 0.8) ents.push({ t: 'balloon', x: grnd(170, 210), y: y0 + grnd(60, 340), k: gpick(['puppy', 'rocket', 'dino', 'star']) });
   // trees
-  if (Z.pits) { let y = Math.max(g.ty, y0); while (y < y1) { if (!nearInterG(y - 20, y + 20, 24) && GR() < 0.85 && zoneAt(y) === zk) trees.push({ x: 249, y, r: grnd(18, 24), c: gpick(TREEC), fruit: GR() < 0.2 }); y += grnd(110, 180); } g.ty = y; }
+  if (Z.pits) { let y = Math.max(g.ty, y0); while (y < y1) { if (!nearInterG(y - 20, y + 20, 24) && GR() < 0.85 && zoneAt(y) === zk) trees.push({ x: 249, y, r: grnd(18, 24), c: Z.treeC ? gpick(Z.treeC) : gpick(TREEC), fruit: !Z.theme && GR() < 0.2, pine: !!Z.pitPine, snow: !!Z.snow }); y += grnd(110, 180); } g.ty = y; }
   else g.ty = Math.max(g.ty, y1);
-  if (Z.left === 'forest') for (let y = y0; y < y1; y += grnd(30, 52)) {
-    trees.push({ x: grnd(22, 116), y, r: grnd(22, 32), c: gpick(FORESTC), pine: GR() < 0.45, forest: true });
-    trees.push({ x: grnd(288, 350), y: y + grnd(-15, 15), r: grnd(22, 32), c: gpick(FORESTC), pine: GR() < 0.45, forest: true });
+  const tc = Z.treeC || FORESTC, pr = Z.pine === undefined ? 0.45 : Z.pine;
+  const leftT = Z.left === 'forest' || Z.left === 'swamp', rightT = Z.right === 'forest' || Z.right === 'swamp' || Z.right === 'park';
+  if (leftT || rightT) for (let y = y0; y < y1; y += grnd(26, 46)) {
+    if (leftT) { trees.push({ x: grnd(22, 116), y, r: grnd(22, 32), c: gpick(tc), pine: GR() < pr, forest: true }); if (GR() < 0.7) trees.push({ x: grnd(-150, 10), y: y + grnd(-15, 15), r: grnd(24, 34), c: gpick(tc), pine: GR() < pr, forest: true }); }
+    if (rightT) { trees.push({ x: grnd(Z.right === 'park' ? 300 : 288, 350), y: y + grnd(-15, 15), r: grnd(22, 32), c: gpick(tc), pine: GR() < pr, forest: true }); if (GR() < 0.7) trees.push({ x: grnd(370, 520), y: y + grnd(-15, 15), r: grnd(24, 34), c: gpick(tc), pine: GR() < pr, forest: true }); }
   }
   // parked cars
   if (Z.parked) { let y = Math.max(g.py, y0); while (y < y1) { if (!nearInterG(y, y + 54, 16) && GR() > 0.18 && zoneAt(y + 54) === zk) { const taxi = Z.taxis && GR() < 0.7; parked.push({ y: y + 27, c: taxi ? '#ffd23f' : gpick(Z.carc), taxi }); } y += 54 + grnd(8, 28); } g.py = y; }
@@ -1793,7 +1836,7 @@ function spawnHazard(k, yy, zk, d) {
     case 'mud': once('mud', add({ t: 'puddle', kind: 'mud', x: grnd(158, 218), y: yy, rx: grnd(22, 34), ry: grnd(12, 16) }), 'MUD! Extra dirty!'); break;
     case 'crack': add({ t: 'crack', y: yy, big: false, x0: grnd(140, 180), x1: grnd(196, 236), sd: Math.floor(GR() * 1e6) }); break;
     case 'bigcrack': {
-      const style = { bbridge: 'plank', gwb: 'joint', woods: 'root' }[zk] || 'slab';
+      const style = CRACK_STYLE[zk] || 'slab';
       once('crack', add({ t: 'crack', y: yy, big: true, x0: 140, x1: 262, sd: Math.floor(GR() * 1e6), style }), 'TAP to HOP over it!');
       if (GR() < 0.6) for (let i = -2; i <= 2; i++) add({ t: 'star', x: 188, y: yy + i * 16, arc: 18 - Math.abs(i) * 6 });
       break;
@@ -1818,6 +1861,7 @@ function spawnHazard(k, yy, zk, d) {
     case 'skunk': once('skunk', add({ t: 'skunk', x: sideX(), y: yy + 60, vy: -14, sprayed: false, ph: 0 }), "Skunk! Don't get too close!"); break;
     case 'deer': add({ t: 'deer', x: GR() < 0.5 ? 118 : 282, y: yy, go: false, ph: 0, vx: 0 }); break;
     case 'rock': add({ t: 'rock', x: sideX(), y: yy, r: grnd(10, 14), sd: Math.floor(GR() * 1e6) }); break;
+    default: spawnHazard2(k, yy, zk, d);
   }
 }
 
@@ -1864,12 +1908,15 @@ function updateExtra(e, dt, cy) {
       if (!e.go && near < 270 && near > 0) { e.go = true; e.vx = e.x < 200 ? 175 : -175; }
       if (e.go) { e.x += e.vx * dt; e.ph += dt * 9; }
       break;
+    default: updateExtra2(e, dt, cy);
   }
 }
 function snakeSeg(e, i) { const dir = e.vx >= 0 ? 1 : -1; return [e.x - dir * i * 6.5, e.y + Math.sin(e.ph - i * 0.9) * 5]; }
-function collideExtra(e, px, py, g) {
+const RIDER_WHY = { skate: 'skate', ufo: 'ufo', racecar: 'racecar', sled: 'sled', tractor: 'tractor', ghost: 'ghost' };
+function collideExtra(e, px, py, g, air) {
+  if (air && ['rider', 'cart', 'crate', 'bull', 'fruit', 'lion', 'steam', 'mascot', 'deer', 'rock', 'skunk'].includes(e.t)) return;
   switch (e.t) {
-    case 'rider': if (Math.hypot(px - e.x, py - e.y) < 14) crash('bike'); break;
+    case 'rider': if (Math.hypot(px - e.x, py - e.y) < 14) crash(RIDER_WHY[e.kind] || 'bike'); break;
     case 'cart': if (Math.abs(px - e.x) < 17 && Math.abs(py - e.y) < 18) crash('cart'); break;
     case 'crate': if (Math.abs(px - e.x) < 15 && Math.abs(py - e.y) < 17) crash('crate'); break;
     case 'bull': if (Math.abs(px - e.x) < 21 && Math.abs(py - e.y) < 30) crash('bull'); break;
@@ -1895,6 +1942,7 @@ function collideExtra(e, px, py, g) {
       if (P.teeth < 20) { for (let i = TOOTH_ORDER.length - 1; i >= 0; i--) if (P.missing[TOOTH_ORDER[i]]) { P.missing[TOOTH_ORDER[i]] = false; break; } P.teeth++; floatText('+1 TOOTH!', e.x, e.y + 34, '#ffd166', 20); }
       else { P.stars += 5; floatText('+5 STARS!', e.x, e.y + 34, '#ffd166', 20); }
     } break;
+    default: collideExtra2(e, px, py, g, air);
   }
 }
 function applyWind(dt) {
@@ -1944,7 +1992,7 @@ function drawWater(x0, x1, top, bot) {
   ctx.fillStyle = '#4fb8f0'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
   ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
   const cs = 34, c0 = Math.floor(bot / cs), c1 = Math.ceil(top / cs);
-  for (let c = c0; c <= c1; c++) for (let k = 0; k < 3; k++) {
+  for (let c = c0; c <= c1; c++) for (let k = 0; k < 7; k++) {
     const hx = hash(c * 53 + k * 11 + (x0 > 200 ? 7 : 0)), wx = x0 + 8 + hx * (x1 - x0 - 16) + Math.sin(G.time * 1.5 + c) * 4, wy = sy(c * cs + hash(c * 7 + k) * cs);
     ctx.beginPath(); ctx.arc(wx, wy, 5, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
   }
@@ -1956,11 +2004,11 @@ function drawWater(x0, x1, top, bot) {
     ell(bx, by, 8, 16); fso(hash(c) < .5 ? '#ffffff' : '#ffb703', 2); rr(bx - 5, by - 8, 10, 10, 3); fso('#ff6b6b', 1.6);
   }
 }
-function drawForest(x0, x1, top, bot) {
+function drawForest(x0, x1, top, bot, zk) {
   const y0 = sy(top), y1 = sy(bot);
-  ctx.fillStyle = '#5cae4a'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.fillStyle = zk === 'fall' ? '#a8a040' : zk === 'mtbike' ? '#6aa84a' : '#5cae4a'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
   const cs = 40, c0 = Math.floor(bot / cs), c1 = Math.ceil(top / cs);
-  for (let c = c0; c <= c1; c++) for (let k = 0; k < 4; k++) {
+  for (let c = c0; c <= c1; c++) for (let k = 0; k < 9; k++) {
     const hx = hash(c * 37 + k * 5 + (x0 > 200 ? 1 : 0)), x = x0 + 4 + hx * (x1 - x0 - 8), y = sy(c * cs + hash(c * 11 + k * 3) * cs), r = hash(c * 3 + k);
     if (r < 0.1) { ell(x, y - 2, 4.5, 3.2); fso('#ff4d4d', 1.4); circ(x - 1.5, y - 3, 0.9); fs('#fff'); circ(x + 1.8, y - 2, 0.8); fs('#fff'); rr(x - 1.2, y, 2.4, 3, 1); fso('#fff3e0', 1); }
     else if (r < 0.45) { ctx.strokeStyle = '#3e8e3a'; ctx.lineWidth = 2; ctx.beginPath(); for (let f = -2; f <= 2; f++) { ctx.moveTo(x, y); ctx.lineTo(x + f * 3, y - 6); } ctx.stroke(); }
@@ -1979,8 +2027,8 @@ function drawRails(top, bot, zk) {
 }
 function drawStreetRight(top, bot, highway) {
   const y0 = sy(top), y1 = sy(bot);
-  if (highway) { ctx.fillStyle = '#9aa3b5'; ctx.fillRect(266, y0, 6, y1 - y0); ctx.fillStyle = '#5d6784'; ctx.fillRect(272, y0, W - 270, y1 - y0); }
-  else { ctx.fillStyle = C.curb; ctx.fillRect(X.stripR, y0, X.curbR - X.stripR, y1 - y0); ctx.fillStyle = C.street; ctx.fillRect(X.curbR, y0, W - X.curbR + 2, y1 - y0); ctx.fillStyle = '#ece6f5'; ctx.fillRect(X.stripR, y0, 2, y1 - y0); }
+  if (highway) { ctx.fillStyle = '#9aa3b5'; ctx.fillRect(266, y0, 6, y1 - y0); ctx.fillStyle = '#5d6784'; ctx.fillRect(272, y0, W + 230 - 272, y1 - y0); }
+  else { ctx.fillStyle = C.curb; ctx.fillRect(X.stripR, y0, X.curbR - X.stripR, y1 - y0); ctx.fillStyle = C.street; ctx.fillRect(X.curbR, y0, W + 230 - X.curbR, y1 - y0); ctx.fillStyle = '#ece6f5'; ctx.fillRect(X.stripR, y0, 2, y1 - y0); }
   const ds = 64, d0 = Math.floor(bot / ds), d1 = Math.ceil(top / ds);
   ctx.fillStyle = 'rgba(255,255,255,.7)';
   for (let d = d0; d <= d1; d++) { if (highway) { rr(314, sy(d * ds + 32), 4, 26, 2); ctx.fill(); } else ctx.fillRect(302, sy(d * ds), 10, 3); }
@@ -1990,6 +2038,7 @@ function drawStreetRight(top, bot, highway) {
   }
 }
 function drawWalk(zk, top, bot) {
+  if (drawWalk2(zk, top, bot)) return;
   const Z = ZONES[zk], y0 = sy(top), y1 = sy(bot), hh = y1 - y0;
   if (Z.tex === 'slab') {
     ctx.fillStyle = Z.walk; ctx.fillRect(X.sideL, y0, X.stripR - X.sideL, hh);
@@ -2020,20 +2069,24 @@ function drawGround(top, bot) {
   drawIntersections(top, bot);
 }
 function drawZoneGround(zk, top, bot) {
-  const Z = ZONES[zk], y0 = sy(top), y1 = sy(bot), hh = y1 - y0;
-  if (Z.left === 'garden') { ctx.fillStyle = C.grass; ctx.fillRect(-2, y0, X.lawnR + 2, hh); }
-  else if (Z.left === 'flush') { ctx.fillStyle = shade(Z.walk, -0.06); ctx.fillRect(-2, y0, X.lawnR + 2, hh); }
-  else if (Z.left === 'water') drawWater(-2, 140, top, bot);
-  else drawForest(-2, 140, top, bot);
+  const Z = ZONES[zk], y0 = sy(top), y1 = sy(bot), hh = y1 - y0, XL = -230, XR = W + 230;
+  if (Z.left === 'garden') { ctx.fillStyle = Z.theme === 'xmas' ? '#f4f8ff' : Z.theme === 'spooky' ? '#4a5a3a' : C.grass; ctx.fillRect(XL, y0, X.lawnR - XL, hh); }
+  else if (Z.left === 'flush') { ctx.fillStyle = shade(Z.walk, -0.06); ctx.fillRect(XL, y0, X.lawnR - XL, hh); }
+  else if (Z.left === 'water') drawWater(XL, 140, top, bot);
+  else if (Z.left === 'forest') drawForest(XL, 140, top, bot, zk);
+  else drawSide(Z.left, XL, 140, top, bot, zk);
   drawWalk(zk, top, bot);
+  if (Z.tint) { ctx.fillStyle = Z.tint; ctx.fillRect(X.sideL, y0, X.stripR - X.sideL, hh); }
   if (Z.right === 'street') drawStreetRight(top, bot, false);
   else if (Z.right === 'highway') drawStreetRight(top, bot, true);
-  else if (Z.right === 'water') drawWater(262, W + 2, top, bot);
-  else drawForest(262, W + 2, top, bot);
+  else if (Z.right === 'water') drawWater(262, XR, top, bot);
+  else if (Z.right === 'forest') drawForest(262, XR, top, bot, zk);
+  else drawSide(Z.right, 262, XR, top, bot, zk);
+  if (Z.snow && Z.right === 'street') { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(X.curbR, y0, XR - X.curbR, hh); }
   if (Z.left === 'garden') for (const h of houses) if ((h.kind === 'row' || h.kind === 'home') && h.y1 > bot - 20 && h.y0 < top + 20) drawGarden(h);
-  if (Z.pits) for (const t of trees) { if (t.forest) continue; const y = sy(t.y); if (y < -40 || y > H + 40) continue; drawPit(t.x, y, t); }
+  if (Z.pits) for (const t of trees) { if (t.forest) continue; const y = sy(t.y); if (y < VY0 - 40 || y > VY1 + 40) continue; drawPit(t.x, y, t); }
   if (Z.left === 'garden') for (const h of houses) if ((h.kind === 'row' || h.kind === 'home') && h.y1 > bot - 20 && h.y0 < top + 20) drawStoopFence(h);
-  if (zk === 'bbridge' || zk === 'gwb') drawRails(top, bot, zk);
+  if (zk === 'bbridge' || zk === 'gwb' || zk === 'mbridge') drawRails(top, bot, zk === 'mbridge' ? 'gwb' : zk);
   if (Z.neon) for (let c = Math.floor(bot / 30); c <= Math.ceil(top / 30); c++) for (let k = 0; k < 2; k++) {
     const x = 146 + hash(c * 19 + k) * 110, y = sy(c * 30 + hash(c * 7 + k * 5) * 30), hue = (hash(c * 3 + k) * 360 + G.time * 60) % 360;
     ell(x, y, 10, 5); fs(`hsla(${hue},95%,65%,${0.16 + 0.1 * Math.sin(G.time * 4 + c)})`);
@@ -2072,7 +2125,7 @@ function drawWaterTower(bx, by, s) {
 function drawHouse(h) {
   if (['row', 'home', 'store', 'school'].includes(h.kind)) return drawHouseClassic(h);
   const y0 = sy(h.y1), y1 = sy(h.y0);
-  if (y1 < -160 || y0 > H + 200) return;
+  if (y1 < VY0 - 160 || y0 > VY1 + 200) return;
   const s = h.s, t = G.time;
   let facade = null, roof;
   const Qf = (b, r) => { const A = b[1], B = b[2], RA = r[1], RB = r[2]; return (u0, u1, v0, v1) => poly(facadeRect(A, B, RA, RB, u0, u1, v0, v1)); };
@@ -2308,6 +2361,37 @@ function drawCart(e, y) {
   for (let k = 0; k < 8; k++) { ctx.beginPath(); ctx.moveTo(x, y - 36); ctx.arc(x, y - 36, 19, k * Math.PI / 4, (k + 1) * Math.PI / 4); ctx.closePath(); fs(cols[k % 2]); }
   circ(x, y - 36, 19); ctx.lineWidth = 2; ctx.strokeStyle = INK; ctx.stroke(); circ(x, y - 36, 2.5); fs(INK);
 }
+function drawCrateSkin(e, y) {
+  const x = e.x;
+  if (e.skin === 'tires') { for (let k = 0; k < 3; k++) { shadow(x, y + 1 - k * 7, 12, 4); ell(x, y - 4 - k * 7, 12, 6); fso('#2b2d42', 2); ell(x, y - 4 - k * 7, 5, 2.5); fs('#5d6784'); } return; }
+  if (e.skin === 'hay') { for (let k = 0; k < e.n; k++) { const cy2 = y - k * 13; shadow(x, cy2 + 1, 14, 4); rr(x - 13, cy2 - 12, 26, 13, 3); fso('#e9c46a', 1.8); ctx.strokeStyle = '#c99a3e'; ctx.lineWidth = 1; ctx.beginPath(); for (let t = -10; t <= 10; t += 4) { ctx.moveTo(x + t, cy2 - 11); ctx.lineTo(x + t + 2, cy2); } ctx.stroke(); } return; }
+  shadow(x, y, 16, 4); for (const o of [-12, 12]) { ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + o - 4, y); ctx.lineTo(x + o, y - 16); ctx.lineTo(x + o + 4, y); ctx.stroke(); }
+  rr(x - 17, y - 20, 34, 8, 2); fso('#4d96ff', 1.8); ctx.fillStyle = '#ffffff'; for (let k = 0; k < 4; k++) ctx.fillRect(x - 14 + k * 8, y - 19, 4, 6);
+}
+function drawUnicorn(e, y) {
+  const x = e.x, dir = e.vx >= 0 ? 1 : -1, hop = e.go ? Math.abs(Math.sin(e.ph)) * 12 : 0, yy = y - hop;
+  shadow(x, y, 12, 3.5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  for (const o of [-7, -3, 4, 8]) { ctx.beginPath(); ctx.moveTo(x + o, yy - 8); ctx.lineTo(x + o + (e.go ? dir * 3 : 0), yy - 1); ctx.stroke(); }
+  ['#ff595e', '#ffd166', '#8ac926', '#4d96ff'].forEach((c, k) => { ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - dir * 11, yy - 12 + k * 1.5); ctx.quadraticCurveTo(x - dir * 18, yy - 14 + k * 2, x - dir * 20, yy - 4 + k * 2); ctx.stroke(); });
+  ell(x, yy - 11, 12, 6.5); fso('#ffffff', 2);
+  circ(x + dir * 12, yy - 20, 5.5); fso('#ffffff', 2);
+  poly([[x + dir * 12, yy - 25], [x + dir * 16, yy - 36], [x + dir * 15, yy - 24]]); fso('#ffd166', 1.4);
+  ell(x + dir * 9, yy - 22, 3, 5, dir * 0.6); fs('#ff8fc7');
+  circ(x + dir * 14, yy - 20, 1.1); fs(INK);
+}
+function drawGator(e, y) {
+  const d = e.dog, x = d.x, by = sy(d.y), dir = x < 200 ? 1 : -1, open = d.st === 'warn' || d.st === 'lunge';
+  shadow(x, by + 1, 22, 5);
+  ell(x - dir * 18, by - 6, 12, 4); fso('#4a8a3a', 2);
+  ell(x, by - 7, 16, 7); fso('#5fa04a', 2.2);
+  for (let k = -2; k <= 2; k++) { circ(x + k * 6, by - 11, 2); fs('#3f7a32'); }
+  const hx = x + dir * 16;
+  if (open) { poly([[hx, by - 9], [hx + dir * 18, by - 16], [hx + dir * 16, by - 6]]); fso('#5fa04a', 1.8); poly([[hx, by - 5], [hx + dir * 18, by], [hx + dir * 16, by - 6]]); fso('#5fa04a', 1.8); ctx.fillStyle = '#fff'; for (let k = 0; k < 4; k++) ctx.fillRect(hx + dir * (3 + k * 4), by - 9, 2, 2); }
+  else { rr(dir > 0 ? hx : hx - 18, by - 10, 18, 7, 3); fso('#5fa04a', 1.8); }
+  circ(x + dir * 12, by - 12, 2.2); fso('#ffe066', 1); circ(x + dir * 12, by - 12, .8); fs(INK);
+  if (d.st === 'warn') bubbleText('!', x, by - 28, 20, '#ff5d5d');
+}
 function drawCrates(e, y) {
   for (let k = 0; k < e.n; k++) {
     const cy2 = y - k * 12; shadow(e.x, cy2 + 1, 13, 4);
@@ -2385,6 +2469,7 @@ function drawMascot(e, y) {
   }
 }
 function drawBear(e, y) {
+  if (e.skin === 'gator') return drawGator(e, y);
   const d = e.dog, x = d.x, by = sy(d.y), angry = d.st === 'warn' || d.st === 'lunge';
   shadow(x, by + 1, 16, 5);
   ell(x, by - 12, 16, 12); fso('#7a4e2d', 2.5);
@@ -2413,6 +2498,7 @@ function drawSkunk(e, y) {
   circ(x - 2, y - 2.5, 1); fs('#fff'); circ(x + 2, y - 2.5, 1); fs('#fff'); circ(x, y + 1.5, 1.3); fs('#ff8fab');
 }
 function drawDeer(e, y) {
+  if (e.skin === 'unicorn') return drawUnicorn(e, y);
   const x = e.x, dir = e.vx >= 0 ? 1 : -1, hop = e.go ? Math.abs(Math.sin(e.ph)) * 12 : 0;
   shadow(x, y, 12, 3.5);
   const yy = y - hop;
@@ -2442,7 +2528,7 @@ function drawToothPickup(e, y) {
 }
 function drawWind(e) {
   const y0 = sy(e.y + e.len), y1 = sy(e.y);
-  if (y1 < -20 || y0 > H + 20) return;
+  if (y1 < VY0 - 20 || y0 > VY1 + 20) return;
   ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(140, y0, 122, y1 - y0);
   ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
   for (let k = 0; k < 6; k++) {
@@ -2452,39 +2538,351 @@ function drawWind(e) {
   const ax = e.dir > 0 ? 150 : 252, ay = (y0 + y1) / 2;
   bubbleText(e.dir > 0 ? '»' : '«', ax, ay, 26, '#ffffff', 'center', INK, 4);
 }
-const EXTRA_SPRITES = ['dragon', 'rider', 'cart', 'crate', 'bull', 'fruit', 'oranges', 'lion', 'rat', 'steam', 'mascot', 'bear', 'snake', 'skunk', 'deer', 'rock', 'tooth'];
+const EXTRA_SPRITES = ['bat', 'float', 'dragon', 'rider', 'cart', 'crate', 'bull', 'fruit', 'oranges', 'lion', 'rat', 'steam', 'mascot', 'bear', 'snake', 'skunk', 'deer', 'rock', 'tooth'];
 function drawSpriteExtra(e, y) {
   switch (e.t) {
-    case 'rider': drawRider(e, y); break;
+    case 'rider': if (!drawRiderSkin(e, y)) drawRider(e, y); break;
+    case 'bat': drawBat(e, y); break;
+    case 'float': drawFloat(e, y); break;
     case 'cart': drawCart(e, y); break;
-    case 'crate': drawCrates(e, y); break;
+    case 'crate': if (e.skin) drawCrateSkin(e, y); else drawCrates(e, y); break;
     case 'bull': drawBull(e.x, y); break;
     case 'fruit': drawFruitStand(e, y); break;
     case 'oranges': drawOranges(e); break;
     case 'lion': drawLion(e, y); break;
     case 'dragon': drawDragon(e); break;
-    case 'rat': if (e.go || Math.sin(G.time * 3 + e.y) > 0.6) drawRat(e, y); break;
+    case 'rat': if (e.go || Math.sin(G.time * 3 + e.y) > 0.6) { if (!(e.skin && drawRatSkin(e, y))) drawRat(e, y); } break;
     case 'steam': drawSteam(e, y); break;
     case 'mascot': drawMascot(e, y); break;
     case 'bear': drawBear(e, y); break;
     case 'snake': drawSnake(e, y); break;
     case 'skunk': drawSkunk(e, y); break;
     case 'deer': drawDeer(e, y); break;
-    case 'rock': drawRock(e, y); break;
+    case 'rock': if (!(e.skin && drawRockSkin(e, y))) drawRock(e, y); break;
     case 'tooth': if (!e.got) drawToothPickup(e, y); break;
   }
 }
 function drawPine(t) {
-  const y = sy(t.y); if (y < -80 || y > H + 80) return;
+  const y = sy(t.y); if (y < VY0 - 80 || y > VY1 + 80) return;
+  const snowy = t.snow;
   const [cx, cy] = proj(t.x, y - 4, 1.2), r = t.r;
   for (let k = 0; k < 3; k++) {
     const rr2 = r * (1 - k * 0.28), oy = -k * r * 0.35;
     ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, rad = i % 2 ? rr2 * 0.7 : rr2; ctx.lineTo(cx + Math.cos(a) * rad, cy + oy + Math.sin(a) * rad); } ctx.closePath();
     fso(shade(t.c, k * 0.12), 2);
+    if (snowy) { ctx.beginPath(); for (let ii = 0; ii < 8; ii += 2) { const a = ii / 8 * Math.PI * 2, rad = rr2 * 0.85; circ(cx + Math.cos(a) * rad, cy + oy + Math.sin(a) * rad, 2.5); fs('#ffffff'); } }
   }
   circ(cx, cy - r * 0.7, 2.5); fs(shade(t.c, 0.4));
 }
 
+
+/* =========================================================
+   ENDLESS v2 — the big loop: Brooklyn → Manhattan → NJ → weird worlds → holidays → back
+   ========================================================= */
+Object.assign(ZONES, {
+  dumbo: { name: 'DUMBO', walk: '#ddd3c8', tex: 'cobble', left: 'flush', right: 'street', street: true, parked: true, key: 1, streets: ['WATER ST', 'FRONT ST', 'WASHINGTON ST'], carc: CARC },
+  unionsq: { name: 'Union Square', walk: '#ece8f0', tex: 'slab', left: 'flush', right: 'street', street: true, parked: true, pits: true, key: 2, streets: ['E 14 ST', 'UNION SQ W', 'E 17 ST'], carc: CARC },
+  broadway: { name: 'Broadway', walk: '#f0e6ee', tex: 'slab', left: 'flush', right: 'street', street: true, parked: true, neon: true, taxis: true, key: 4, streets: ['BROADWAY', 'W 45 ST', 'W 52 ST'], carc: ['#ffd23f', '#ffd23f', '#ff6b6b', '#ffffff'] },
+  westside: { name: 'West Side Highway Park', walk: '#e4ddd0', tex: 'slab', left: 'water', right: 'park', key: 5, treeC: ['#4cc96b', '#5ad67a', '#79d45e'], pine: 0.1 },
+  cave: { name: 'The Cave', walk: '#6b5a4e', tex: 'dirt', tint: 'rgba(30,20,40,.45)', left: 'rockwall', right: 'rockwall', dark: true, key: -4 },
+  rainbow: { name: 'Rainbow World', walk: '#ffffff', tex: 'rainbow', left: 'clouds', right: 'clouds', key: 7, sparkle: true },
+  space: { name: 'Space Station', walk: '#cdd5de', tex: 'metal', left: 'space', right: 'space', key: -1 },
+  swamp: { name: 'Spooky Swamp', walk: '#8a6a4a', tex: 'plank', tint: 'rgba(40,70,30,.35)', left: 'swamp', right: 'swamp', fog: true, key: -6, treeC: ['#3e5e3a', '#2f4d33', '#4a6b3c'], pine: 0 },
+  speedway: { name: 'Speedway', walk: '#4a4f60', tex: 'asphalt', left: 'stands', right: 'infield', key: 3 },
+  mtbike: { name: 'Mountain Bike Trail', walk: '#c99a64', tex: 'dirt', left: 'forest', right: 'forest', key: 0, treeC: ['#2f9e5a', '#3fb85f', '#2a8a4e'], pine: 0.7 },
+  halloween: { name: 'Halloween Town', walk: '#bdb3cc', tex: 'slab', left: 'garden', right: 'street', street: true, parked: true, pits: true, key: -3, theme: 'spooky', streets: ['ELM ST', 'BOO AVE', 'PUMPKIN LN'], carc: ['#6a4c93', '#ff9f1c', '#2b2d42', '#3d3552'], treeC: ['#ff9f1c', '#c0533a', '#6a4c93'] },
+  fall: { name: 'Fall Fields', walk: '#c99a64', tex: 'dirt', left: 'forest', right: 'forest', leaves: true, key: 2, treeC: ['#ff9f1c', '#e76f51', '#ffd166', '#c0533a'], pine: 0.1 },
+  cornmaze: { name: 'Corn Maze', walk: '#c99a64', tex: 'dirt', left: 'corn', right: 'corn', key: 0 },
+  xmas: { name: 'Christmas Town', walk: '#f4f8ff', tex: 'snow', left: 'garden', right: 'street', street: true, parked: true, pits: true, key: 5, theme: 'xmas', snow: true, streets: ['HOLLY ST', 'JINGLE AVE', 'SNOWFLAKE LN'], carc: ['#e63946', '#2a9d8f', '#ffffff', '#ffd166'], treeC: ['#2a8a4e', '#2f9e5a'], pitPine: true },
+  parade: { name: 'Thanksgiving Day Parade', walk: '#6f7891', tex: 'asphalt', left: 'crowd', right: 'crowd', balloons: true, key: 4 },
+  mbridge: { name: 'Manhattan Bridge', walk: '#cdd5de', tex: 'metal', left: 'water', right: 'water', key: -5 },
+});
+ZONES.woods.name = 'New Jersey Woods';
+ZONES.woods.treeC = FORESTC; ZONES.woods.pine = 0.45;
+ORDER.length = 0;
+ORDER.push('carroll', 'downtown', 'dumbo', 'bbridge', 'wallst', 'chinatown', 'unionsq', 'midtown', 'timessq', 'broadway', 'westside', 'gwb', 'woods', 'cave', 'rainbow', 'space', 'swamp', 'speedway', 'mtbike', 'halloween', 'fall', 'cornmaze', 'xmas', 'parade', 'mbridge');
+Object.assign(HAZ, {
+  dumbo: d => [['tourist', 2.4], ['walker', 1.4], ['ebike', .9], ['stroller', 1], ['pigeons', 1], ['puddle', 1.2], ['bigcrack', 1], ['crack', .8], ['dogwalk', 1]],
+  unionsq: d => [['skate', 2], ['walker', 2], ['fruit', 1.1], ['pigeons', 1.4], ['dogwalk', 1.2], ['table', .8], ['puddle', 1], ['bigcrack', .7]],
+  broadway: d => [['tourist', 2.4], ['mascot', 1.6], ['walker', 1.5], ['cart', 1], ['ebike', 1], ['puddle', .8], ['pair', 1.2]],
+  westside: d => [['jogger', 2], ['cyclist', 2], ['skate', 1.5], ['dogwalk', 1.4], ['geese', 1.2], ['puddle', 1], ['bigcrack', .7]],
+  cave: d => [['bat', 2.2], ['stalag', 1.6], ['puddle', 1], ['bigcrack', 1.3], ['rock', .8]],
+  rainbow: d => [['unicorn', 1.6], ['candy', 1.4], ['cotton', 1.4], ['gummy', 1.2], ['bigcrack', 1]],
+  space: d => [['robot', 1.6], ['alien', 1.5], ['bigcrack', 1.4], ['asteroid', 1.2], ['ufo', 1.4]],
+  swamp: d => [['gator', 1.3], ['frog', 1.6], ['slime', 1.6], ['bigcrack', 1.2], ['snake', 1]],
+  speedway: d => [['racecar', 2.4], ['oil', 1.6], ['tires', 1.4], ['cone', 1.4]],
+  mtbike: d => [['ramp', 2.6], ['rock', 1.3], ['mud', 1.5], ['bigcrack', 1], ['deer', .8], ['bear', .4]],
+  halloween: d => [['trick', 2.4], ['ghost', 1.6], ['cat', 1.4], ['pumpkin', 1.4], ['puddle', .8], ['yarddog', .8]],
+  fall: d => [['leaves', 2.2], ['squirrel', 1.6], ['walker', 1], ['dogwalk', 1.2], ['rock', .8], ['bigcrack', .8], ['mud', 1]],
+  cornmaze: d => [['scarecrow', 1.6], ['hay', 1.4], ['crow', 1.4], ['tractor', 1], ['mud', 1.2], ['bigcrack', .8]],
+  xmas: d => [['snowman', 1.6], ['ice', 1.8], ['sled', 1.4], ['carolers', 1.2], ['walker', 1.2], ['dogwalk', 1]],
+  parade: d => [['band', 2], ['float', 1.2], ['barricade', 1], ['tourist', 1.2], ['mascot', 1]],
+  mbridge: d => [['cyclist', 2.2], ['jogger', 1.2], ['wind', 1], ['bigcrack', .9], ['puddle', .6]],
+});
+const CRACK_STYLE = { bbridge: 'plank', gwb: 'joint', mbridge: 'joint', woods: 'root', mtbike: 'root', fall: 'root', cornmaze: 'root', cave: 'chasm', space: 'laser', swamp: 'log', rainbow: 'rainbowgap' };
+const PUD = {
+  water: { dirt: 1, slow: 0.5, txt: 'SPLASH!', col: '#6ec6ff', fill: ['#5cc3ff', '#8fdcff'] },
+  coffee: { dirt: 1, slow: 0.5, txt: 'SPLAT!', col: '#8a5a2b', fill: ['#8a5a2b', '#b07a45'] },
+  mud: { dirt: 2, slow: 0.4, txt: 'SPLORCH!', col: '#7a5230', fill: ['#7a5230', '#946a42'] },
+  oil: { dirt: 1, slow: 1, slip: true, txt: 'SKIDDD!', col: '#2b2d42', fill: ['#2b2d42', '#5a4a7a'] },
+  ice: { dirt: 0, slow: 1, slip: true, txt: 'WHEEE!', col: '#dff6ff', fill: ['#bfe9ff', '#ffffff'] },
+  leaves: { dirt: 1, slow: 0.7, txt: 'CRUNCH!', col: '#ff9f1c', fill: ['#e76f51', '#ffb347'] },
+  cotton: { dirt: 1, slow: 0.45, txt: 'STICKY!', col: '#ff9fd0', fill: ['#ff9fd0', '#ffd1ea'] },
+  slime: { dirt: 2, slow: 0.5, txt: 'SLIME!', col: '#8fdc4a', fill: ['#6fbf3a', '#a6ec7a'] },
+};
+const SKIN_PUD = { oil: 'oil', ice: 'ice', leaves: 'leaves', cotton: 'cotton', slime: 'slime' };
+const SKIN_ROCK = { table: 'table', stalag: 'stalag', candy: 'candy', asteroid: 'asteroid', cone: 'cone', pumpkin: 'pumpkin', scarecrow: 'scarecrow', snowman: 'snowman' };
+const SKIN_RAT = { frog: 'frog', cat: 'cat', squirrel: 'squirrel', gummy: 'gummy' };
+const SKIN_RIDER = { skate: [90, 140], ufo: [180, 240], racecar: [260, 330], sled: [120, 170], tractor: [28, 40], ghost: [40, 70] };
+const SKIN_CRATE = { tires: 'tires', hay: 'hay', barricade: 'barricade' };
+const HINTS2 = { skate: 'Skateboarders!', ufo: 'UFOs! Dodge them!', racecar: 'Race cars coming!', sled: 'Sleds sliding by!', tractor: 'Slow tractor ahead', ghost: 'Ghosts! Boo!', unicorn: 'A unicorn!', gator: 'Gators in the swamp!', frog: 'Hopping frogs — hop over!', cat: 'Black cats!', bat: 'Bats! Watch out!', ramp: 'RAMPS! Go fast for BIG AIR!', float: 'Parade float! Go around!', band: 'Marching band!', alien: 'Friendly aliens!', robot: 'Robots on patrol!', oil: 'Oil slick! Slippery!', ice: 'Ice! Slippery!', leaves: 'Leaf piles!', cotton: 'Cotton candy — sticky!', slime: 'Swamp slime!', snowman: 'Snowmen!', scarecrow: 'Scarecrows!', pumpkin: 'Jack-o’-lanterns!', candy: 'Giant candy!' };
+// extra spawns (called from spawnHazard's default)
+function spawnHazard2(k, yy, zk, d) {
+  const add = e => { ents.push(e); return e; }, sideX = () => grnd(152, 226), f = G.gen.first;
+  const once = (key, e) => { if (!f[key] && HINTS2[key]) { f[key] = true; e.hint = HINTS2[key]; } return e; };
+  if (SKIN_RIDER[k]) { const r = SKIN_RIDER[k]; return once(k, add({ t: 'rider', kind: k, x: sideX(), bx: 0, y: yy + 300, vy: -grnd(r[0], r[1]), c: gpick(['#ff595e', '#06d6a0', '#ff9f1c', '#4d96ff', '#9b5de5']), ph: GR() * 6, num: 1 + Math.floor(GR() * 99) })); }
+  if (SKIN_PUD[k]) return once(k, add({ t: 'puddle', kind: SKIN_PUD[k], x: grnd(158, 218), y: yy, rx: grnd(22, 34), ry: grnd(11, 16) }));
+  if (SKIN_ROCK[k]) return once(k, add({ t: 'rock', skin: SKIN_ROCK[k], x: sideX(), y: yy, r: grnd(11, 14), sd: Math.floor(GR() * 1e6) }));
+  if (SKIN_RAT[k]) return once(k, add({ t: 'rat', skin: SKIN_RAT[k], x: GR() < 0.5 ? 138 : 262, y: yy, go: false, pizza: false, ph: 0 }));
+  if (SKIN_CRATE[k]) return add({ t: 'crate', skin: SKIN_CRATE[k], x: GR() < 0.5 ? 246 : 157, y: yy, n: 2 + Math.floor(GR() * 2) });
+  const walkerSkin = (skin, vy) => { const x = sideX(); const e = add({ t: 'walker', skin, x, bx: x, y: yy + 120, vy, face: 'down', p: mkPerson(), amp: grnd(0, 10), xmin: 150, xmax: 226 }); e.p.phone = false; return e; };
+  switch (k) {
+    case 'unicorn': return once(k, add({ t: 'deer', skin: 'unicorn', x: GR() < 0.5 ? 118 : 282, y: yy, go: false, ph: 0, vx: 0 }));
+    case 'gator': { const sx = GR() < 0.5 ? 130 : 270; return once(k, add({ t: 'bear', skin: 'gator', sx, sy: yy, y: yy, reason: 'gator', dog: { x: sx, y: yy, st: 'idle', tm: 0, cd: 0, side: 0 } })); }
+    case 'geese': case 'crow': { const x = grnd(160, 220), birds = []; for (let i = 0; i < 3 + Math.floor(GR() * 3); i++) birds.push({ dx: grnd(-16, 16), dy: grnd(-12, 12), ph: GR() * 6, vx: 0, vy: 0, h: 0 }); return add({ t: 'pigeons', skin: k, x, y: yy, birds, fled: false, ft: 0 }); }
+    case 'bat': return once(k, add({ t: 'bat', x: GR() < 0.5 ? 120 : 280, y: yy, go: false, ph: GR() * 6, vx: 0 }));
+    case 'ramp': return once(k, add({ t: 'ramp', x: grnd(170, 206), y: yy, w: 54 }));
+    case 'float': return once(k, add({ t: 'float', x: grnd(176, 200), y: yy + 260, vy: -18, k: gpick(['turkey', 'pumpkin', 'star', 'pie']), ph: 0 }));
+    case 'alien': return once(k, walkerSkin('alien', -grnd(22, 38)));
+    case 'robot': return once(k, add({ t: 'mascot', k: 'robot', x: sideX(), y: yy + 100, vy: -grnd(16, 28), ph: GR() * 6 }));
+    case 'trick': { const e = walkerSkin('costume', -grnd(26, 44)); e.cos = gpick(['witch', 'ghost', 'pumpkin', 'cat']); return once('trick', e); }
+    case 'band': { const x0 = grnd(150, 172); for (let i = 0; i < 3; i++) { const e = add({ t: 'walker', skin: 'band', x: x0 + i * 26, bx: x0 + i * 26, y: yy + 120, vy: -30, face: 'down', p: mkPerson(), amp: 1, xmin: 148, xmax: 230, inst: i % 3 }); e.p.phone = false; if (i === 0) once('band', e); } return; }
+    case 'carolers': { const xs = GR() < 0.5 ? [152, 176] : [200, 224]; for (const x of xs) { const e = add({ t: 'walker', skin: 'caroler', x, bx: x, y: yy + 110, vy: -24, face: 'down', p: mkPerson(), amp: 2, xmin: 148, xmax: 226 }); e.p.phone = false; } return; }
+    default: return spawnHazard('walker', yy, zk, d);
+  }
+}
+
+/* ---------- new critters: logic & collisions ---------- */
+function updateExtra2(e, dt, cy) {
+  const near = e.y - P.wy, active = e.y - cy < H + 300;
+  if (e.t === 'bat') {
+    if (!e.go && near < 260 && near > -20) { e.go = true; e.vx = e.x < 200 ? 120 : -120; sfx('squeak'); }
+    if (e.go) { e.x += e.vx * dt; e.y += Math.sin(e.ph * 2) * 40 * dt; }
+    e.ph += dt * 14;
+  } else if (e.t === 'float' && active) { e.y += e.vy * dt; e.ph += dt; }
+}
+function collideExtra2(e, px, py, g, air) {
+  if (e.t === 'bat') { if (!air && e.go && Math.hypot(px - e.x, py - e.y) < 13) crash('bat'); }
+  else if (e.t === 'float') { if (!air && Math.abs(px - e.x) < 34 && py > e.y - 10 && py < e.y + 70) crash('float'); }
+  else if (e.t === 'ramp') {
+    if (!e.used && g && Math.abs(px - e.x) < e.w / 2 + 6 && Math.abs(py - e.y) < 14) {
+      e.used = true;
+      const f = clamp((P.speed - 90) / 180, 0.25, 1);
+      P.hopT = CONFIG.hopTime * (1.4 + 1.8 * f); P.hopMax = CONFIG.hopHeight * (1.3 + 1.6 * f); P.hop = P.hopT; P.flip = f > 0.55;
+      sfx('hop'); sfx('zone'); P.stars += f > 0.55 ? 5 : 2;
+      floatText(f > 0.55 ? 'BIG AIR! FLIP!' : 'AIR!', px, py + 50, '#ffe066', f > 0.55 ? 22 : 18);
+      burst(px, py, 14, ['#ffe066', '#ffffff', '#ff6b9a'], 150, 'star');
+    }
+  }
+}
+
+/* ---------- side scenery for the weird worlds ---------- */
+function drawSide(type, x0, x1, top, bot, zk) {
+  const y0 = sy(top), y1 = sy(bot), w = x1 - x0, cs = 40, c0 = Math.floor(bot / cs), c1 = Math.ceil(top / cs), side = x0 > 200 ? 1 : 0;
+  const pts = (n, fn) => { for (let c = c0; c <= c1; c++) for (let k = 0; k < n; k++) { const h1 = hash(c * 37 + k * 5 + side), h2 = hash(c * 11 + k * 3 + side * 7), h3 = hash(c * 3 + k + side * 13); fn(x0 + 4 + h1 * (w - 8), sy(c * cs + h2 * cs), h3, k, c); } };
+  switch (type) {
+    case 'rockwall':
+      ctx.fillStyle = '#3a3346'; ctx.fillRect(x0, y0, w, y1 - y0);
+      pts(4, (x, y, r) => { ell(x, y, 10 + r * 10, 7 + r * 6); fs(r < 0.5 ? '#4a4258' : '#2e283a'); if (r > 0.88) { poly([[x - 4, y + 3], [x, y - 9], [x + 4, y + 3]]); fs(['#7cf7ff', '#c77dff', '#ff8fc7'][Math.floor(r * 30) % 3]); } });
+      break;
+    case 'clouds':
+      ctx.fillStyle = '#cfe8ff'; ctx.fillRect(x0, y0, w, y1 - y0);
+      pts(2, (x, y, r) => { for (let b = 0; b < 3; b++) { circ(x + (b - 1) * 10, y + (b === 1 ? -4 : 0), 9 + r * 4); fs('#ffffff'); } if (r > 0.8) drawStar(x, y - 22, 4, G.time + r * 9, '#ffe066'); });
+      break;
+    case 'space':
+      ctx.fillStyle = '#140f2e'; ctx.fillRect(x0, y0, w, y1 - y0);
+      pts(5, (x, y, r, k) => { const tw = 0.5 + 0.5 * Math.sin(G.time * 3 + r * 40); circ(x, y, r < 0.9 ? 1.2 : 2); fs(`rgba(255,255,255,${0.4 + tw * 0.6})`); });
+      for (let c = Math.floor(bot / 700); c <= Math.ceil(top / 700); c++) if (hash(c * 17 + side) < 0.6) { const px2 = lerp(x0 + 30, x1 - 30, hash(c * 5 + side)), py2 = sy(c * 700 + 350); circ(px2, py2, 18); fso(['#ff9f1c', '#9b5de5', '#4d96ff'][c % 3 < 0 ? 0 : c % 3], 2); ell(px2, py2, 30, 6, -0.3); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2; ctx.stroke(); }
+      break;
+    case 'swamp':
+      ctx.fillStyle = '#3d5c3a'; ctx.fillRect(x0, y0, w, y1 - y0);
+      pts(3, (x, y, r) => { if (r < 0.4) { ell(x, y, 7, 4); fso('#5fae3e', 1.2); } else if (r < 0.6) { ctx.strokeStyle = '#7a9a4a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 2, y - 10); ctx.moveTo(x, y); ctx.lineTo(x + 3, y - 12); ctx.stroke(); ell(x + 3, y - 13, 1.5, 3); fs('#7a5230'); } else if (r < 0.66) { ell(x, y, 5, 2); fs('rgba(255,255,255,.25)'); } });
+      break;
+    case 'stands':
+      ctx.fillStyle = '#9aa3b5'; ctx.fillRect(x0, y0, w, y1 - y0);
+      for (let r = 0; r < 9; r++) { ctx.fillStyle = r % 2 ? '#7a8296' : '#8a92a6'; ctx.fillRect(x0 + r * (w / 9), y0, 3, y1 - y0); }
+      pts(9, (x, y, r) => { circ(x, y, 3.2); fs(['#ff595e', '#ffd166', '#4d96ff', '#06d6a0', '#ffffff', '#ff8fab'][Math.floor(r * 60) % 6]); });
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x1 - 4, y0, 4, y1 - y0); ctx.fillStyle = '#e63946'; for (let c = c0; c <= c1; c++) ctx.fillRect(x1 - 4, sy(c * cs), 4, 20);
+      break;
+    case 'infield':
+      ctx.fillStyle = '#5ad06a'; ctx.fillRect(x0, y0, w, y1 - y0);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x0, y0, 4, y1 - y0); ctx.fillStyle = '#e63946'; for (let c = c0; c <= c1; c++) ctx.fillRect(x0, sy(c * cs), 4, 20);
+      pts(1, (x, y, r) => { if (r < 0.4) { for (let t = 0; t < 3; t++) { ell(x, y - t * 5, 8, 4); fso('#2b2d42', 1.2); } } });
+      break;
+    case 'park':
+      ctx.fillStyle = '#7fdc5a'; ctx.fillRect(x0, y0, w, y1 - y0);
+      ctx.fillStyle = '#e8dccb'; ctx.fillRect(x0 + 30, y0, 10, y1 - y0);
+      pts(2, (x, y, r) => { if (r < 0.15) { rr(x - 9, y - 3, 18, 6, 2); fso('#a0673c', 1.4); } else if (r < 0.5) { circ(x, y, 2); fs(['#ffffff', '#ffd166', '#ff8fab'][Math.floor(r * 30) % 3]); } });
+      break;
+    case 'corn':
+      ctx.fillStyle = '#b5a04a'; ctx.fillRect(x0, y0, w, y1 - y0);
+      for (let c = Math.floor(bot / 12); c <= Math.ceil(top / 12); c++) for (let col = 0; col < Math.ceil(w / 14); col++) {
+        const x = x0 + 6 + col * 14 + (c % 2) * 6, y = sy(c * 12);
+        ctx.strokeStyle = '#6aa03a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x, y - 8); ctx.moveTo(x, y - 2); ctx.lineTo(x - 5, y - 7); ctx.moveTo(x, y); ctx.lineTo(x + 5, y - 6); ctx.stroke();
+        if (hash(c * 7 + col) < 0.3) { ell(x + 2, y - 5, 1.8, 3.5); fs('#ffd166'); }
+      }
+      break;
+    case 'crowd':
+      ctx.fillStyle = '#d9d2c6'; ctx.fillRect(x0, y0, w, y1 - y0);
+      pts(10, (x, y, r) => { circ(x, y, 4); fs(['#ffd7b5', '#e0ac69', '#8d5524', '#f1c27d'][Math.floor(r * 40) % 4]); circ(x, y - 1.5, 3.2); fs(['#2b1d0e', '#5a3825', '#e6c35c', '#ff595e', '#4d96ff'][Math.floor(r * 70) % 5]); });
+      const bx = side ? x0 + 2 : x1 - 6; ctx.fillStyle = '#4d96ff'; ctx.fillRect(bx, y0, 4, y1 - y0); ctx.fillStyle = '#ffffff'; for (let c = c0; c <= c1; c++) ctx.fillRect(bx, sy(c * cs), 4, 16);
+      break;
+  }
+}
+function drawWalk2(zk, top, bot) {
+  const Z = ZONES[zk], y0 = sy(top), y1 = sy(bot), hh = y1 - y0;
+  if (Z.tex === 'rainbow') {
+    const cols = ['#ff595e', '#ff9f1c', '#ffd166', '#8ac926', '#1982c4', '#6a4c93'];
+    for (let k = 0; k < 6; k++) { ctx.fillStyle = cols[k]; ctx.fillRect(X.sideL + k * (X.stripR - X.sideL) / 6, y0, (X.stripR - X.sideL) / 6 + 0.5, hh); }
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; for (let c = Math.floor(bot / 30); c <= Math.ceil(top / 30); c++) { const x = 146 + hash(c) * 110; drawStar(x, sy(c * 30), 3, c, 'rgba(255,255,255,.7)'); }
+    return true;
+  }
+  if (Z.tex === 'asphalt') {
+    ctx.fillStyle = Z.walk; ctx.fillRect(X.sideL, y0, X.stripR - X.sideL, hh);
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let c = Math.floor(bot / 70); c <= Math.ceil(top / 70); c++) { rr(199, sy(c * 70 + 35), 4, 30, 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; for (let c = Math.floor(bot / 18); c <= Math.ceil(top / 18); c++) ctx.fillRect(150 + hash(c) * 100, sy(c * 18), 6, 2);
+    return true;
+  }
+  if (Z.tex === 'snow') {
+    ctx.fillStyle = '#f4f8ff'; ctx.fillRect(X.sideL, y0, X.stripR - X.sideL, hh);
+    for (let c = Math.floor(bot / 20); c <= Math.ceil(top / 20); c++) { ell(146 + hash(c * 3) * 110, sy(c * 20), 6, 2); fs('rgba(160,190,230,.35)'); circ(146 + hash(c * 5) * 110, sy(c * 20 + 9), 1); fs('#ffffff'); }
+    return true;
+  }
+  return false;
+}
+function drawZoneOverlay() {
+  if (MODE !== 'endless' || G.state === 'title') return;
+  const zk = zoneAt(P.wy), Z = ZONES[zk], zs = zoneIndex(P.wy) * ZL, into = clamp((P.wy - zs) / 300, 0, 1), out = clamp((zs + ZL - P.wy) / 300, 0, 1), k = Math.min(into, out);
+  const px = W / 2 + (P.x - W / 2) * (G.zoom || 1), py = anchor() - 30;
+  if (Z.dark) {
+    const g = ctx.createRadialGradient(px, py, 40, px, py, 220);
+    g.addColorStop(0, 'rgba(10,6,20,0)'); g.addColorStop(1, `rgba(10,6,20,${0.82 * k})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  if (Z.fog) for (let i = 0; i < 6; i++) { const x = ((G.time * (8 + i * 3) + i * 97) % (W + 200)) - 100, y = (i * 131) % H; ell(x, y, 90, 26); fs(`rgba(210,235,200,${0.13 * k})`); }
+  if (Z.snow || Z.leaves || Z.balloons || Z.sparkle) {
+    for (let i = 0; i < 40; i++) {
+      const sp = 20 + hash(i) * 40, x = (hash(i * 3) * W + Math.sin(G.time + i) * 12 + W) % W, y = ((hash(i * 7) * H + G.time * sp) % (H + 20)) - 10;
+      ctx.globalAlpha = k;
+      if (Z.snow) { circ(x, y, 1.5 + hash(i * 9) * 1.5); fs('#ffffff'); }
+      else if (Z.leaves) { ell(x, y, 3.5, 2, G.time * 2 + i); fs(['#ff9f1c', '#e76f51', '#ffd166'][i % 3]); }
+      else if (Z.balloons) { ctx.save(); ctx.translate(x, y); ctx.rotate(G.time * 3 + i); ctx.fillStyle = ROOFS[i % ROOFS.length]; ctx.fillRect(-2, -3, 4, 6); ctx.restore(); }
+      else if (i % 3 === 0) drawStar(x, y, 2.5, G.time + i, ['#ffffff', '#ffe066', '#ff8fc7'][i % 3]);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/* ---------- new sprites ---------- */
+function drawBat(e, y) {
+  if (!e.go && Math.sin(G.time * 2 + e.y) < 0.3) return;
+  const x = e.x, f = Math.sin(e.ph) * 6;
+  shadow(x, y + 6, 6, 2);
+  const yy = y - 24;
+  ctx.fillStyle = '#2b2335';
+  for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x, yy); ctx.quadraticCurveTo(x + s2 * 9, yy - 8 - f, x + s2 * 15, yy - 2 + f * 0.4); ctx.quadraticCurveTo(x + s2 * 9, yy + 1, x, yy + 3); ctx.fill(); }
+  circ(x, yy, 4.5); fs('#3b2a52'); circ(x - 1.6, yy - 1, 1); fs('#ffe066'); circ(x + 1.6, yy - 1, 1); fs('#ffe066');
+}
+function drawRamp(e) {
+  const y = sy(e.y), w = e.w;
+  poly([[e.x - w / 2, y + 6], [e.x + w / 2, y + 6], [e.x + w / 2 - 6, y - 16], [e.x - w / 2 + 6, y - 16]]); fso('#a0673c', 2.5);
+  ctx.strokeStyle = '#7a4b2a'; ctx.lineWidth = 1.5; for (let k = 1; k < 4; k++) { const yy = lerp(y + 6, y - 16, k / 4); ctx.beginPath(); ctx.moveTo(e.x - w / 2 + 2 + k * 1.5, yy); ctx.lineTo(e.x + w / 2 - 2 - k * 1.5, yy); ctx.stroke(); }
+  rr(e.x - w / 2 + 6, y - 19, w - 12, 4, 2); fso('#ffe066', 1.5);
+  if (!e.used) bubbleText('▲', e.x, y - 26 - Math.abs(Math.sin(G.time * 6)) * 3, 12, '#ffe066', 'center', INK, 3);
+}
+function drawFloat(e, y) {
+  const x = e.x;
+  shadow(x, y + 4, 40, 8);
+  rr(x - 36, y - 8, 72, 74, 10); fso('#ffd166', 2.5);
+  ctx.fillStyle = '#ff595e'; for (let k = 0; k < 7; k++) ctx.fillRect(x - 36 + k * 10.5, y + 56, 6, 10);
+  rr(x - 30, y - 2, 60, 58, 8); fso('#fff3d6', 2);
+  ctx.save(); ctx.translate(x, y + 26);
+  switch (e.k) {
+    case 'turkey': for (let k = 0; k < 5; k++) { ell(Math.cos(Math.PI + k * Math.PI / 4) * 14, Math.sin(Math.PI + k * Math.PI / 4) * 14 - 2, 6, 12, k * Math.PI / 4 - Math.PI / 2); fso(['#e63946', '#ff9f1c', '#ffd166', '#ff9f1c', '#e63946'][k], 1.6); } circ(0, 4, 12); fso('#8a5a2b', 2); circ(0, -6, 6); fso('#a0673c', 1.6); circ(-2, -7, 1); fs(INK); poly([[1, -5], [6, -4], [1, -2]]); fs('#ffb703'); break;
+    case 'pumpkin': ell(0, 4, 18, 14); fso('#ff9f1c', 2); rr(-2, -14, 4, 7, 1); fso('#3a7d44', 1.4); poly([[-8, -2], [-3, -2], [-5.5, -7]]); fs(INK); poly([[8, -2], [3, -2], [5.5, -7]]); fs(INK); break;
+    case 'star': drawStar(0, 0, 20, Math.sin(e.ph) * 0.2, '#ffe066'); break;
+    case 'pie': ell(0, 6, 20, 10); fso('#d98c3a', 2); ell(0, 3, 17, 7); fso('#ff9f1c', 1.6); ell(0, -2, 8, 4); fs('#ffffff'); break;
+  }
+  ctx.restore();
+}
+function drawBalloon(e) {
+  const y = sy(e.y); if (y < VY0 - 200 || y > VY1 + 200) return;
+  ell(e.x + 18, y + 4, 34, 12); fs('rgba(59,42,82,.18)');
+  const [bx, by] = proj(e.x, y - 10, 1.6), bob = Math.sin(G.time * 1.4 + e.y) * 3;
+  ctx.strokeStyle = 'rgba(59,42,82,.6)'; ctx.lineWidth = 1.2; for (const o of [-14, 0, 14]) { ctx.beginPath(); ctx.moveTo(e.x + o, y); ctx.lineTo(bx + o * 0.6, by + bob + 20); ctx.stroke(); }
+  ctx.save(); ctx.translate(bx, by + bob); ctx.globalAlpha = 0.95;
+  switch (e.k) {
+    case 'puppy': ell(0, 0, 30, 24); fso('#f2c46d', 2.5); ell(-26, -6, 9, 16, 0.4); fso('#c99a3e', 2); ell(26, -6, 9, 16, -0.4); fso('#c99a3e', 2); circ(-9, -5, 4); fs(INK); circ(9, -5, 4); fs(INK); ell(0, 6, 7, 5); fs(INK); break;
+    case 'rocket': rr(-14, -34, 28, 64, 14); fso('#e63946', 2.5); circ(0, -10, 8); fso('#bfe9ff', 2); poly([[-14, 18], [-26, 32], [-14, 30]]); fso('#ffd166', 2); poly([[14, 18], [26, 32], [14, 30]]); fso('#ffd166', 2); break;
+    case 'dino': ell(0, 0, 28, 22); fso('#6ad16a', 2.5); circ(0, -24, 14); fso('#6ad16a', 2.5); circ(-5, -26, 3); fs(INK); circ(5, -26, 3); fs(INK); for (let k = -2; k <= 2; k++) { poly([[k * 8 - 4, -12], [k * 8, -20], [k * 8 + 4, -12]]); fso('#ffd166', 1.4); } break;
+    default: drawStar(0, 0, 30, G.time * 0.3, '#ffe066'); circ(-8, -4, 3); fs(INK); circ(8, -4, 3); fs(INK);
+  }
+  ctx.globalAlpha = 1; ctx.restore();
+}
+// skins for existing critters
+function drawRiderSkin(e, y) {
+  const x = e.x;
+  switch (e.kind) {
+    case 'skate': shadow(x, y, 10, 3.5); rr(x - 6, y - 4, 12, 22, 5); fso('#ff9f1c', 1.6); circ(x - 4, y - 2, 1.6); fs(INK); circ(x + 4, y - 2, 1.6); fs(INK); circ(x - 4, y + 16, 1.6); fs(INK); circ(x + 4, y + 16, 1.6); fs(INK);
+      drawPerson(x, y + 4, { skin: '#e0ac69', shirt: e.c, pants: '#3d5a80', hair: '#2b1d0e', hs: 1, phone: false }, 'down', e.ph, false); return true;
+    case 'ufo': { const bob = Math.sin(e.ph) * 3; shadow(x, y, 16, 5); ell(x, y - 22 + bob, 20, 8); fso('#9aa3b5', 2); ell(x, y - 27 + bob, 10, 7); fso('#7cf7ff', 1.6); for (let k = -2; k <= 2; k++) { circ(x + k * 7, y - 20 + bob, 1.8); fs(Math.sin(G.time * 10 + k) > 0 ? '#ffe066' : '#ff6b9a'); } ell(x, y - 6 + bob, 10, 14); fs('rgba(124,247,255,.15)'); return true; }
+    case 'racecar': drawCarTop(x, y - 14, 24, 40, e.c, false, 1); rr(x - 5, y - 17, 10, 8, 2); fso('#ffffff', 1.2); ctx.font = `700 6px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(e.num), x, y - 13); ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; for (const o of [-8, 0, 8]) { ctx.beginPath(); ctx.moveTo(x + o, y - 40); ctx.lineTo(x + o, y - 56); ctx.stroke(); } return true;
+    case 'sled': shadow(x, y, 10, 3.5); rr(x - 9, y - 18, 18, 24, 5); fso('#e63946', 2); ctx.strokeStyle = '#9aa3b5'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 9, y + 6); ctx.lineTo(x - 9, y + 9); ctx.lineTo(x + 9, y + 9); ctx.lineTo(x + 9, y + 6); ctx.stroke();
+      drawPerson(x, y - 6, { skin: '#f1c27d', shirt: '#4d96ff', pants: '#3d5a80', hair: '#5a3825', hs: 2, phone: false }, 'down', 0, false); ctx.beginPath(); ctx.arc(x, y - 35, 9.5, Math.PI, 0); fso('#e63946', 1.6); circ(x, y - 45, 3); fs('#ffffff'); return true;
+    case 'tractor': shadow(x, y, 16, 5); rr(x - 13, y - 30, 26, 36, 5); fso('#3a9a4e', 2); circ(x - 14, y - 4, 7); fso('#2b2d42', 2); circ(x + 14, y - 4, 7); fso('#2b2d42', 2); circ(x - 12, y - 26, 4.5); fso('#2b2d42', 1.6); circ(x + 12, y - 26, 4.5); fso('#2b2d42', 1.6); rr(x - 8, y - 22, 16, 12, 3); fso('#bfe9ff', 1.4); rr(x - 3, y - 40, 6, 10, 2); fso('#9aa3b5', 1.4); return true;
+    case 'ghost': { const bob = Math.sin(e.ph * 1.5) * 4, xx = x + Math.sin(e.ph * 0.7) * 10; shadow(xx, y, 9, 3); ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.moveTo(xx - 12, y - 6 + bob); ctx.quadraticCurveTo(xx - 12, y - 40 + bob, xx, y - 40 + bob); ctx.quadraticCurveTo(xx + 12, y - 40 + bob, xx + 12, y - 6 + bob); for (let k = 0; k < 4; k++) ctx.lineTo(xx + 12 - (k + 0.5) * 6, y - (k % 2 ? 6 : 1) + bob); ctx.closePath(); fso('#ffffff', 2); ell(xx - 4, y - 28 + bob, 2, 3); fs(INK); ell(xx + 4, y - 28 + bob, 2, 3); fs(INK); ell(xx, y - 20 + bob, 3, 2.5); fs(INK); ctx.globalAlpha = 1; return true; }
+  }
+  return false;
+}
+function drawRockSkin(e, y) {
+  const x = e.x;
+  switch (e.skin) {
+    case 'table': shadow(x, y, 14, 5); rr(x - 12, y - 18, 24, 18, 3); fso('#8a7a68', 2); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) if ((i + j) % 2) { ctx.fillStyle = '#2b2d42'; ctx.fillRect(x - 10 + i * 5, y - 16 + j * 3.5, 5, 3.5); } return true;
+    case 'stalag': shadow(x, y, 10, 3); poly([[x - 10, y], [x + 10, y], [x + 2, y - 30], [x - 1, y - 30]]); fso('#6b6178', 2); poly([[x - 4, y], [x - 1, y - 22], [x, y]]); fs('rgba(255,255,255,.2)'); return true;
+    case 'candy': shadow(x, y, 10, 3); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 16); ctx.stroke(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke(); circ(x, y - 24, 11); fso('#ff8fc7', 2); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.beginPath(); for (let a = 0; a < 12; a += 0.3) ctx.lineTo(x + Math.cos(a) * a * 0.85, y - 24 + Math.sin(a) * a * 0.85); ctx.stroke(); return true;
+    case 'asteroid': drawRock(e, y); for (const o of [[-4, -8], [4, -4], [0, -12]]) { circ(x + o[0], y + o[1], 2.4); fs('rgba(59,42,82,.35)'); } return true;
+    case 'cone': shadow(x, y, 9, 3); rr(x - 9, y - 3, 18, 4, 1); fso('#ff7b29', 1.6); poly([[x - 7, y - 2], [x + 7, y - 2], [x + 1.5, y - 24], [x - 1.5, y - 24]]); fso('#ff7b29', 2); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 4.5, y - 12, 9, 3); return true;
+    case 'pumpkin': shadow(x, y, 12, 4); ell(x, y - 10, 13, 10); fso('#ff9f1c', 2); ctx.strokeStyle = '#d97a1a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y - 19); ctx.lineTo(x, y - 1); ctx.stroke(); rr(x - 1.5, y - 24, 3, 6, 1); fso('#3a7d44', 1.2); const glow = Math.sin(G.time * 6 + e.y) > 0 ? '#ffe066' : '#ffb703'; poly([[x - 7, y - 12], [x - 3, y - 12], [x - 5, y - 16]]); fs(glow); poly([[x + 7, y - 12], [x + 3, y - 12], [x + 5, y - 16]]); fs(glow); poly([[x - 6, y - 7], [x + 6, y - 7], [x, y - 4]]); fs(glow); return true;
+    case 'scarecrow': shadow(x, y, 10, 3); ctx.strokeStyle = '#7a4b2a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 34); ctx.moveTo(x - 14, y - 24); ctx.lineTo(x + 14, y - 24); ctx.stroke(); rr(x - 8, y - 28, 16, 16, 4); fso('#c0533a', 1.8); circ(x, y - 36, 7); fso('#ffd166', 1.8); poly([[x - 11, y - 40], [x + 11, y - 40], [x, y - 52]]); fso('#7a4b2a', 1.6); circ(x - 2.5, y - 37, 1); fs(INK); circ(x + 2.5, y - 37, 1); fs(INK); return true;
+    case 'snowman': shadow(x, y, 12, 4); circ(x, y - 9, 11); fso('#ffffff', 2); circ(x, y - 25, 8); fso('#ffffff', 2); rr(x - 7, y - 37, 14, 4, 1); fso('#2b2d42', 1.4); rr(x - 5, y - 46, 10, 10, 2); fso('#2b2d42', 1.4); circ(x - 2.5, y - 27, 1.1); fs(INK); circ(x + 2.5, y - 27, 1.1); fs(INK); poly([[x, y - 25], [x + 6, y - 24], [x, y - 23]]); fs('#ff9f1c'); ctx.fillStyle = '#e63946'; ctx.fillRect(x - 7, y - 19, 14, 3); return true;
+  }
+  return false;
+}
+function drawRatSkin(e, y) {
+  const x = e.x, dir = (e.vx || (e.x < 200 ? 1 : -1)) > 0 ? 1 : -1;
+  switch (e.skin) {
+    case 'frog': { const hop = e.go ? Math.abs(Math.sin(e.ph * 0.4)) * 8 : 0; shadow(x, y, 7, 2.5); ell(x, y - 5 - hop, 8, 6); fso('#5fd05a', 1.8); circ(x - 4, y - 10 - hop, 3); fso('#7ee87a', 1.4); circ(x + 4, y - 10 - hop, 3); fso('#7ee87a', 1.4); circ(x - 4, y - 10 - hop, 1.2); fs(INK); circ(x + 4, y - 10 - hop, 1.2); fs(INK); return true; }
+    case 'cat': shadow(x, y, 9, 2.5); ell(x, y - 6, 9, 5); fso('#2b2335', 1.6); circ(x + dir * 8, y - 9, 4.5); fso('#2b2335', 1.4); poly([[x + dir * 6, y - 12], [x + dir * 7, y - 17], [x + dir * 9, y - 12]]); fs('#2b2335'); poly([[x + dir * 9, y - 12], [x + dir * 11, y - 16], [x + dir * 12, y - 11]]); fs('#2b2335'); circ(x + dir * 9, y - 10, 1); fs('#ffe066'); ctx.strokeStyle = '#2b2335'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - dir * 8, y - 6); ctx.quadraticCurveTo(x - dir * 14, y - 16, x - dir * 10, y - 20); ctx.stroke(); return true;
+    case 'squirrel': shadow(x, y, 8, 2.5); ell(x - dir * 8, y - 12, 6, 9, dir * 0.4); fso('#c98a4b', 1.6); ell(x, y - 5, 7, 4.5); fso('#a8723c', 1.6); circ(x + dir * 6, y - 7, 3.5); fso('#a8723c', 1.4); circ(x + dir * 7, y - 8, .8); fs(INK); return true;
+    case 'gummy': { const c = ['#ff595e', '#ffd166', '#8ac926', '#4d96ff'][Math.floor(e.y) % 4 < 0 ? 0 : Math.floor(e.y) % 4]; shadow(x, y, 7, 2.5); ctx.globalAlpha = 0.85; ell(x, y - 6, 7, 7); fso(c, 1.6); circ(x, y - 15, 5); fso(c, 1.6); circ(x - 4, y - 19, 2); fso(c, 1); circ(x + 4, y - 19, 2); fso(c, 1); ctx.globalAlpha = 1; return true; }
+  }
+  return false;
+}
+function drawWalkerSkin(e, y) {
+  const x = e.x, p = e.p;
+  if (e.skin === 'alien') { drawPerson(x, y, Object.assign({}, p, { skin: '#8fdc4a', hair: '#6fbf3a', hs: 1, shirt: '#9b5de5' }), 'down', p.phase, false); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + s2 * 3, y - 35); ctx.lineTo(x + s2 * 6, y - 43); ctx.stroke(); circ(x + s2 * 6, y - 44, 2); fs('#ffe066'); } return true; }
+  if (e.skin === 'band') { drawPerson(x, y, Object.assign({}, p, { shirt: '#e63946', pants: '#ffffff' }), 'down', p.phase, false); rr(x - 6, y - 41, 12, 9, 2); fso('#e63946', 1.4); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y - 41); ctx.lineTo(x, y - 48); ctx.stroke(); if (e.inst === 0) { ell(x, y - 10, 7, 4); fso('#ffffff', 1.4); } else if (e.inst === 1) { ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 4, y - 16); ctx.lineTo(x + 10, y - 22); ctx.stroke(); circ(x + 11, y - 22, 3); fs('#ffd166'); } else { circ(x + 10, y - 14, 3); fso('#ffd166', 1.2); } return true; }
+  if (e.skin === 'caroler') { drawPerson(x, y, p, 'down', p.phase, false); ctx.beginPath(); ctx.arc(x, y - 30, 9.5, Math.PI, 0); fso('#e63946', 1.6); circ(x + 8, y - 38, 2.5); fs('#ffffff'); rr(x - 5, y - 18, 10, 7, 1.5); fso('#2a9d8f', 1.2); if (Math.sin(G.time * 3 + e.y) > 0.6) bubbleText('♪', x + 12, y - 44, 12, '#ffe066', 'center', INK, 2.5); return true; }
+  if (e.skin === 'costume') {
+    if (e.cos === 'ghost') { const bob = Math.sin(p.phase) * 1.5; shadow(x, y, 9, 3); ctx.beginPath(); ctx.moveTo(x - 10, y - 2); ctx.quadraticCurveTo(x - 10, y - 38 + bob, x, y - 38 + bob); ctx.quadraticCurveTo(x + 10, y - 38 + bob, x + 10, y - 2); ctx.closePath(); fso('#ffffff', 2); ell(x - 3.5, y - 26 + bob, 1.8, 2.6); fs(INK); ell(x + 3.5, y - 26 + bob, 1.8, 2.6); fs(INK); return true; }
+    drawPerson(x, y, Object.assign({}, p, { shirt: e.cos === 'witch' ? '#6a4c93' : e.cos === 'pumpkin' ? '#ff9f1c' : '#2b2335' }), 'down', p.phase, false);
+    if (e.cos === 'witch') { poly([[x - 12, y - 32], [x + 12, y - 32], [x + 2, y - 52]]); fso('#2b2335', 1.6); }
+    if (e.cos === 'cat') { poly([[x - 8, y - 32], [x - 5, y - 40], [x - 2, y - 34]]); fs('#2b2335'); poly([[x + 8, y - 32], [x + 5, y - 40], [x + 2, y - 34]]); fs('#2b2335'); }
+    rr(x + 8, y - 14, 8, 9, 3); fso('#ff9f1c', 1.2);
+    return true;
+  }
+  return false;
+}
 
 /* =========================================================
    BIRTHDAY PARTY — candle game (ported from Super Sullivan)
@@ -2880,6 +3278,7 @@ function update(dt) {
   if (G.state === 'title' || G.state === 'paused' || G.state === 'end' || G.state === 'initials' || G.state === 'board') return;
   if (G.hint) { G.hintT += dt; if (G.hintT > 3.2) G.hint = null; }
   G.zoneT += dt;
+  { const zt = MODE === 'endless' && G.state !== 'title' ? 1 - 0.3 * clamp((P.speed - 150) / 140, 0, 1) - (P.hop > 0 && (P.hopMax || 0) > 40 ? 0.08 : 0) : 1; G.zoom = lerp(G.zoom || 1, zt, Math.min(1, dt * 1.6)); }
 
   if (G.state === 'ride') updateRide(dt);
   else if (G.state === 'fall') {
@@ -2988,7 +3387,7 @@ function drawHUD() {
       ctx.globalAlpha = clamp(a, 0, 1);
       const txt = 'WELCOME TO ' + Z.name.toUpperCase() + '!';
       let fz = 16; ctx.font = `700 ${fz}px ${FONT}`; while (ctx.measureText(txt).width > W - 50 && fz > 10) { fz--; ctx.font = `700 ${fz}px ${FONT}`; }
-      const w = ctx.measureText(txt).width + 30, hy = H - 100;
+      const w = ctx.measureText(txt).width + 30, hy = 84;
       rr(W / 2 - w / 2, hy - 16, w, 32, 16); fso('#fff7d6', 3);
       bubbleText(txt, W / 2, hy + 0.5, fz, '#ff6b9a', 'center', INK, 3.5);
       ctx.globalAlpha = 1;
@@ -3000,7 +3399,7 @@ function drawHUD() {
     ctx.globalAlpha = clamp(a, 0, 1);
     let fsz = 15; ctx.font = `700 ${fsz}px ${FONT}`;
     while (ctx.measureText(G.hint).width > W - 50 && fsz > 10) { fsz--; ctx.font = `700 ${fsz}px ${FONT}`; }
-    const w = ctx.measureText(G.hint).width + 30, hy = (MODE === 'endless' && G.zoneT < 3.2 && G.zonesSeen > 1) ? H - 136 : H - 100;
+    const w = ctx.measureText(G.hint).width + 30, hy = H - 100;
     rr(W / 2 - w / 2, hy - 16, w, 32, 16); fso('#fff7d6', 2.5);
     ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(G.hint, W / 2, hy + 0.5);
     ctx.globalAlpha = 1;
@@ -3139,8 +3538,10 @@ function frame(now) {
   else {
     ctx.save();
     if (G.shake > 0) ctx.translate((Math.random() - .5) * G.shake, (Math.random() - .5) * G.shake);
+    const z = G.zoom || 1; if (z !== 1) { ctx.translate(W / 2, anchor()); ctx.scale(z, z); ctx.translate(-W / 2, -anchor()); }
     drawWorld();
     ctx.restore();
+    drawZoneOverlay();
     drawHUD();
     if (G.state === 'ready') drawReady();
     if (G.state === 'partyIntro') drawPartyIntro();
