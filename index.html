@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Monster Pizza</title>
+<meta name="description" content="A hand-drawn pizza-shop arcade full of Stephen's homemade games. Walk in, scroll the hallway, pick a cabinet and play.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Monster Pizza Arcade">
+<meta property="og:title" content="Monster Pizza Arcade">
+<meta property="og:description" content="Monster Pizza, Monster Pizza, come on in and get some Monster Pizza! A hallway of homemade arcade games.">
+<meta property="og:url" content="https://stephen-petronis.github.io/monster-pizza/">
+<meta property="og:image" content="https://stephen-petronis.github.io/monster-pizza/share/monster-pizza.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://stephen-petronis.github.io/monster-pizza/share/monster-pizza.jpg">
 <script data-goatcounter="https://monster-pizza.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -315,6 +326,7 @@ button:focus-visible,a:focus-visible{outline:3px dashed var(--cheese);outline-of
   <div class="bar">
     <button id="closePlayer">&larr; Back to the arcade</button>
     <strong id="playerTitle"></strong>
+    <button id="playerShare" type="button">Share</button>
     <a id="playerOpen" href="#" target="_blank" rel="noopener">Open in its own tab &nearr;</a>
   </div>
   <iframe id="frame" title="Game" allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope" allowfullscreen></iframe>
@@ -987,6 +999,19 @@ document.addEventListener("visibilitychange", () => {
   else if (playing.hiddenAt) { playing.away += Date.now() - playing.hiddenAt; playing.hiddenAt = 0; }
 });
 window.addEventListener("pagehide", () => { if (playing && playing.hiddenAt) playing.away += Date.now() - playing.hiddenAt; endPlay(); });
+const SHARE_BASE = "https://stephen-petronis.github.io/monster-pizza/play/";
+$("playerShare").addEventListener("click", async () => {
+  const btn = $("playerShare"), g = playing && GAMES.find((x) => x.id === playing.id);
+  if (!g) return;
+  const url = SHARE_BASE + g.id + "/";
+  logEvent("share/" + g.id, "Shared " + g.title);
+  try {
+    if (navigator.share) { await navigator.share({ title: g.title + " · Monster Pizza Arcade", url }); return; }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(url); btn.textContent = "Link copied"; }
+  catch (e) { btn.textContent = url; }
+  setTimeout(() => { btn.textContent = "Share"; }, 2200);
+});
 function closePlayer() { endPlay(); player.hidden = true; frameEl.src = "about:blank"; hall.focus({ preventScroll: true }); }
 // Two taps to leave a game, so a stray tap while scrolling inside the game doesn't kick you out.
 let leaveArmed = null;

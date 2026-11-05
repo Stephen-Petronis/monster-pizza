@@ -54,3 +54,12 @@ Drop a new file in `walls/` and add a line to `walls: [...]`.
 
 New GitHub repo (e.g. `monster-pizza`) → push these files → Settings → Pages → deploy from `main`.
 Because your games live on the same `stephen-petronis.github.io` address, they play inside the site.
+
+## Share links (message previews)
+
+Every game has its own share link that shows its cabinet in the preview when you text it:
+`https://stephen-petronis.github.io/monster-pizza/play/<game id>/` (for example `play/whack-a-ghost/`).
+Tapping it opens the arcade right at that game. The Share button in the game player hands out the same link.
+
+After adding a game or new cabinet art, rebuild the previews and pages:
+`python3 tools/make-share-pages.py` (needs Python with Pillow, and Node). It writes `share/*.jpg` and `play/*/index.html`.
