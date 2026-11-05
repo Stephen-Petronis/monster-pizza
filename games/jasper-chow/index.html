@@ -3397,9 +3397,9 @@ updateRide = function (dt) {
     if (Math.abs(i.y - P.wy) > 500) continue;
     const st = sigState(i), line = i.y - 22, d = i.y - P.wy;
     // training wheels: the crossing guard only works in Brooklyn
-    const guarded = MODE === 'level' ? inters.indexOf(i) < 2 : GUARD_ZONES.includes(zoneAt(i.y));
+    const guarded = MODE === 'level' ? inters.indexOf(i) < 2 : i.y < 1500;   // Endless: only the very first corner
     if (st === 'wait' && d > -10 && d < 170) G.atCorner = true;
-    if (!guarded && MODE === 'endless' && !G.noGuardHint && d > 0 && d < 300) { G.noGuardHint = true; showHint('No crossing guard here — you’re on your own! Watch the WALK sign.'); }
+    if (!guarded && MODE === 'endless' && !G.noGuardHint && d > 0 && d < 300) { G.noGuardHint = true; showHint('No more crossing guard — you’re on your own! Watch the WALK sign.'); }
     i.guardUp = Math.max(guarded && st === 'wait' && d > -10 && d < 170 ? 0.4 : 0, (i.guardUp || 0) - dt * 0.7);
     // waiting nicely at the corner
     if (st === 'wait' && P.speed < 10 && P.wy <= line && d < 150 && !i.goodStop && !(G.caughtT > 0)) {
@@ -3846,7 +3846,7 @@ function drawHowTo() {
     });
     bubbleText('✋ WAIT = pull back and STOP', W / 2, py0 + ph + 26, 15, '#ff8c1a', 'center', INK, 4);
     bubbleText('\u{1F6B6} WALK = now you can go!', W / 2, py0 + ph + 50, 15, '#7ee8c4', 'center', INK, 4);
-    bubbleText(MODE === 'level' ? 'The crossing guard helps at the first 2 corners…' : 'The crossing guard only helps in Brooklyn…', W / 2, py0 + ph + 80, 12, '#ffffff', 'center', INK, 3);
+    bubbleText(MODE === 'level' ? 'The crossing guard helps at the first 2 corners…' : 'The crossing guard only helps at the first corner…', W / 2, py0 + ph + 80, 12, '#ffffff', 'center', INK, 3);
     bubbleText('then you’re on your own. Cars = GAME OVER!', W / 2, py0 + ph + 98, 12, '#ffffff', 'center', INK, 3);
   } else if (pg === 'grab') {
     bubbleText('GRAB THESE!', W / 2, top + 26, 26, '#7ee8c4', 'center', INK, 6);
