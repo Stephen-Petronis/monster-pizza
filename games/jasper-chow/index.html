@@ -2260,7 +2260,7 @@ function drawSignalPole(i) {
   shadow(bx, by, 5, 2);
   ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(top[0], top[1]); ctx.stroke();
   ctx.strokeStyle = '#5b6170'; ctx.lineWidth = 2; ctx.stroke();
-  drawSignalBox(top[0] - 4, top[1] - 4, 11, i);
+  drawSignalBox(top[0] - 4, top[1] - 6, 14, i);
 }
 function drawTrafficLight(i) {
   const my = sy(i.y + CONFIG.interH / 2), a = proj(-10, my, 1.32), b = proj(X.stripR, my, 1.32), c = proj(200, my, 1.32);
@@ -2279,15 +2279,25 @@ function drawTrafficLight(i) {
 function drawSignalHUD() {
   if (G.state !== 'ride' && G.state !== 'ready') return;
   let nx = null;
-  for (const i of inters) { const d = i.y - P.wy; if (d > -CONFIG.interH - 10 && d < 430 && (!nx || i.y < nx.y)) nx = i; }
+  const look = 560 + Math.max(0, P.speed) * 1.3;  // see it coming way ahead, farther when fast
+  for (const i of inters) { const d = i.y - P.wy; if (d > -CONFIG.interH - 10 && d < look && (!nx || i.y < nx.y)) nx = i; }
   if (!nx) return;
-  const st = sigState(nx), x = 10, y = 10;
-  rr(x, y, 112, 52, 16); fso('#1f1a24', 3);
-  drawSignalBox(x + 26, y + 26, 17, nx);
-  if (st === 'walk') bubbleText('WALK!', x + 80, y + 27, 18, '#7ee8c4', 'center', INK, 4);
-  else if (st === 'flash') bubbleText('HURRY', x + 80, y + 27, 16, '#ffca3a', 'center', INK, 4);
-  else bubbleText('WAIT', x + 80, y + 27, 19, '#ff8c1a', 'center', INK, 4);
-  if (st === 'wait' && P.speed < 8 && nx.y > P.wy) bubbleText('good stop!', x + 138, y + 27, 12, '#ffffff', 'center', INK, 3);
+  const st = sigState(nx), d = nx.y - P.wy, near = clamp(1 - d / look, 0, 1);
+  const pulse = st === 'wait' && d > 0 && d < 260 ? 1 + 0.06 * Math.sin(G.time * 10) : 1;
+  const bw = 196, bh = 70, cx = W / 2, cy = 10 + bh / 2;
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(pulse, pulse); ctx.translate(-cx, -cy);
+  const x = cx - bw / 2, y = 10;
+  const glow = st === 'walk' ? 'rgba(126,232,196,.55)' : st === 'flash' ? 'rgba(255,202,58,.55)' : 'rgba(255,140,26,.55)';
+  rr(x - 4, y - 4, bw + 8, bh + 8, 22); fs(glow);
+  rr(x, y, bw, bh, 18); fso('#1f1a24', 3.5);
+  drawSignalBox(x + 38, y + bh / 2, 25, nx);
+  if (st === 'walk') bubbleText('WALK!', x + 128, y + bh / 2 + 1, 28, '#7ee8c4', 'center', INK, 5);
+  else if (st === 'flash') bubbleText('HURRY!', x + 128, y + bh / 2 + 1, 25, '#ffca3a', 'center', INK, 5);
+  else bubbleText('WAIT', x + 128, y + bh / 2 + 1, 30, '#ff8c1a', 'center', INK, 5);
+  // how close the corner is: a little bar that fills as you get there
+  if (d > 0) { rr(x + 74, y + bh - 12, 108, 6, 3); fs('rgba(255,255,255,.18)'); rr(x + 74, y + bh - 12, Math.max(6, 108 * near), 6, 3); fs(st === 'walk' ? '#7ee8c4' : '#ff8c1a'); }
+  ctx.restore();
+  if (st === 'wait' && P.speed < 8 && nx.y > P.wy) bubbleText('good stop!', cx, y + bh + 22, 14, '#ffffff', 'center', INK, 3);
 }
 
 /* ---------- new sprites ---------- */
@@ -3393,7 +3403,7 @@ function drawHUD() {
       ctx.globalAlpha = clamp(a, 0, 1);
       const txt = 'WELCOME TO ' + Z.name.toUpperCase() + '!';
       let fz = 16; ctx.font = `700 ${fz}px ${FONT}`; while (ctx.measureText(txt).width > W - 50 && fz > 10) { fz--; ctx.font = `700 ${fz}px ${FONT}`; }
-      const w = ctx.measureText(txt).width + 30, hy = 84;
+      const w = ctx.measureText(txt).width + 30, hy = 112;
       rr(W / 2 - w / 2, hy - 16, w, 32, 16); fso('#fff7d6', 3);
       bubbleText(txt, W / 2, hy + 0.5, fz, '#ff6b9a', 'center', INK, 3.5);
       ctx.globalAlpha = 1;
