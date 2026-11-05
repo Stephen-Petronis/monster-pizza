@@ -3623,30 +3623,46 @@ function drawShopFront(e, y) {
   rr(x - 21, y - 21, 6, 34, 2); fso('#ff6b9a', 1.4);                                        // swung-open door
   ctx.fillStyle = '#ff6b9a'; ctx.fillRect(x - 32, y - 36, 34, 6); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(x - 32, y - 36, 34, 6);
   rr(x + 2, y - 14, 18, 26, 3); fso(used ? '#9aa3b5' : '#ff6b9a', 1.6);                     // welcome mat
-  // big vertical neon blade sign bolted to the wall
-  const sx = x - 14, top = y - 150, bot = y - 40, w = 30, flick = Math.sin(t * 37) > 0.97 ? 0.4 : 1;
-  ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx - w / 2 - 6, top + 14); ctx.lineTo(sx - w / 2, top + 14); ctx.moveTo(sx - w / 2 - 6, bot - 14); ctx.lineTo(sx - w / 2, bot - 14); ctx.stroke();
-  ctx.save(); ctx.shadowColor = '#ff3bd5'; ctx.shadowBlur = 18 * flick;
-  rr(sx - w / 2, top, w, bot - top, 8); fso('#1f1a24', 3); ctx.restore();
-  ctx.save(); ctx.shadowBlur = 12 * flick;
-  ctx.strokeStyle = `rgba(255,59,213,${flick})`; ctx.shadowColor = '#ff3bd5'; ctx.lineWidth = 2.5; rr(sx - w / 2 + 4, top + 4, w - 8, bot - top - 8, 6); ctx.stroke();
-  const letters = 'ZANYZED\'S';
-  for (let k = 0; k < letters.length; k++) {
-    const on = !(k === 2 && Math.sin(t * 5) > 0.85);       // one letter buzzes a little
-    const col = k < 4 ? '#7cf7ff' : '#ffe066';
-    ctx.shadowColor = col; ctx.font = `800 12px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = on ? col : 'rgba(120,120,140,.6)'; ctx.fillText(letters[k], sx, top + 14 + k * ((bot - top - 26) / (letters.length - 1)));
-  }
-  ctx.restore();
   // little "SHOP" arrow sign under the blade, pointing at the door
   if (!used) { bubbleText('SHOP', x + 30, y - 32, 11, '#ff6b9a', 'center', '#ffffff', 3); bubbleText('\u25C0', x + 30 + Math.sin(t * 8) * 3, y - 1, 16, '#ffe066', 'center', INK, 4); }
+}
+// 3D projecting sign: a lit box sticking out from the wall, drawn with the same perspective as the buildings
+function drawShopSign3D(e, y) {
+  const x0 = 140, x1 = 204, s0 = 1.2, s1 = 1.46, th = 7, fy = y - 70, t = G.time;
+  const P_ = (x, yy, sc) => proj(x, yy, sc);
+  const face = fyy => [P_(x0, fyy, s0), P_(x1, fyy, s0), P_(x1, fyy, s1), P_(x0, fyy, s1)];
+  const north = face(fy - th), south = face(fy + th);
+  const quad = q => poly(q);
+  // wall bracket
+  const b0 = P_(x0, fy, s1 + 0.04), b1 = P_(x1 - 6, fy, s1 + 0.04), w0 = P_(x0, fy, s0 - 0.02);
+  ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]); ctx.moveTo(w0[0], w0[1]); ctx.lineTo(b0[0], b0[1]); ctx.stroke();
+  // end cap + hidden side
+  const back = fy > CYp() ? south : north, front = fy > CYp() ? north : south;
+  quad(back); fso('#2b1d4a', 2);
+  quad([north[1], south[1], south[2], north[2]]); fso('#3a2a5a', 2);
+  // top of the box
+  quad([north[3], north[2], south[2], south[3]]); fso('#4a3870', 2);
+  // the lit face
+  const flick = Math.sin(t * 41) > 0.985 ? 0.35 : 1;
+  ctx.save(); ctx.shadowColor = '#ff3bd5'; ctx.shadowBlur = 20 * flick; quad(front); fso('#1f1a24', 2.5); ctx.restore();
+  const cx = (front[0][0] + front[1][0] + front[2][0] + front[3][0]) / 4, cy = (front[0][1] + front[3][1]) / 2;
+  const fw = (Math.abs(front[1][0] - front[0][0]) + Math.abs(front[2][0] - front[3][0])) / 2, fh = Math.abs(front[3][1] - front[0][1]);
+  // marquee bulbs around the edge
+  for (let k = 0; k < 14; k++) { const u = k / 14, per = u < 0.5 ? u * 2 : (u - 0.5) * 2, top = u < 0.5; const ex = lerp(top ? front[3][0] : front[0][0], top ? front[2][0] : front[1][0], per), ey = top ? front[3][1] : front[0][1]; circ(ex, ey, 1.8); fs(Math.floor(t * 6 + k) % 2 ? '#ffe066' : '#ff8fc7'); }
+  if (fh > 8) {
+    ctx.save(); ctx.translate(cx, cy); const sc = Math.min(fw / 66, fh / 30); ctx.scale(sc, sc);
+    ctx.shadowBlur = 10 * flick; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `900 14px ${FONT}`; ctx.shadowColor = '#7cf7ff'; ctx.fillStyle = '#7cf7ff'; ctx.fillText("ZANY ZED'S", 0, -5);
+    ctx.font = `900 10px ${FONT}`; ctx.shadowColor = '#ffe066'; ctx.fillStyle = Math.sin(t * 4) > -0.8 ? '#ffe066' : '#8a7a40'; ctx.fillText('\u2605 SHOP \u2605', 0, 8);
+    ctx.restore();
+  }
 }
 // draw the shop on top of tall buildings so the door and neon sign are always visible
 const _drawWorldV4 = drawWorld;
 drawWorld = function () {
   _drawWorldV4();
   if (MODE !== 'endless' || G.state === 'title') return;
-  for (const e of ents) if (e.t === 'shop') { const y = sy(e.y); if (y > VY0 - 40 && y < VY1 + 200) { drawShopFront(e, y); if (Math.abs(P.wy - e.y) < 70 && G.state === 'ride') drawPlayer(P.x, sy(P.wy), hopH(), P.lean, P.flip && P.hopT ? (1 - P.hop / P.hopT) * Math.PI * 2 : 0); } }
+  for (const e of ents) if (e.t === 'shop') { const y = sy(e.y); if (y > VY0 - 40 && y < VY1 + 200) { drawShopFront(e, y); if (Math.abs(P.wy - e.y) < 70 && G.state === 'ride') drawPlayer(P.x, sy(P.wy), hopH(), P.lean, P.flip && P.hopT ? (1 - P.hop / P.hopT) * Math.PI * 2 : 0); drawShopSign3D(e, y); } }
 };
 const _updV4 = updateExtra2;
 updateExtra2 = function (e, dt, cy) {
@@ -3872,7 +3888,7 @@ function drawHowTo() {
     bubbleText('in every neighborhood!', W / 2, top + 60, 15, '#ffffff', 'center', INK, 4);
     demoPanel(30, top + 80, W - 60, 190, () => {
       ctx.fillStyle = '#f0e6ee'; ctx.fillRect(30, top + 80, W - 60, 190);
-      drawShopFront({ used: false }, top + 236);
+      drawShopFront({ used: false }, top + 236); drawShopSign3D({}, top + 236);
       const rx = lerp(230, 158, clamp((t % 3) / 2, 0, 1)); const keep = { inv: P.inv, bump: P.bump }; P.inv = 0; P.bump = 0; _drawPlayerV4(rx, top + 262, 0, rx > 160 && t % 3 < 2 ? -0.25 : 0); Object.assign(P, keep);
     });
     bubbleText('Steer LEFT into the door', W / 2, top + 296, 16, '#ffffff', 'center', INK, 4);
