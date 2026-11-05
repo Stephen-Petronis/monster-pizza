@@ -467,7 +467,7 @@ function onGround() { return P.hop <= 0 || hopH() < 6; }
 const REASONS = { bat: 'Bonked by a bat!', float: 'Ran into a parade float!', gator: 'Chomped by a gator!', skate: 'Crashed into a skateboarder!', ufo: 'Zapped by a UFO!', racecar: 'Race car crash!', sled: 'Sled collision!', tractor: 'Bonked a tractor!', ghost: 'Spooked by a ghost!', person: 'Bonked a person!', dog: 'Spooked by a dog!', crack: 'Flew over a crack!', poop: 'Slipped in poop!', trash: 'Crashed into garbage bags!', subway: 'Bonked the subway stairs!', car: 'Hit by a car! Wait for WALK!', hydrant: 'Hit a hydrant!', tree: 'Bonked a tree!', mailbox: 'Hit a mailbox!', stroller: 'Bumped a baby stroller!', bike: 'Watch out for bikes!', cart: 'Crashed into a food cart!', crate: 'Toppled the crates!', bull: 'Bonked the bronze bull!', fruit: 'Knocked over the fruit!', lion: 'Tangled in the lion dance!', dragon: 'Swallowed by the dragon!', rat: 'EEK! A rat!', steam: 'Hit the steam pipe!', mascot: 'Hugged by a mascot!', bear: 'A BEAR!!', snake: 'Snake surprise!', skunk: 'Tripped on a skunk!', deer: 'Oh deer!', rock: 'Hit a rock!' };
 function crash(reason, big) {
   if (P.inv > 0 || G.state !== 'ride') return false;
-  // car bumps are a normal fall now (no instant game over) — the crossing guard teaches instead
+  if (reason === 'car') G.carHit = true;   // hit by a car = game over
   if (P.helmet && reason !== 'car') {
     P.helmet = false; P.inv = 1.4; P.speed *= 0.45; P.thr = 0; P.boost = 0; G.shake = 8;
     floatText('HELMET SAVE!', P.x, P.wy + 40, '#7cf7ff', 20); burst(P.x, P.wy + 20, 14, ['#4d96ff', '#fff', '#ffe066']); sfx('bonk');
