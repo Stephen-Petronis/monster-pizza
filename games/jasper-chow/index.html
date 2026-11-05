@@ -500,10 +500,17 @@ function updateRide(dt) {
 
   const sm = MODE === 'endless' ? 1 + Math.min(0.45, Math.max(0, P.wy) / 60000) : 1;
   // Endless "turbo": keep it pinned at top speed and you keep getting faster, slowly
-  if (MODE === 'endless') {
-    const pinned = P.thr >= (CONFIG.maxSpeed - CONFIG.baseSpeed) * 0.9;
-    P.boost = clamp((P.boost || 0) + (pinned ? dt / 30 : (P.thr < 0 ? -dt / 2 : -dt / 6)), 0, 1);
-  } else P.boost = 0;
+  // Streak speed: the longer you keep pushing forward without crashing, the faster it gets.
+  // Cruising holds your streak, waiting at a corner holds it, braking elsewhere drains it, a crash resets it.
+  {
+    const cap = MODE === 'endless' ? 1 : 0.4, fwd = P.thr > 20, brake = P.thr < -20;
+    let b = P.boost || 0;
+    if (fwd) b += dt / 24; else if (brake && !G.atCorner) b -= dt / 3;
+    P.boost = b = clamp(b, 0, cap);
+    const lvl = Math.floor(b * 4 + 0.001);
+    if (lvl > (P.boostLvl || 0)) { const msg = ['', 'FASTER!', 'SUPER FAST!', 'TURBO!', 'MAX TURBO!'][lvl]; if (msg) { floatText(msg, P.x, P.wy + 64, ['', '#7ee8c4', '#ffe066', '#ff9f1c', '#ff6b9a'][lvl], 18 + lvl * 2); sfx('zone'); } }
+    P.boostLvl = lvl;
+  }
   let target = (CONFIG.baseSpeed + P.thr) * sm * (1 + 0.6 * (P.boost || 0));
   const onLawn = false, onStrip = false;
   if (onLawn) target *= CONFIG.lawnSlow; else if (onStrip) target *= CONFIG.stripSlow;
@@ -1566,6 +1573,7 @@ function onButton(b) {
     case 'options': G.optFrom = G.state; G.state = 'options'; G.prev = { x: W / 2, tx: W / 2 }; break;
     case 'back': G.state = G.optFrom || 'title'; break;
     case 'music': SETTINGS.music = !SETTINGS.music; saveSettings(); break;
+    case 'view': SETTINGS.view3d = !SETTINGS.view3d; saveSettings(); break;
     case 'pause': if (G.state === 'ride' || G.state === 'ready') { G.pausedFrom = G.state; G.state = 'paused'; touch = null; } break;
     case 'resume': G.state = G.pausedFrom || 'ride'; break;
     case 'quit': case 'menu': goTitle(); break;
@@ -1634,18 +1642,20 @@ function drawOptions() {
   rr(strip.x0, strip.y0, strip.x1 - strip.x0, strip.y1 - strip.y0, 14); ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.stroke();
   bubbleText('Drag here to try it!', W / 2, strip.y0 + 16, 13, '#ffffff', 'center', INK, 3.5);
   const by = Math.min(H - 110, strip.y1 + 50);
-  drawButton('music', SETTINGS.music ? 'MUSIC: ON' : 'MUSIC: OFF', null, W / 2, by, 190, 42, SETTINGS.music ? '#c77dff' : '#9aa3b5', 17);
+  drawButton('music', SETTINGS.music ? 'MUSIC: ON' : 'MUSIC: OFF', null, W / 2 - 79, by, 148, 42, SETTINGS.music ? '#c77dff' : '#9aa3b5', 16);
+  drawButton('view', SETTINGS.view3d ? 'VIEW: 3D' : 'VIEW: TOP', null, W / 2 + 79, by, 148, 42, SETTINGS.view3d ? '#ff9f1c' : '#36cfc9', 16);
   drawButton('back', 'BACK', null, W / 2, Math.min(H - 44, by + 62), 160, 48, '#ff6b9a', 22);
 }
 
 /* ---------- pause ---------- */
 function drawPause() {
   ctx.fillStyle = 'rgba(59,42,82,.45)'; ctx.fillRect(0, 0, W, H);
-  rr(W / 2 - 130, H * 0.28, 260, 250, 28); fso('#fff7d6', 3.5);
+  rr(W / 2 - 130, H * 0.28, 260, 300, 28); fso('#fff7d6', 3.5);
   bubbleText('PAUSED', W / 2, H * 0.28 + 40, 34, '#ffe066', 'center', INK, 7);
   drawButton('resume', 'KEEP RIDING', null, W / 2, H * 0.28 + 100, 210, 48, '#36cfc9', 21);
   drawButton('options', 'OPTIONS', null, W / 2, H * 0.28 + 158, 210, 44, '#c77dff', 19);
-  drawButton('quit', 'QUIT TO MENU', null, W / 2, H * 0.28 + 212, 210, 40, '#ff6b9a', 17);
+  drawButton('view', SETTINGS.view3d ? 'VIEW: 3D BEHIND' : 'VIEW: TOP DOWN', null, W / 2, H * 0.28 + 210, 210, 42, SETTINGS.view3d ? '#ff9f1c' : '#36cfc9', 17);
+  drawButton('quit', 'QUIT TO MENU', null, W / 2, H * 0.28 + 262, 210, 40, '#ff6b9a', 17);
 }
 function drawPauseBtn(x = W - 62, y = 27) {
   circ(x, y, 15); fso('rgba(255,255,255,.92)', 2.5);
@@ -3371,6 +3381,7 @@ drawSide = function (type, x0, x1, top, bot, zk) {
    - cross on WALK              → "SAFE CROSSING!" +2★ (+5★ if you waited)
    - roll up on WAIT            → the crossing guard blows the whistle and stops you at the curb (no teeth lost)
    ========================================================= */
+const GUARD_ZONES = ['carroll', 'downtown', 'dumbo', 'bbridge'];
 const _sfxC = sfx;
 sfx = function (k) {
   if (k === 'whistle') { tone(2500, .12, 'triangle', .13, 0, .1); tone(2500, .3, 'triangle', .13, .16, -.05); return; }
@@ -3384,10 +3395,15 @@ updateRide = function (dt) {
   G.caughtT = Math.max(0, (G.caughtT || 0) - dt);
   if (G.caughtT > 0) { P.speed = 0; P.thr = Math.min(P.thr, -CONFIG.baseSpeed); }
   const air = hopH() > 20;
+  G.atCorner = false;
   for (const i of inters) {
     if (Math.abs(i.y - P.wy) > 500) continue;
     const st = sigState(i), line = i.y - 22, d = i.y - P.wy;
-    i.guardUp = Math.max(st === 'wait' && d > -10 && d < 170 ? 0.4 : 0, (i.guardUp || 0) - dt * 0.7);
+    // training wheels: the crossing guard only works in Brooklyn
+    const guarded = MODE === 'level' || GUARD_ZONES.includes(zoneAt(i.y));
+    if (st === 'wait' && d > -10 && d < 170) G.atCorner = true;
+    if (!guarded && !G.noGuardHint && d > 0 && d < 300) { G.noGuardHint = true; showHint('No crossing guard here — you’re on your own! Watch the WALK sign.'); }
+    i.guardUp = Math.max(guarded && st === 'wait' && d > -10 && d < 170 ? 0.4 : 0, (i.guardUp || 0) - dt * 0.7);
     // waiting nicely at the corner
     if (st === 'wait' && P.speed < 10 && P.wy <= line && d < 150 && !i.goodStop && !(G.caughtT > 0)) {
       i.goodStop = true; P.stars += 3; sfx('good');
@@ -3396,7 +3412,7 @@ updateRide = function (dt) {
     }
     // stepping off the curb
     if (P.wy > line && P.wy < i.y + 40 && !i.crossing) {
-      if (st === 'wait' && !air) {
+      if (st === 'wait' && !air && guarded) {
         P.wy = line - 6; P.speed = 0; P.thr = -CONFIG.baseSpeed; G.caughtT = 0.9; i.guardUp = 1; i.caught = (i.caught || 0) + 1;
         sfx('whistle'); G.shake = 3;
         floatText(i.caught > 1 ? 'Still WAIT! ✋' : 'WHOA! Wait for WALK!', P.x, P.wy + 60, '#ffffff', 16);
@@ -3416,6 +3432,86 @@ updateRide = function (dt) {
 // the crossing guard shows up at the corner when it's not safe yet
 const _poleC = drawSignalPole;
 drawSignalPole = function (i) { _poleC(i); if ((i.guardUp || 0) > 0.02) { ctx.save(); ctx.globalAlpha = Math.min(1, i.guardUp * 3); drawGuard(i); ctx.restore(); if (i.guardUp > 0.6) bubbleText('STOP!', 150, sy(i.y - 14) - 52, 11, '#ff3b3b', 'center', '#ffffff', 3); } };
+
+
+/* =========================================================
+   3D "OVER THE SHOULDER" VIEW (option) — SNES Mode-7 style
+   Draw the normal top-down world zoomed out, then re-project it
+   onto a tilted ground plane, scanline by scanline.
+   ========================================================= */
+const OFF3 = document.createElement('canvas'), octx3 = OFF3.getContext('2d');
+const SKY3 = {
+  cave: ['#140f1e', '#2a2238'], space: ['#07051a', '#1c1640'], swamp: ['#2f3d33', '#5d7a5a'], halloween: ['#2a1a4a', '#6a4c93'],
+  xmas: ['#9fc3e8', '#e8f3ff'], rainbow: ['#9ad8ff', '#ffe0f4'], fall: ['#8fd0ff', '#ffe3b8'], parade: ['#8fd8ff', '#e6f6ff'],
+};
+const GROUND3 = { water: '#5cc3ff', forest: '#4c9a4a', swamp: '#3d5c3a', rockwall: '#3a3346', clouds: '#cfe8ff', space: '#140f2e', stands: '#9aa3b5', infield: '#5ad06a', park: '#7fdc5a', corn: '#b5a04a', crowd: '#d9d2c6', garden: '#8bcf6a', flush: '#b8b0c8', street: '#6f7891', highway: '#5d6784' };
+function draw3D() {
+  const zk = MODE === 'level' ? 'carroll' : (G.curZone || zoneAt(P.wy)), Z = ZONES[zk] || ZONES.carroll;
+  const R = DPR * SC, AN = anchor(), z3 = 0.42;
+  // 1) normal world, zoomed out so we can see far ahead
+  const keepZ = G.zoom; G.zoom = z3;
+  ctx.save(); ctx.translate(W / 2, AN); ctx.scale(z3, z3); ctx.translate(-W / 2, -AN); drawWorld(); ctx.restore();
+  G.zoom = keepZ;
+  // 2) grab it
+  if (OFF3.width !== cv.width || OFF3.height !== cv.height) { OFF3.width = cv.width; OFF3.height = cv.height; }
+  octx3.setTransform(1, 0, 0, 1, 0, 0); octx3.clearRect(0, 0, OFF3.width, OFF3.height); octx3.drawImage(cv, 0, 0);
+  // 3) sky + far ground
+  const yh = H * 0.27, yp = AN, sp = 2.6 * (0.72 + 0.28 * (keepZ || 1));
+  const sky = SKY3[zk] || ['#7cc8ff', '#d8f3ff'];
+  let g = ctx.createLinearGradient(0, 0, 0, yh); g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
+  ctx.fillStyle = g; ctx.fillRect(-2, -2, W + 4, yh + 3);
+  drawHorizon3(zk, Z, yh);
+  const gl = GROUND3[Z.left] || '#b8b0c8', gr = GROUND3[Z.right] || '#b8b0c8';
+  const pxo = W / 2 + (P.x - W / 2) * z3;
+  G.cam3 = G.cam3 === undefined ? pxo : lerp(G.cam3, pxo, 0.15);
+  const camX = W / 2 * 0.35 + G.cam3 * 0.65;
+  // far ground: left side / path / right side running off to the vanishing point
+  {
+    const hsB = sp * (H - yh) / (yp - yh), sx = xw => W / 2 + (W / 2 + (xw - W / 2) * z3 - camX) * hsB;
+    const xa = sx(X.sideL), xb = sx(X.stripR), vx = W / 2;
+    ctx.fillStyle = gl; ctx.fillRect(-2, yh, W + 4, H - yh + 2);
+    poly([[vx, yh], [W + 600, H + 2], [xb, H + 2]]); fs(gr);
+    poly([[vx, yh], [xb, H + 2], [xa, H + 2]]); fs(Z.walk || '#ece6f5');
+  }
+  // 4) re-project, scanline strips
+  const K = (yp - yh) * (yp - yh) / sp, inv0 = 1 / (yp - yh);
+  const srcAt = ys => AN - K * (1 / (ys - yh) - inv0);
+  ctx.imageSmoothingEnabled = true;
+  const step = 2;
+  for (let ys = yh + 1; ys < H; ys += step) {
+    const a = srcAt(ys), b = srcAt(ys + step);
+    if (b < 0) continue;
+    const sA = Math.max(0, a), sB = Math.min(H, b);
+    if (sB <= sA) continue;
+    const hs = sp * (ys + step * 0.5 - yh) / (yp - yh);
+    ctx.drawImage(OFF3, DPR * OX + 8 * R, sA * R, (W - 16) * R, Math.max(1, (sB - sA) * R), W / 2 + (8 - camX) * hs, ys, (W - 16) * hs, step + 0.6);
+  }
+  // 5) haze where the world fades into the distance
+  g = ctx.createLinearGradient(0, yh, 0, yh + 70); g.addColorStop(0, sky[1]); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(-2, yh, W + 4, 70);
+  // speed lines when you're flying
+  if (P.speed > 230) { ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = hash(Math.floor(G.time * 20) * 7 + k) * Math.PI * 2, r0 = 120 + hash(k * 3 + Math.floor(G.time * 20)) * 60; const cx = W / 2, cy = yh + 40; ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.abs(Math.sin(a)) * r0 * 1.4); ctx.lineTo(cx + Math.cos(a) * (r0 + 50), cy + Math.abs(Math.sin(a)) * (r0 + 50) * 1.4); } ctx.stroke(); }
+}
+function drawHorizon3(zk, Z, yh) {
+  const par = (P.wy * 0.02) % 1000, base = yh + 1;
+  if (Z.street || Z.left === 'flush') {          // city skyline
+    for (let k = 0; k < 16; k++) { const x = ((k * 31 - par * 0.3) % (W + 60) + W + 60) % (W + 60) - 30, h = 20 + hash(k * 13) * 46, w = 16 + hash(k * 7) * 18; ctx.fillStyle = ['#8a90b0', '#7a80a2', '#9aa0c0'][k % 3]; ctx.fillRect(x, base - h, w, h); ctx.fillStyle = 'rgba(255,240,170,.6)'; for (let r = 0; r < h / 8 - 1; r++) if (hash(k * 5 + r) > 0.5) ctx.fillRect(x + 3, base - h + 4 + r * 8, w - 6, 2); }
+  } else if (Z.left === 'forest' || Z.left === 'swamp' || Z.left === 'corn') {
+    ctx.fillStyle = Z.left === 'swamp' ? '#2f4d33' : Z.left === 'corn' ? '#9a8a3a' : '#3e8a4e';
+    ctx.beginPath(); ctx.moveTo(-2, base); for (let x = -2; x <= W + 4; x += 12) ctx.lineTo(x, base - 10 - hash(Math.floor((x + par) / 12)) * 16); ctx.lineTo(W + 4, base); ctx.closePath(); ctx.fill();
+  } else if (zk === 'space') {
+    for (let k = 0; k < 40; k++) { circ(hash(k * 3) * W, hash(k * 7) * yh, hash(k) < 0.9 ? 1 : 2); fs('#ffffff'); }
+    circ(W * 0.75, yh * 0.45, 22); fso('#9b5de5', 2);
+  } else if (Z.left === 'water' || Z.right === 'water') {
+    ctx.fillStyle = '#9aa0c0'; for (let k = 0; k < 10; k++) { const x = k * 38 + hash(k) * 10, h = 8 + hash(k * 9) * 22; ctx.fillRect(x, base - h, 14, h); }
+  } else if (zk === 'cave') {
+    ctx.fillStyle = '#2a2238'; for (let x = -2; x < W; x += 18) { poly([[x, 0], [x + 18, 0], [x + 9, 14 + hash(x) * 24]]); ctx.fill(); }
+  } else if (zk === 'rainbow') {
+    for (let k = 0; k < 6; k++) { ctx.strokeStyle = ['#ff595e', '#ff9f1c', '#ffd166', '#8ac926', '#1982c4', '#6a4c93'][k]; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(W / 2, base + 10, 120 - k * 5, Math.PI, 0); ctx.stroke(); }
+  } else {
+    ctx.fillStyle = '#a7b8c8'; ctx.beginPath(); ctx.moveTo(-2, base); ctx.lineTo(60, base - 30); ctx.lineTo(120, base - 8); ctx.lineTo(200, base - 40); ctx.lineTo(290, base - 12); ctx.lineTo(W + 4, base - 26); ctx.lineTo(W + 4, base); ctx.closePath(); ctx.fill();
+  }
+}
 
 /* =========================================================
    BIRTHDAY PARTY — candle game (ported from Super Sullivan)
@@ -3759,7 +3855,7 @@ function resetGame(mode) {
   MODE = mode || MODE;
   Object.assign(P, { x: 188, tx: 188, wy: 40, speed: 0, thr: 0, vx: 0, hop: 0, inv: 0, slip: 0, wet: 0, stink: 0, bump: 0, helmet: false, teeth: CONFIG.startTeeth, missing: new Array(20).fill(false), stars: 0, lean: 0, wheel: 0, dirt: 0 });
   G.camY = P.wy; G.parts = []; G.texts = []; G.cars = []; G.carT = 0; G.hint = null; G.time = 0; G.falls = 0; G.lost = -1;
-  G.rideT = 0; G.pruneT = 0; G.carHit = false; G.partyRes = null; G.posted = null; G.curZone = 'carroll'; G.zoneT = 99; G.zonesSeen = 1; G.over = false; G.final = null;
+  G.rideT = 0; G.pruneT = 0; G.carHit = false; G.noGuardHint = false; G.partyRes = null; G.posted = null; G.curZone = 'carroll'; G.zoneT = 99; G.zonesSeen = 1; G.over = false; G.final = null;
   if (MODE === 'endless') buildEndless(); else buildLevel();
   G.state = 'ready'; G.t = 0; touch = null;
 }
@@ -4072,8 +4168,11 @@ function frame(now) {
   else {
     ctx.save();
     if (G.shake > 0) ctx.translate((Math.random() - .5) * G.shake, (Math.random() - .5) * G.shake);
-    const z = G.zoom || 1; if (z !== 1) { ctx.translate(W / 2, anchor()); ctx.scale(z, z); ctx.translate(-W / 2, -anchor()); }
-    drawWorld();
+    if (SETTINGS.view3d) draw3D();
+    else {
+      const z = G.zoom || 1; if (z !== 1) { ctx.translate(W / 2, anchor()); ctx.scale(z, z); ctx.translate(-W / 2, -anchor()); }
+      drawWorld();
+    }
     ctx.restore();
     drawZoneOverlay();
     drawHUD();
