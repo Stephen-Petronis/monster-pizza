@@ -1573,7 +1573,6 @@ function onButton(b) {
     case 'options': G.optFrom = G.state; G.state = 'options'; G.prev = { x: W / 2, tx: W / 2 }; break;
     case 'back': G.state = G.optFrom || 'title'; break;
     case 'music': SETTINGS.music = !SETTINGS.music; saveSettings(); break;
-    case 'view': SETTINGS.view3d = !SETTINGS.view3d; saveSettings(); break;
     case 'pause': if (G.state === 'ride' || G.state === 'ready') { G.pausedFrom = G.state; G.state = 'paused'; touch = null; } break;
     case 'resume': G.state = G.pausedFrom || 'ride'; break;
     case 'quit': case 'menu': goTitle(); break;
@@ -1642,20 +1641,18 @@ function drawOptions() {
   rr(strip.x0, strip.y0, strip.x1 - strip.x0, strip.y1 - strip.y0, 14); ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.stroke();
   bubbleText('Drag here to try it!', W / 2, strip.y0 + 16, 13, '#ffffff', 'center', INK, 3.5);
   const by = Math.min(H - 110, strip.y1 + 50);
-  drawButton('music', SETTINGS.music ? 'MUSIC: ON' : 'MUSIC: OFF', null, W / 2 - 79, by, 148, 42, SETTINGS.music ? '#c77dff' : '#9aa3b5', 16);
-  drawButton('view', SETTINGS.view3d ? 'VIEW: 3D' : 'VIEW: TOP', null, W / 2 + 79, by, 148, 42, SETTINGS.view3d ? '#ff9f1c' : '#36cfc9', 16);
+  drawButton('music', SETTINGS.music ? 'MUSIC: ON' : 'MUSIC: OFF', null, W / 2, by, 190, 42, SETTINGS.music ? '#c77dff' : '#9aa3b5', 17);
   drawButton('back', 'BACK', null, W / 2, Math.min(H - 44, by + 62), 160, 48, '#ff6b9a', 22);
 }
 
 /* ---------- pause ---------- */
 function drawPause() {
   ctx.fillStyle = 'rgba(59,42,82,.45)'; ctx.fillRect(0, 0, W, H);
-  rr(W / 2 - 130, H * 0.28, 260, 300, 28); fso('#fff7d6', 3.5);
+  rr(W / 2 - 130, H * 0.28, 260, 250, 28); fso('#fff7d6', 3.5);
   bubbleText('PAUSED', W / 2, H * 0.28 + 40, 34, '#ffe066', 'center', INK, 7);
   drawButton('resume', 'KEEP RIDING', null, W / 2, H * 0.28 + 100, 210, 48, '#36cfc9', 21);
   drawButton('options', 'OPTIONS', null, W / 2, H * 0.28 + 158, 210, 44, '#c77dff', 19);
-  drawButton('view', SETTINGS.view3d ? 'VIEW: 3D BEHIND' : 'VIEW: TOP DOWN', null, W / 2, H * 0.28 + 210, 210, 42, SETTINGS.view3d ? '#ff9f1c' : '#36cfc9', 17);
-  drawButton('quit', 'QUIT TO MENU', null, W / 2, H * 0.28 + 262, 210, 40, '#ff6b9a', 17);
+  drawButton('quit', 'QUIT TO MENU', null, W / 2, H * 0.28 + 212, 210, 40, '#ff6b9a', 17);
 }
 function drawPauseBtn(x = W - 62, y = 27) {
   circ(x, y, 15); fso('rgba(255,255,255,.92)', 2.5);
@@ -3435,85 +3432,6 @@ drawSignalPole = function (i) { _poleC(i); if ((i.guardUp || 0) > 0.02) { ctx.sa
 
 
 /* =========================================================
-   3D "OVER THE SHOULDER" VIEW (option) — SNES Mode-7 style
-   Draw the normal top-down world zoomed out, then re-project it
-   onto a tilted ground plane, scanline by scanline.
-   ========================================================= */
-const OFF3 = document.createElement('canvas'), octx3 = OFF3.getContext('2d');
-const SKY3 = {
-  cave: ['#140f1e', '#2a2238'], space: ['#07051a', '#1c1640'], swamp: ['#2f3d33', '#5d7a5a'], halloween: ['#2a1a4a', '#6a4c93'],
-  xmas: ['#9fc3e8', '#e8f3ff'], rainbow: ['#9ad8ff', '#ffe0f4'], fall: ['#8fd0ff', '#ffe3b8'], parade: ['#8fd8ff', '#e6f6ff'],
-};
-const GROUND3 = { water: '#5cc3ff', forest: '#4c9a4a', swamp: '#3d5c3a', rockwall: '#3a3346', clouds: '#cfe8ff', space: '#140f2e', stands: '#9aa3b5', infield: '#5ad06a', park: '#7fdc5a', corn: '#b5a04a', crowd: '#d9d2c6', garden: '#8bcf6a', flush: '#b8b0c8', street: '#6f7891', highway: '#5d6784' };
-function draw3D() {
-  const zk = MODE === 'level' ? 'carroll' : (G.curZone || zoneAt(P.wy)), Z = ZONES[zk] || ZONES.carroll;
-  const R = DPR * SC, AN = anchor(), z3 = 0.42;
-  // 1) normal world, zoomed out so we can see far ahead
-  const keepZ = G.zoom; G.zoom = z3;
-  ctx.save(); ctx.translate(W / 2, AN); ctx.scale(z3, z3); ctx.translate(-W / 2, -AN); drawWorld(); ctx.restore();
-  G.zoom = keepZ;
-  // 2) grab it
-  if (OFF3.width !== cv.width || OFF3.height !== cv.height) { OFF3.width = cv.width; OFF3.height = cv.height; }
-  octx3.setTransform(1, 0, 0, 1, 0, 0); octx3.clearRect(0, 0, OFF3.width, OFF3.height); octx3.drawImage(cv, 0, 0);
-  // 3) sky + far ground
-  const yh = H * 0.27, yp = AN, sp = 2.6 * (0.72 + 0.28 * (keepZ || 1));
-  const sky = SKY3[zk] || ['#7cc8ff', '#d8f3ff'];
-  let g = ctx.createLinearGradient(0, 0, 0, yh); g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
-  ctx.fillStyle = g; ctx.fillRect(-2, -2, W + 4, yh + 3);
-  drawHorizon3(zk, Z, yh);
-  const gl = GROUND3[Z.left] || '#b8b0c8', gr = GROUND3[Z.right] || '#b8b0c8';
-  const pxo = W / 2 + (P.x - W / 2) * z3;
-  G.cam3 = G.cam3 === undefined ? pxo : lerp(G.cam3, pxo, 0.15);
-  const camX = W / 2 * 0.35 + G.cam3 * 0.65;
-  // far ground: left side / path / right side running off to the vanishing point
-  {
-    const hsB = sp * (H - yh) / (yp - yh), sx = xw => W / 2 + (W / 2 + (xw - W / 2) * z3 - camX) * hsB;
-    const xa = sx(X.sideL), xb = sx(X.stripR), vx = W / 2;
-    ctx.fillStyle = gl; ctx.fillRect(-2, yh, W + 4, H - yh + 2);
-    poly([[vx, yh], [W + 600, H + 2], [xb, H + 2]]); fs(gr);
-    poly([[vx, yh], [xb, H + 2], [xa, H + 2]]); fs(Z.walk || '#ece6f5');
-  }
-  // 4) re-project, scanline strips
-  const K = (yp - yh) * (yp - yh) / sp, inv0 = 1 / (yp - yh);
-  const srcAt = ys => AN - K * (1 / (ys - yh) - inv0);
-  ctx.imageSmoothingEnabled = true;
-  const step = 2;
-  for (let ys = yh + 1; ys < H; ys += step) {
-    const a = srcAt(ys), b = srcAt(ys + step);
-    if (b < 0) continue;
-    const sA = Math.max(0, a), sB = Math.min(H, b);
-    if (sB <= sA) continue;
-    const hs = sp * (ys + step * 0.5 - yh) / (yp - yh);
-    ctx.drawImage(OFF3, DPR * OX + 8 * R, sA * R, (W - 16) * R, Math.max(1, (sB - sA) * R), W / 2 + (8 - camX) * hs, ys, (W - 16) * hs, step + 0.6);
-  }
-  // 5) haze where the world fades into the distance
-  g = ctx.createLinearGradient(0, yh, 0, yh + 70); g.addColorStop(0, sky[1]); g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fillRect(-2, yh, W + 4, 70);
-  // speed lines when you're flying
-  if (P.speed > 230) { ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = hash(Math.floor(G.time * 20) * 7 + k) * Math.PI * 2, r0 = 120 + hash(k * 3 + Math.floor(G.time * 20)) * 60; const cx = W / 2, cy = yh + 40; ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.abs(Math.sin(a)) * r0 * 1.4); ctx.lineTo(cx + Math.cos(a) * (r0 + 50), cy + Math.abs(Math.sin(a)) * (r0 + 50) * 1.4); } ctx.stroke(); }
-}
-function drawHorizon3(zk, Z, yh) {
-  const par = (P.wy * 0.02) % 1000, base = yh + 1;
-  if (Z.street || Z.left === 'flush') {          // city skyline
-    for (let k = 0; k < 16; k++) { const x = ((k * 31 - par * 0.3) % (W + 60) + W + 60) % (W + 60) - 30, h = 20 + hash(k * 13) * 46, w = 16 + hash(k * 7) * 18; ctx.fillStyle = ['#8a90b0', '#7a80a2', '#9aa0c0'][k % 3]; ctx.fillRect(x, base - h, w, h); ctx.fillStyle = 'rgba(255,240,170,.6)'; for (let r = 0; r < h / 8 - 1; r++) if (hash(k * 5 + r) > 0.5) ctx.fillRect(x + 3, base - h + 4 + r * 8, w - 6, 2); }
-  } else if (Z.left === 'forest' || Z.left === 'swamp' || Z.left === 'corn') {
-    ctx.fillStyle = Z.left === 'swamp' ? '#2f4d33' : Z.left === 'corn' ? '#9a8a3a' : '#3e8a4e';
-    ctx.beginPath(); ctx.moveTo(-2, base); for (let x = -2; x <= W + 4; x += 12) ctx.lineTo(x, base - 10 - hash(Math.floor((x + par) / 12)) * 16); ctx.lineTo(W + 4, base); ctx.closePath(); ctx.fill();
-  } else if (zk === 'space') {
-    for (let k = 0; k < 40; k++) { circ(hash(k * 3) * W, hash(k * 7) * yh, hash(k) < 0.9 ? 1 : 2); fs('#ffffff'); }
-    circ(W * 0.75, yh * 0.45, 22); fso('#9b5de5', 2);
-  } else if (Z.left === 'water' || Z.right === 'water') {
-    ctx.fillStyle = '#9aa0c0'; for (let k = 0; k < 10; k++) { const x = k * 38 + hash(k) * 10, h = 8 + hash(k * 9) * 22; ctx.fillRect(x, base - h, 14, h); }
-  } else if (zk === 'cave') {
-    ctx.fillStyle = '#2a2238'; for (let x = -2; x < W; x += 18) { poly([[x, 0], [x + 18, 0], [x + 9, 14 + hash(x) * 24]]); ctx.fill(); }
-  } else if (zk === 'rainbow') {
-    for (let k = 0; k < 6; k++) { ctx.strokeStyle = ['#ff595e', '#ff9f1c', '#ffd166', '#8ac926', '#1982c4', '#6a4c93'][k]; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(W / 2, base + 10, 120 - k * 5, Math.PI, 0); ctx.stroke(); }
-  } else {
-    ctx.fillStyle = '#a7b8c8'; ctx.beginPath(); ctx.moveTo(-2, base); ctx.lineTo(60, base - 30); ctx.lineTo(120, base - 8); ctx.lineTo(200, base - 40); ctx.lineTo(290, base - 12); ctx.lineTo(W + 4, base - 26); ctx.lineTo(W + 4, base); ctx.closePath(); ctx.fill();
-  }
-}
-
-/* =========================================================
    BIRTHDAY PARTY — candle game (ported from Super Sullivan)
    ========================================================= */
 const PIMG = s => { const i = new Image(); i.src = 'data:image/png;base64,' + s; return i; };
@@ -4168,11 +4086,8 @@ function frame(now) {
   else {
     ctx.save();
     if (G.shake > 0) ctx.translate((Math.random() - .5) * G.shake, (Math.random() - .5) * G.shake);
-    if (SETTINGS.view3d) draw3D();
-    else {
-      const z = G.zoom || 1; if (z !== 1) { ctx.translate(W / 2, anchor()); ctx.scale(z, z); ctx.translate(-W / 2, -anchor()); }
-      drawWorld();
-    }
+    const z = G.zoom || 1; if (z !== 1) { ctx.translate(W / 2, anchor()); ctx.scale(z, z); ctx.translate(-W / 2, -anchor()); }
+    drawWorld();
     ctx.restore();
     drawZoneOverlay();
     drawHUD();
