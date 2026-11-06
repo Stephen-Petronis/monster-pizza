@@ -3364,7 +3364,7 @@ function gameScene(){
    ========================================================= */
 function zamboniScene(opts = {}){
   const timed = opts.timed || 0, back = opts.back || null, ZC = CFG.zamboni;
-  const S = { quit: true, game: true, music: 'zomboni' };   // Stephen's "Brains" (set topAlign: true to pin it under the notch)
+  const S = { quit: true, game: true, music: 'zomboni', topAlign: true };   // Stephen's "Brains"; pinned under the notch, painted panel pinned to the bottom
   const RK = RINK;
   const CS = 2, GX = Math.ceil((RK.x1 - RK.x0) / CS), GYN = Math.ceil((RK.y1 - RK.y0) / CS);
   const ZG = {
@@ -3378,7 +3378,7 @@ function zamboniScene(opts = {}){
     const k = Math.min(W / ZPANEL.w, (room + 12) / ZPANEL.h), pw = ZPANEL.w * k, h = ZPANEL.h * k;
     if (pw < W * 0.8) return null;
     const lift = 12;   // the art has no background, so the zombie and the title poke up over the rink edge, like the monster cards
-    const x0 = (W - pw) / 2, y0 = top - lift, b = ZPANEL.bar, r = ZPANEL.r * k * 1.15;
+    const x0 = (W - pw) / 2, y0 = Math.max(top - lift, bot - h), b = ZPANEL.bar, r = ZPANEL.r * k * 1.15;   // tall phones: panel at the bottom, crowd in between
     return { k, pw, h, x0, y0, g: { A: { x: x0 + ZPANEL.A[0] * k, y: y0 + ZPANEL.A[1] * k, r }, B: { x: x0 + ZPANEL.B[0] * k, y: y0 + ZPANEL.B[1] * k, r },
       PILL: { x: x0 + b[0] * k, y: y0 + b[1] * k, w: (b[2] - b[0]) * k, h: (b[3] - b[1]) * k }, hint: null, joy: q => q.y > 34 && (q.x < 88 || q.y > 254) } };
   }
@@ -3644,7 +3644,14 @@ function zamboniScene(opts = {}){
     const g = geo();
     if (LAYOUT === 'L'){ R(0, 0, 110, 254, '#120a22'); R(290, 0, 110, 254, '#120a22'); R(109, 0, 1, 254, '#2a1446'); R(290, 0, 1, 254, '#2a1446'); }
     const art = zart();
-    if (art){ R(0, 254, W, CH, ZPANEL.bg); ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(ZPANEL.img, art.x0, art.y0, art.pw, art.h); ctx.restore(); }
+    if (art){ R(0, 254, W, CH, ZPANEL.bg); { const sh = art.y0 + art.h * 0.5 - 254; if (sh > 6) drawStands(254, sh); }
+      // tall phones: a little scoreboard hangs in the crowd between the rink and the panel
+      const gap = art.y0 - 254; if (gap >= 30){ const bh = 24, by = 254 + Math.round((gap - bh) / 2) + 1;
+        const box = (x, w, top, val, col) => { R(x - 1, by - 1, w + 2, bh + 2, '#000'); R(x, by, w, bh, '#1a1030'); R(x, by, w, 1, col); R(x, by + bh - 1, w, 1, col);
+          tiny(top, x + w / 2, by + 3, '#c9b8f0', 'center', null); T(val, x + w / 2, by + 12, col, 8, 'center'); };
+        const best = HS[0]; box(8, 86, 'TOP SCORE', best ? best.n + ' ' + best.d : '---', '#ffd23f');
+        box(100, 72, 'LOST STUFF', found + ' OF ' + items.length, '#b6ff4a'); } }
+    if (art){ ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(ZPANEL.img, art.x0, art.y0, art.pw, art.h); ctx.restore(); }
     else if (LAYOUT !== 'L') R(0, 254, W, 66, '#120a22');
     if (joy.id !== null){ ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 18, 0, 7); ctx.stroke(); ctx.restore(); C(joy.ox + joy.ux * 14, joy.oy + joy.uy * 14, 7, 'rgba(156,232,255,.85)'); }
     else if (g.hint) T('DRAG\nTO DRIVE', g.hint[0], g.hint[1], '#5a4a7a', 8);
