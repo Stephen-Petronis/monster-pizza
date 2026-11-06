@@ -1750,15 +1750,21 @@ function gameScene(){
   function artPanel(pt, pb){
     if (!PANEL_ON || state === 'fight' || !ctrl) return null;
     const ap = ART_PANELS[ctrl.m.power]; if (!ap || !(ap.img.complete && ap.img.naturalWidth)) return null;
-    const k = Math.min(W / ap.w, (pb - pt + 6) / ap.h), h = ap.h * k, pw = ap.w * k;   // short screens: the panel shrinks to fit
-    return k * ap.w >= W * 0.62 ? { ap, k, h, y0: pb - h, x0: (W - pw) / 2, pw } : null;
+    let k = Math.min(W / ap.w, (pb - pt + 6) / ap.h);   // short screens: the panel shrinks to fit
+    if (k * ap.w < W * 0.62) return null;
+    // The special dome normally sits up in the crowd above the panel's top-right corner. Short phones have no crowd strip there,
+    // so the panel slides left (shrinking a little if it must) and the dome gets its own space on the right instead of covering the title.
+    const side = pb - ap.h * k - pt < 2 || W - ap.w * k >= 40;   // notch phones have a 6-12px crowd strip here; home-button phones (SE, 8) have none
+    if (side) k = Math.min(k, (W - 40) / ap.w);
+    const h = ap.h * k, pw = ap.w * k;
+    return { ap, k, h, y0: pb - h, x0: side ? 2 : (W - pw) / 2, pw, side };
   }
   Object.defineProperty(GEO, 'I', { get(){ // iPad 2-player strip, in panel coordinates (y 254 .. 254 + P2H)
     const pt = 254, pb = 254 + P2H; { const fp = fightPanel(pt, pb); if (fp) return fp.geo; }
     const art = artPanel(pt, pb);
     if (art){ const { ap, k, y0, h, x0 } = art;
       return { A: { x: x0 + ap.A[0] * k, y: y0 + ap.A[1] * k, r: 15 }, B: { x: x0 + ap.B[0] * k, y: y0 + ap.B[1] * k, r: 15 },
-        PILL: (() => { const dm = domeAt({ art, pt }), py = Math.round(Math.min(y0, dm.y - dm.r - 5)); return { x: Math.round(x0 + ap.w * 0.42 * k), y: py, w: Math.round(ap.w * 0.58 * k), h: Math.round(y0 + h * 0.56) - py }; })(), pt, art, hint: [44, 300], fhint: [44, 280], joyX: x0 + ap.A[0] * k - 17 };
+        PILL: pillOf(art, pt), pt, art, hint: [44, 300], fhint: [44, 280], joyX: x0 + ap.A[0] * k - 17 };
     }
     const g = GEO.P, dy = (P2H - 66) / 2;   // classic buttons, centred in the taller strip
     return { A: { ...g.A, y: g.A.y + dy }, B: { ...g.B, y: g.B.y + dy }, PILL: { ...g.PILL, y: g.PILL.y + dy }, pt, hint: [g.hint[0], g.hint[1] + dy], fhint: [g.fhint[0], g.fhint[1] + dy], joyX: 88 };
@@ -1769,8 +1775,7 @@ function gameScene(){
     const art = artPanel(pt, pb);
     if (art){ const { ap, k, y0, h, x0 } = art;
       const A = { x: x0 + ap.A[0] * k, y: y0 + ap.A[1] * k, r: 15 }, B = { x: x0 + ap.B[0] * k, y: y0 + ap.B[1] * k, r: 15 };
-      const dm = domeAt({ art, pt }), py = Math.round(Math.min(y0, dm.y - dm.r - 5));
-      const PILL = { x: Math.round(x0 + ap.w * 0.42 * k), y: py, w: Math.round(ap.w * 0.58 * k), h: Math.round(y0 + h * 0.56) - py };   // tap the title or the dome = special
+      const PILL = pillOf(art, pt);   // tap the title or the dome = special
       return { A, B, PILL, pt, art, hint: [44, Math.round(y0 + h * 0.75)], fhint: [44, Math.round(pt + ph / 2 - 20)], joyX: A.x - 17 };
     }
     const B = { x: W - 8 - r, y: pb - r - 12, r }, A = { x: B.x - 2 * r - 14, y: pb - r - 12, r };
@@ -3025,8 +3030,13 @@ function gameScene(){
   const domeArt = ap => [(ap.P[0] + ap.P[2] - 66) / 2, (ap.P[1] + ap.P[3]) / 2 - 8];
   // It sits in the top-right corner, half up in the crowd above the panel so it clears the title. On short phones (no crowd strip)
   // it may tuck a few pixels into the rink's rounded bottom-right corner, which is boards, not ice.
-  function domeAt(g){ const { k, y0, x0, pw } = g.art, r = clamp(Math.round(58 * k), 12, 15);
+  function domeAt(g){ const { k, y0, x0, pw, h, side } = g.art;
+    if (side){ const room = W - x0 - pw, r = clamp(Math.floor(room / 2) - 6, 11, 15); return { x: x0 + pw + room / 2 - 1, y: y0 + h * 0.4, r }; }
+    const r = clamp(Math.round(58 * k), 12, 15);
     return { x: Math.min(x0 + pw, W) - r - 8, y: Math.max(y0 + 1, g.pt + r - 3), r }; }
+  function pillOf(art, pt){   // tap area for the special: the title plus the dome
+    const { ap, k, y0, h, x0 } = art, dm = domeAt({ art, pt }), x = Math.round(x0 + ap.w * 0.42 * k), y = Math.round(Math.min(y0, dm.y - dm.r - 5));
+    return { x, y, w: Math.round(Math.max(x0 + ap.w * k, dm.x + dm.r + 5)) - x, h: Math.round(Math.max(y0 + h * 0.56, dm.y + dm.r + 5)) - y }; }
   function drawDome(x, y, r, sp, ready){
     const pulse = ready ? 0.5 + 0.5 * Math.sin(TT * 9) : 0;
     ctx.save();
@@ -3319,7 +3329,7 @@ function gameScene(){
     if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
     else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
-  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
+  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, get gapInfo(){ const g = GEO[geoKey()]; return g.art ? { gap: g.art.y0 - g.pt, natural: (CH - SAFE_B) - g.art.ap.h * Math.min(W / g.art.ap.w, (CH - SAFE_B - g.pt + 6) / g.art.ap.h) - g.pt, side: g.art.side } : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
   return S;
 }
 
