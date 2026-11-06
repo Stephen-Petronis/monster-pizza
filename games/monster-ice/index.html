@@ -3159,7 +3159,7 @@ function gameScene(){
     const g = GEO[geoKey()];
     if (geoKey() === 'L'){ R(0, 0, 110, 254, '#120a22'); R(290, 0, 110, 254, '#120a22'); R(109, 0, 1, 254, '#2a1446'); R(290, 0, 1, 254, '#2a1446'); }
     else if (geoKey() === 'T'){ R(0, g.pt, W, CH - g.pt, '#120a22'); R(0, g.pt, W, 1, '#2a1446');
-      if (g.art && !g.fart){ const gap = g.art.y0 - g.pt; if (gap > 6) drawStands(g.pt, gap + 8); drawArtPanel(g); } }
+      if (g.art && !g.fart){ const sh = g.art.y0 + g.art.h * 0.6 - g.pt; if (sh > 6) drawStands(g.pt, sh); drawArtPanel(g); } }   // crowd behind the whole cut-out top of the art, so every monster's panel looks the same
     else if (geoKey() === 'I'){ R(0, 254, W, P2H, '#120a22'); if (g.art) drawArtPanel(g); }
     else R(0, 254, W, 66, '#120a22');
     const hj = joyHome(g), kcol = pl.team === 1 ? '#4ab0ff' : '#ff7a1a';
