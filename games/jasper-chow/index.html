@@ -3851,56 +3851,66 @@ function bubbleLayout(L, msg) {
 }
 
 function drawShop() {
-  const now = performance.now(), t = (now - G.shop.t0) / 1000, S = G.shop, pg = SHOP_PAGES[S.page];
-  const L = shopLayout(), B = bubbleLayout(L, S.msg), k = L.k;
-  const [cw0, ch0] = SHOPA_DIM.counter, cW = W + 16, cH = cW * ch0 / cw0 * 0.82, cTop = B.top - cH * 0.46;
+  const now = performance.now(), t = (now - G.shop.t0) / 1000, S = G.shop;
+  const L = shopLayout(), k = L.k;
+  // counter sits low, right above the item cards
+  const [cw0, ch0] = SHOPA_DIM.counter, cW = W + 16, cH = cW * ch0 / cw0 * 0.82, cTop = L.cardsTop - cH * 0.5;
   const hero = cTop - L.top;
-  const logoH = clamp(hero * 0.4, 58, 140), logoW = logoH * SHOPA_DIM.logo[0] / SHOPA_DIM.logo[1];
-  const zBottom = cTop + cH * 0.2, zH = clamp(zBottom - (L.top + logoH * 0.9), 84, 250), zW = zH * SHOPA_DIM.zbase[0] / SHOPA_DIM.zbase[1];
-  // 1) workshop background, cover-fit, door kept behind Zed
+  const logoH = clamp(hero * 0.22, 50, 100), logoW = logoH * SHOPA_DIM.logo[0] / SHOPA_DIM.logo[1];
+  // speech bubble above Zed's head
+  let fsz = 14.5 * k, lines; for (;;) { lines = wrapLines(S.msg, W - 56, `800 ${fsz}px ${FONT}`); if (lines.length <= 2 || fsz <= 11.5) break; fsz -= 0.5; }
+  const lh = fsz * 1.22, bubH = 14 * k + lines.length * lh, bubTop = L.top + logoH + 6 * k, bubBot = bubTop + bubH;
+  // big Zed, a little left of center so the STARS sign fits beside him
+  const zBottom = cTop + cH * 0.2, zH = clamp(Math.min(zBottom - (bubBot + 14 * k), W * 0.66), 120, 330), zW = zH * SHOPA_DIM.zbase[0] / SHOPA_DIM.zbase[1];
+  const zx = Math.max(zW / 2 - 14, W * 0.33);
+  // 1) workshop background
   const bgI = SA('bg');
   ctx.fillStyle = '#2a1650'; ctx.fillRect(0, 0, W, H);
-  if (bgI) { const [iw, ih] = SHOPA_DIM.bg, s = Math.max(W / iw, H / ih), dw = iw * s, dh = ih * s; const dy = clamp((zBottom - zH * 0.55) - 0.42 * dh, H - dh, 0); ctx.drawImage(bgI, (W - dw) / 2, dy, dw, dh); }
+  if (bgI) { const [iw, ih] = SHOPA_DIM.bg, s = Math.max(W / iw, H / ih), dw = iw * s, dh = ih * s; const dy = clamp((zBottom - zH * 0.5) - 0.42 * dh, H - dh, 0); ctx.drawImage(bgI, (W - dw) / 2, dy, dw, dh); }
   // 2) logo
   const lp = 1 + Math.sin(t * 2.4) * 0.018;
   ctx.save(); ctx.translate(W / 2, L.top + logoH / 2); ctx.scale(lp, lp); drawImg('logo', 0, 0, logoW, logoH); ctx.restore();
-  // 3) Zed behind the counter (looks at the card you picked)
+  // 3) Zed
   const look = S.sel != null && now - (S.msgT || 0) < 2500 ? [(S.sel - 1) * 0.8, 0.9] : null;
-  drawZedFront(W / 2, zBottom, zW, t, now - (S.msgT || S.t0) < 1600, look);
-  // 4) counter (foreground)
+  drawZedFront(zx, zBottom, zW, t, now - (S.msgT || S.t0) < 1600, look);
+  // 4) STARS sign standing on the counter, beside Zed
+  { const sw = clamp(W - (zx + zW * 0.34) - 10, 120, 170), sx = W - 8 - sw, sh = sw * 0.95, sy = cTop + 4 - sh;
+    const sway = Math.sin(t * 1.6) * 0.02;
+    ctx.save(); ctx.translate(sx + sw / 2, cTop + 4); ctx.rotate(sway); ctx.translate(-(sx + sw / 2), -(cTop + 4));
+    ctx.fillStyle = '#3a2350'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    for (const lx of [sx + sw * 0.28, sx + sw * 0.72]) { ctx.fillRect(lx - 3, sy + sh - 6, 6, 12); ctx.strokeRect(lx - 3, sy + sh - 6, 6, 12); }
+    rr(sx + 3, sy + 4, sw, sh - 8, 14); fs('rgba(20,8,40,.45)');
+    rr(sx, sy, sw, sh - 8, 14); fso('#2a1240', 4);
+    ctx.save(); ctx.shadowColor = '#ff3bd5'; ctx.shadowBlur = 12; rr(sx + 6, sy + 6, sw - 12, sh - 20, 9); ctx.strokeStyle = '#ff5fd2'; ctx.lineWidth = 3; ctx.stroke(); ctx.restore();
+    for (let b = 0; b < 10; b++) { const on = Math.floor(t * 5 + b) % 2; circ(sx + 14 + b * (sw - 28) / 9, sy + 3, 2.2); fs(on ? '#ffe066' : '#ff8fc7'); }
+    const hs = Math.min(30 * k, sw * 0.21);
+    bubbleText('STARS', sx + sw / 2, sy + 12 + hs * 0.7, hs, '#ffe066', 'center', INK, 5);
+    const ny = sy + (sh - 8) * 0.68, nsz = Math.min(42 * k, sw * 0.3) * (String(wallet()).length > 3 ? 0.8 : 1);
+    drawStar(sx + 24 * (sw / 130), ny, 13 * (sw / 130), Math.sin(t * 2) * 0.3, '#ffe066');
+    bubbleText(String(wallet()), sx + sw / 2 + 14 * (sw / 130), ny + 1, nsz, '#ffffff', 'center', INK, 6);
+    ctx.restore(); }
+  // 5) counter (foreground)
   { const im = SA('counter'); if (im) ctx.drawImage(im, -8, cTop, cW, cH); }
-  // 5) speech bubble (chunky pixel style), tail up to Zed
-  { const bx = 18, bw = W - 36;
-    rr(bx + 3, B.top + 4, bw, B.h, 14); fs('rgba(20,8,40,.45)');
-    poly([[W / 2 - 12, B.top + 2], [W / 2 + 10, B.top + 2], [W / 2 + 2, B.top - 12 * k]]); fso('#ffffff', 3);
-    rr(bx, B.top, bw, B.h, 14); fso('#ffffff', 3.5);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(W / 2 - 10, B.top + 1, 18, 5);
-    ctx.fillStyle = 'rgba(43,29,74,.10)'; ctx.fillRect(bx + 8, B.top + B.h - 6, bw - 16, 3);
-    B.lines.forEach((l, i) => txt(l, W / 2, B.top + 7 * k + B.lh * (i + 0.5), B.fsz, '#1f1430', 'center', 800)); }
-  // 6) star balance
-  { const [iw, ih] = SHOPA_DIM.currency, h = L.curH, w = Math.max(132 * k, 96 * k + String(wallet()).length * 14 * k);
-    const x = W / 2 - w / 2, y = L.curY - h / 2;
-    for (const s2 of [-1, 1]) { ctx.fillStyle = '#ffe066'; ctx.strokeStyle = INK; ctx.lineWidth = 2; const bx2 = W / 2 + s2 * (w / 2 + 16 * k), by2 = L.curY; poly([[bx2 - s2 * 12 * k, by2 - 8 * k], [bx2 + s2 * 2 * k, by2 - 2 * k], [bx2 - s2 * 4 * k, by2 + 1 * k], [bx2 + s2 * 12 * k, by2 + 9 * k], [bx2 - s2 * 2 * k, by2 + 3 * k], [bx2 + s2 * 4 * k, by2]]); ctx.fill(); ctx.stroke(); }
-    draw3('currency', 100, 120, 218, x, y, w, h);
-    { const sc = h / ih, l = 100 * sc, r = (iw - 218) * sc; bubbleText(String(wallet()), x + l + (w - l - r) / 2 + 4 * k, L.curY + 1, 19 * k, '#ffe066', 'center', INK, 4); } }
-  // 7) category banner
-  { const fsz = 17 * k; ctx.font = `900 ${fsz}px ${FONT}`; const tw = ctx.measureText(pg.title).width, h = L.banH, w = Math.min(W - 24, tw + 110 * k);
-    draw3('banner', 54, 200, 310, W / 2 - w / 2, L.banY - h / 2, w, h);
-    bubbleText(pg.title, W / 2, L.banY - h * 0.06, fsz, '#ffffff', 'center', '#1f1430', 4.5); }
-  // 8) item cards
-  pg.items.forEach((it, i) => drawShopCard(it, i, L, S, now, t));
-  // 9) page nav
+  // 6) speech bubble with a tail down to Zed
+  { const bx = 16, bw = W - 32, tx = clamp(zx, 50, W - 50);
+    rr(bx + 3, bubTop + 4, bw, bubH, 14); fs('rgba(20,8,40,.45)');
+    poly([[tx - 12, bubBot - 2], [tx + 10, bubBot - 2], [tx - 2, bubBot + 13 * k]]); fso('#ffffff', 3);
+    rr(bx, bubTop, bw, bubH, 14); fso('#ffffff', 3.5);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(tx - 10, bubBot - 6, 18, 5);
+    lines.forEach((l, i) => txt(l, W / 2, bubTop + 7 * k + lh * (i + 0.5), fsz, '#1f1430', 'center', 800)); }
+  // 7) item cards
+  SHOP_PAGES[S.page].items.forEach((it, i) => drawShopCard(it, i, L, S, now, t));
+  // 8) page nav
   { const aw = 64 * k, ah = aw * SHOPA_DIM.arrowL[1] / SHOPA_DIM.arrowL[0], ax = 18 + aw / 2;
     drawImg('arrowL', ax, L.navY, aw, ah); btn('shopPrev', ax - aw / 2 - 6, L.navY - ah / 2 - 6, aw + 12, ah + 12);
     drawImg('arrowR', W - ax, L.navY, aw, ah); btn('shopNext', W - ax - aw / 2 - 6, L.navY - ah / 2 - 6, aw + 12, ah + 12);
     SHOP_PAGES.forEach((_, p) => { circ(W / 2 + (p - 1) * 15 * k, L.navY - 10 * k, 5 * k); fso(p === S.page ? '#ffe066' : '#a66bff', 1.8); });
     bubbleText(`PAGE ${S.page + 1} / ${SHOP_PAGES.length}`, W / 2, L.navY + 9 * k, 13 * k, '#ffffff', 'center', '#1f1430', 3.5); }
-  // 10) back to the ride
+  // 9) back to the ride
   { const bp = 1 + Math.sin(t * 4) * 0.015;
     for (const s2 of [-1, 1]) for (let j = -1; j <= 1; j++) { const x0 = W / 2 + s2 * (L.backW / 2 + 6), y0 = L.backY + j * 13 * k; ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 3.5 * k; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + s2 * 9 * k, y0 + j * 4 * k); ctx.stroke(); }
     ctx.save(); ctx.translate(W / 2, L.backY); ctx.scale(bp, bp); drawImg('backbtn', 0, 0, L.backW, L.backH); ctx.restore();
     btn('shopLeave', W / 2 - L.backW / 2, L.backY - L.backH / 2, L.backW, L.backH); }
-  // purchase sparkles
   if (S.fx) for (const p of S.fx) { const a = (now - p.t0) / 700; if (a < 1) drawStar(p.x + p.vx * a, p.y + p.vy * a + 60 * a * a, 5 * (1 - a) + 2, a * 6, p.c); }
 }
 function drawShopCard(it, i, L, S, now, t) {
