@@ -1754,7 +1754,7 @@ function gameScene(){
     if (k * ap.w < W * 0.62) return null;
     // The special dome normally sits up in the crowd above the panel's top-right corner. Short phones have no crowd strip there,
     // so the panel slides left (shrinking a little if it must) and the dome gets its own space on the right instead of covering the title.
-    const pill = pb - ap.h * k - pt < 2;   // notch phones have a 6-12px crowd strip here; home-button phones (SE, 8) have none, so they get a pill in the corner
+    const pill = true;   // the special is an arcade pill in the panel's top-right corner (where the old % badge was) on every phone; drawDome stays for a round look later
     const h = ap.h * k, pw = ap.w * k;
     return { ap, k, h, y0: pb - h, x0: (W - pw) / 2, pw, pill };
   }
