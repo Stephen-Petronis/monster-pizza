@@ -1754,10 +1754,9 @@ function gameScene(){
     if (k * ap.w < W * 0.62) return null;
     // The special dome normally sits up in the crowd above the panel's top-right corner. Short phones have no crowd strip there,
     // so the panel slides left (shrinking a little if it must) and the dome gets its own space on the right instead of covering the title.
-    const side = pb - ap.h * k - pt < 2 || W - ap.w * k >= 40;   // notch phones have a 6-12px crowd strip here; home-button phones (SE, 8) have none
-    if (side) k = Math.min(k, (W - 40) / ap.w);
+    const pill = pb - ap.h * k - pt < 2;   // notch phones have a 6-12px crowd strip here; home-button phones (SE, 8) have none, so they get a pill in the corner
     const h = ap.h * k, pw = ap.w * k;
-    return { ap, k, h, y0: pb - h, x0: side ? 2 : (W - pw) / 2, pw, side };
+    return { ap, k, h, y0: pb - h, x0: (W - pw) / 2, pw, pill };
   }
   Object.defineProperty(GEO, 'I', { get(){ // iPad 2-player strip, in panel coordinates (y 254 .. 254 + P2H)
     const pt = 254, pb = 254 + P2H; { const fp = fightPanel(pt, pb); if (fp) return fp.geo; }
@@ -3030,12 +3029,15 @@ function gameScene(){
   const domeArt = ap => [(ap.P[0] + ap.P[2] - 66) / 2, (ap.P[1] + ap.P[3]) / 2 - 8];
   // It sits in the top-right corner, half up in the crowd above the panel so it clears the title. On short phones (no crowd strip)
   // it may tuck a few pixels into the rink's rounded bottom-right corner, which is boards, not ice.
-  function domeAt(g){ const { k, y0, x0, pw, h, side } = g.art;
-    if (side){ const room = W - x0 - pw, r = clamp(Math.floor(room / 2) - 6, 11, 15); return { x: x0 + pw + room / 2 - 1, y: y0 + h * 0.4, r }; }
+  function domeAt(g){ const { k, y0, x0, ap, pill } = g.art;
+    if (pill){ const x = x0 + (ap.P[0] - 62) * k, w = (ap.P[2] - ap.P[0] + 62) * k, hh = Math.max(13, (ap.P[3] - ap.P[1]) * k); // where the old badge was
+      return { pill: true, x, y: y0 + ap.P[1] * k, w, h: hh, r: hh / 2 }; }
     const r = clamp(Math.round(58 * k), 12, 15);
     return { x: Math.min(x0 + pw, W) - r - 8, y: Math.max(y0 + 1, g.pt + r - 3), r }; }
   function pillOf(art, pt){   // tap area for the special: the title plus the dome
-    const { ap, k, y0, h, x0 } = art, dm = domeAt({ art, pt }), x = Math.round(x0 + ap.w * 0.42 * k), y = Math.round(Math.min(y0, dm.y - dm.r - 5));
+    const { ap, k, y0, h, x0 } = art, dm = domeAt({ art, pt }), x = Math.round(x0 + ap.w * 0.42 * k);
+    if (dm.pill) return { x, y: Math.round(y0), w: Math.round(x0 + ap.w * k) - x, h: Math.round(h * 0.56) };
+    const y = Math.round(Math.min(y0, dm.y - dm.r - 5));
     return { x, y, w: Math.round(Math.max(x0 + ap.w * k, dm.x + dm.r + 5)) - x, h: Math.round(Math.max(y0 + h * 0.56, dm.y + dm.r + 5)) - y }; }
   function drawDome(x, y, r, sp, ready){
     const pulse = ready ? 0.5 + 0.5 * Math.sin(TT * 9) : 0;
@@ -3054,6 +3056,25 @@ function gameScene(){
     if (ready) T(Math.floor(TT * 4) % 2 ? 'GO!' : 'TAP!', x, y - 4, '#ffd23f', 8, 'center');
     else T(Math.floor(sp * 100) + '%', x, y - 4, '#ffffff', 8, 'center');
   }
+  // small phones: a red arcade pill up in the corner that fills left to right as the special charges
+  function drawSpecialPill(x, y, w, h, sp, ready){
+    const r = h / 2, pulse = ready ? 0.5 + 0.5 * Math.sin(TT * 9) : 0;
+    ctx.save();
+    if (ready){ ctx.fillStyle = 'rgba(255,60,90,' + (0.3 + 0.25 * pulse) + ')'; ctx.beginPath(); ctx.roundRect(x - 3, y - 3, w + 6, h + 6, r + 3); ctx.fill(); }
+    ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(x - 1.5, y + 0.5, w + 3, h + 3, r + 1.5); ctx.fill();
+    ctx.fillStyle = '#281e3c'; ctx.beginPath(); ctx.roundRect(x - 1.5, y - 1.5, w + 3, h + 3, r + 1.5); ctx.fill();            // housing
+    ctx.fillStyle = '#46081c'; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill();                                       // empty
+    ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip();
+    const fw = w * clamp(ready ? 1 : sp, 0, 1), gf = ctx.createLinearGradient(0, y, 0, y + h);
+    if (ready){ gf.addColorStop(0, '#ff8aa0'); gf.addColorStop(0.5, '#e0143c'); gf.addColorStop(1, '#a00a2c'); } else { gf.addColorStop(0, '#ff9a5a'); gf.addColorStop(0.5, '#e05a1a'); gf.addColorStop(1, '#a0380a'); }
+    ctx.fillStyle = gf; ctx.fillRect(x, y, fw, h);
+    ctx.fillStyle = 'rgba(255,255,255,' + (ready ? 0.35 : 0.18) + ')'; ctx.fillRect(x + r * 0.6, y + h * 0.16, w - r * 1.2, h * 0.2);   // shine
+    ctx.restore();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = ready ? '#ffd23f' : '#ff7a1a'; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke();
+    ctx.restore();
+    if (ready) T(Math.floor(TT * 4) % 2 ? 'GO!' : 'TAP!', x + w / 2, y + h / 2 - 4, '#ffd23f', 8, 'center');
+    else T(Math.floor(sp * 100) + '%', x + w / 2, y + h / 2 - 4, '#ffffff', 8, 'center');
+  }
   function drawArtPanel(g){
     const { ap, k, y0, h, x0, pw } = g.art, sp = ctrl ? ctrl.sp : 0, ready = sp >= 1, W = pw;
     ctx.save(); ctx.translate(x0, 0);
@@ -3064,7 +3085,7 @@ function gameScene(){
     if (ready){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.16 + 0.14 * Math.sin(TT * 9); ctx.drawImage(panelCv, 0, 0, iw, ih * 0.6, 0, y0, W, h * 0.6); }
     ctx.restore();
     // the special: a red arcade button up in the corner (charge ring around it)
-    { const d = domeAt(g); drawDome(d.x - x0, d.y, d.r, sp, ready); }
+    { const d = domeAt(g); if (d.pill) drawSpecialPill(d.x - x0, d.y, d.w, d.h, sp, ready); else drawDome(d.x - x0, d.y, d.r, sp, ready); }
     // PASS / SHOOT become SWAP / CHECK on defense
     if (!weHave()) for (const [b, t] of [[ap.A, 'SWAP'], [ap.B, 'CHECK']]){ const lx = b[0] * k, ly = y0 + (b[1] + 66) * k; ctx.fillStyle = ap.lb; ctx.fillRect(lx - 13, ly - 4, 26, 8); tiny(t, lx, ly - 2, '#ffffff', 'center', null); }
     // pressed look
@@ -3329,7 +3350,7 @@ function gameScene(){
     if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
     else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
-  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, get gapInfo(){ const g = GEO[geoKey()]; return g.art ? { gap: g.art.y0 - g.pt, natural: (CH - SAFE_B) - g.art.ap.h * Math.min(W / g.art.ap.w, (CH - SAFE_B - g.pt + 6) / g.art.ap.h) - g.pt, side: g.art.side } : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
+  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, get gapInfo(){ const g = GEO[geoKey()]; return g.art ? { gap: g.art.y0 - g.pt, natural: (CH - SAFE_B) - g.art.ap.h * Math.min(W / g.art.ap.w, (CH - SAFE_B - g.pt + 6) / g.art.ap.h) - g.pt, pill: g.art.pill } : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
   return S;
 }
 
