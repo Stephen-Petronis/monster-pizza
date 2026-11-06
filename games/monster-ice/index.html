@@ -3278,7 +3278,7 @@ function gameScene(){
     if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
     else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
-  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, set clock(v){ clock = v; } });
+  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
   return S;
 }
 
