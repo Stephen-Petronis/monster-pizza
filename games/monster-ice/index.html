@@ -3030,8 +3030,8 @@ function gameScene(){
   // It sits in the top-right corner, half up in the crowd above the panel so it clears the title. On short phones (no crowd strip)
   // it may tuck a few pixels into the rink's rounded bottom-right corner, which is boards, not ice.
   function domeAt(g){ const { k, y0, x0, ap, pill, pw } = g.art;
-    if (pill){ const x = x0 + (ap.P[0] - 62) * k, w = (ap.P[2] - ap.P[0] + 62) * k, hh = Math.max(13, (ap.P[3] - ap.P[1]) * k); // where the old badge was
-      return { pill: true, x, y: y0 + ap.P[1] * k, w, h: hh, r: hh / 2 }; }
+    if (pill){ const x = x0 + (ap.P[0] - 76) * k, w = (ap.P[2] - ap.P[0] + 84) * k, y = y0 + (ap.P[1] - 10) * k, hh = Math.max(15, (ap.P[3] - ap.P[1] + 20) * k);   // the old badge's box, a bit taller
+      return { pill: true, x, y, w, h: hh, r: 4 }; }
     const r = clamp(Math.round(58 * k), 12, 15);
     return { x: Math.min(x0 + pw, W) - r - 8, y: Math.max(y0 + 1, g.pt + r - 3), r }; }
   function pillOf(art, pt){   // tap area for the special: the title plus the dome
@@ -3057,8 +3057,8 @@ function gameScene(){
     else T(Math.floor(sp * 100) + '%', x, y - 4, '#ffffff', 8, 'center');
   }
   // small phones: a red arcade pill up in the corner that fills left to right as the special charges
-  function drawSpecialPill(x, y, w, h, sp, ready){
-    const r = h / 2, pulse = ready ? 0.5 + 0.5 * Math.sin(TT * 9) : 0;
+  function drawSpecialPill(x, y, w, h, sp, ready, rr, m){
+    const r = rr || h / 2, pulse = ready ? 0.5 + 0.5 * Math.sin(TT * 9) : 0;
     ctx.save();
     if (ready){ ctx.fillStyle = 'rgba(255,60,90,' + (0.3 + 0.25 * pulse) + ')'; ctx.beginPath(); ctx.roundRect(x - 3, y - 3, w + 6, h + 6, r + 3); ctx.fill(); }
     ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(x - 1.5, y + 0.5, w + 3, h + 3, r + 1.5); ctx.fill();
@@ -3068,12 +3068,16 @@ function gameScene(){
     const fw = w * clamp(ready ? 1 : sp, 0, 1), gf = ctx.createLinearGradient(0, y, 0, y + h);
     if (ready){ gf.addColorStop(0, '#ff8aa0'); gf.addColorStop(0.5, '#e0143c'); gf.addColorStop(1, '#a00a2c'); } else { gf.addColorStop(0, '#ff9a5a'); gf.addColorStop(0.5, '#e05a1a'); gf.addColorStop(1, '#a0380a'); }
     ctx.fillStyle = gf; ctx.fillRect(x, y, fw, h);
-    ctx.fillStyle = 'rgba(255,255,255,' + (ready ? 0.35 : 0.18) + ')'; ctx.fillRect(x + r * 0.6, y + h * 0.16, w - r * 1.2, h * 0.2);   // shine
+    ctx.fillStyle = 'rgba(255,255,255,' + (ready ? 0.35 : 0.18) + ')'; ctx.fillRect(x + Math.max(r, 3) * 0.8, y + h * 0.14, w - Math.max(r, 3) * 1.6, h * 0.18);   // shine
     ctx.restore();
     ctx.lineWidth = 1.5; ctx.strokeStyle = ready ? '#ffd23f' : '#ff7a1a'; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke();
     ctx.restore();
-    if (ready) T(Math.floor(TT * 4) % 2 ? 'GO!' : 'TAP!', x + w / 2, y + h / 2 - 4, '#ffd23f', 8, 'center');
-    else T(Math.floor(sp * 100) + '%', x + w / 2, y + h / 2 - 4, '#ffffff', 8, 'center');
+    let tx = x + w / 2;
+    if (m){ const fs = Math.min(h - 3, 16), fx = x + 2 + fs / 2 + 1, fy = y + h / 2;   // the monster's face on the left, like the old badge
+      ctx.save(); ctx.fillStyle = 'rgba(20,6,30,.75)'; ctx.beginPath(); ctx.arc(fx, fy, fs / 2 + 1, 0, 7); ctx.fill(); ctx.restore();
+      drawHeadArt(m, ready ? HV.yell : HV.right, fx, fy, fs); tx = x + (fs + 4) + (w - fs - 4) / 2; }
+    if (ready) T(Math.floor(TT * 4) % 2 ? 'GO!' : 'TAP!', tx, y + h / 2 - 4, '#ffd23f', 8, 'center');
+    else T(Math.floor(sp * 100) + '%', tx, y + h / 2 - 4, '#ffffff', 8, 'center');
   }
   function drawArtPanel(g){
     const { ap, k, y0, h, x0, pw } = g.art, sp = ctrl ? ctrl.sp : 0, ready = sp >= 1, W = pw;
@@ -3085,7 +3089,7 @@ function gameScene(){
     if (ready){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.16 + 0.14 * Math.sin(TT * 9); ctx.drawImage(panelCv, 0, 0, iw, ih * 0.6, 0, y0, W, h * 0.6); }
     ctx.restore();
     // the special: a red arcade button up in the corner (charge ring around it)
-    { const d = domeAt(g); if (d.pill) drawSpecialPill(d.x - x0, d.y, d.w, d.h, sp, ready); else drawDome(d.x - x0, d.y, d.r, sp, ready); }
+    { const d = domeAt(g); if (d.pill) drawSpecialPill(d.x - x0, d.y, d.w, d.h, sp, ready, d.r, ctrl && ctrl.m); else drawDome(d.x - x0, d.y, d.r, sp, ready); }
     // PASS / SHOOT become SWAP / CHECK on defense
     if (!weHave()) for (const [b, t] of [[ap.A, 'SWAP'], [ap.B, 'CHECK']]){ const lx = b[0] * k, ly = y0 + (b[1] + 66) * k; ctx.fillStyle = ap.lb; ctx.fillRect(lx - 13, ly - 4, 26, 8); tiny(t, lx, ly - 2, '#ffffff', 'center', null); }
     // pressed look
