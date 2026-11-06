@@ -3525,7 +3525,9 @@ function drawFoodEnt(e, y) {
   ctx.save(); ctx.translate(e.x, y - 18 + b); ctx.rotate(Math.sin(G.time * 2.5) * 0.15); drawFood(e.k, 0, 0, 1.05); ctx.restore();
 }
 function eatFood(e) {
-  e.got = true; P.power = e.fx; P.powerT = 6.5; P.trail = [];
+  e.got = true;
+  if (P.powerT > 0) { P.stars += 5; sfx('helmet'); floatText('YUM! +5\u2605', P.x, P.wy + 60, '#ffe066', 16); return; }   // no stacking: power can't last forever
+  P.power = e.fx; P.powerT = 5; P.trail = [];
   sfx('zone'); sfx('helmet'); G.shake = 5;
   floatText(e.name, P.x, P.wy + 70, '#ffe066', 22); floatText('Nothing can stop you!', P.x, P.wy + 46, '#ffffff', 13);
   burst(e.x, e.y, 22, ['#ffe066', '#ff6b9a', '#7cf7ff', '#ffffff'], 190, 'star');
@@ -3561,7 +3563,7 @@ function drawPowerAura(x, gy) {
   if (P.power === 'fire') for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k - 2) * 0.35, h = 18 + Math.sin(G.time * 20 + k) * 5; poly([[x + Math.cos(a - 0.2) * 10, y + 6], [x + Math.cos(a) * 10, y - h], [x + Math.cos(a + 0.2) * 10, y + 6]]); fs(cols[k % 3] + 'cc'); }
   if (P.power === 'bolt') { ctx.strokeStyle = '#ffe066'; ctx.lineWidth = 2; for (let k = 0; k < 3; k++) { const a = G.time * 9 + k * 2.1; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * 12, y + Math.sin(a) * 12); ctx.lineTo(x + Math.cos(a + 0.3) * 20 + 3, y + Math.sin(a + 0.3) * 20 - 3); ctx.lineTo(x + Math.cos(a + 0.5) * 26, y + Math.sin(a + 0.5) * 26); ctx.stroke(); } }
   // timer ring
-  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * clamp(P.powerT / 6.5, 0, 1)); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * clamp(P.powerT / 5, 0, 1)); ctx.stroke();
   ctx.restore();
 }
 const _drawPlayerV4 = drawPlayer;
@@ -3585,7 +3587,7 @@ const _genChunkV4 = genChunk;
 genChunk = function () {
   const y0 = G.gen.y, zk = zoneAt(y0), zs = zoneIndex(y0) * ZL, ci = Math.round((y0 - zs) / CHK);
   _genChunkV4();
-  if (ci === 1 || ci === 7) placeFood(zk, y0 + 230, grnd(168, 212));
+  if (ci === 1) placeFood(zk, y0 + 230, grnd(168, 212));   // one snack per neighborhood
   if (ci === 6) {
     const y = y0 + 250;
     ents = ents.filter(e => e.t === 'interHint' || e.t === 'star' || Math.abs(e.y - y) > 110);
@@ -3794,7 +3796,7 @@ function drawShop() {
   // paging + leave
   const py = Math.min(H - 70, cy0 + ch + 30);
   drawButton('shopPrev', '◀', null, 44, py, 56, 40, '#c77dff', 18);
-  txt(`PAGE ${S.page + 1} / ${SHOP_PAGES.length}`, W / 2, py, 13, '#ffffff');
+  txt(`PAGE ${S.page + 1} / ${SHOP_PAGES.length}`, W / 2, py - 7, 13, '#ffffff'); txt('\u2190 swipe \u2192', W / 2, py + 10, 10, 'rgba(255,255,255,.6)');
   drawButton('shopNext', '▶', null, W - 44, py, 56, 40, '#c77dff', 18);
   drawButton('shopLeave', 'BACK TO THE RIDE!', null, W / 2, Math.min(H - 26, py + 50), 220, 42, '#ff6b9a', 17);
 }
@@ -3913,6 +3915,15 @@ onButton = function (b) {
   if (/^buy\d$/.test(b)) { shopBuy(+b[3]); return; }
   return _onButtonV4(b);
 };
+// swipe left/right to flip shop pages and how-to pages
+let swipe0 = null;
+cv.addEventListener('pointerdown', e => { if (G.state === 'shop' || G.state === 'howto') swipe0 = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+window.addEventListener('pointerup', e => {
+  if (!swipe0) return; const dx = e.clientX - swipe0.x, dy = e.clientY - swipe0.y; swipe0 = null;
+  if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+  if (G.state === 'shop') onButton(dx < 0 ? 'shopNext' : 'shopPrev');
+  else if (G.state === 'howto') { if (dx < 0) howNext(); else if (G.howPage > 0) { G.howPage--; G.howT0 = performance.now(); sfx('click'); } }
+});
 window.addEventListener('keydown', e => {
   if (G.state === 'howto' && ['Space', 'Enter', 'ArrowRight'].includes(e.code)) howNext();
   else if (G.state === 'shop') { if (e.code === 'Escape' || e.code === 'Enter') leaveShop(); else if (e.code === 'ArrowRight') onButton('shopNext'); else if (e.code === 'ArrowLeft') onButton('shopPrev'); else if (/^Digit[123]$/.test(e.code)) shopBuy(+e.code[5] - 1); }
