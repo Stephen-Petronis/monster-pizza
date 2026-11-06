@@ -2384,6 +2384,10 @@ function gameScene(){
     stepSpecials(dt);
     if (state !== 'play') return; // a bite/pop can't end play, but stay safe
     for (const pl of P) if (pl.human) withP(pl, () => {
+      // Just switched to a new monster with the stick held? It was skating its own way (a pass catcher is usually heading up the ice),
+      // so turn it to the stick right away instead of letting it drift for a beat. Keeps its speed, never slower than 60%.
+      if (ctrl !== CUR.lastCtrl){ CUR.lastCtrl = ctrl; const m = Math.hypot(joy.ux, joy.uy);
+        if (m > 0.3 && ctrl && !gone(ctrl) && !down(ctrl)){ const sp = Math.max(Math.hypot(ctrl.vx, ctrl.vy), spdOf(ctrl) * 0.6) * Math.min(1, m); ctrl.vx = joy.ux / m * sp; ctrl.vy = joy.uy / m * sp; ctrl.fx = joy.ux / m; ctrl.fy = joy.uy / m; } }
       if (!gone(ctrl)){ if (down(ctrl)) steer(ctrl, 0, 0, 0, dt); else steer(ctrl, joy.ux, joy.uy, spdOf(ctrl) * (puck.owner === ctrl ? (bHold ? CFG.powerShot.holdSpeed : 0.92) : 1), dt); }
     });
     teamAI(0, us, them, dt); teamAI(1, them, us, dt);
