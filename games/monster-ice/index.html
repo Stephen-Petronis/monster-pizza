@@ -163,6 +163,9 @@ const tallEX = () => { const r = stage.getBoundingClientRect(); return r.width >
 function tallRows(){ // how the extra rows get used (portrait only)
   const r = stage.getBoundingClientRect(), k = r.width > 0 ? 180 / r.width : 1, cs = getComputedStyle(safeProbe);
   SAFE_T = FULL ? Math.ceil(parseFloat(cs.paddingTop || 0) * k) : 0; SAFE_B = FULL ? Math.ceil(parseFloat(cs.paddingBottom || 0) * k) : 0;
+  // Some iPhones report no notch / home-bar space to the app (seen on Stephen's phone). On a tall phone in the app that can't be right:
+  // fall back to the usual sizes (Dynamic Island ~54px, home bar ~34px) so the scoreboard and controls stay clear of them.
+  if (window.Capacitor && r.width > 0 && r.height / r.width >= 2){ SAFE_T = Math.max(SAFE_T, Math.ceil(54 * k)); SAFE_B = Math.max(SAFE_B, Math.ceil(30 * k)); }
   SAFE_T = Math.min(SAFE_T, EX); SAFE_B = Math.min(SAFE_B, EX - SAFE_T);
   const free = EX - SAFE_T - SAFE_B;
   TOPB = SAFE_T + clamp(Math.round(free * 0.3), 0, 34);   // menus: kept clear of the notch
