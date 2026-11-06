@@ -3029,7 +3029,7 @@ function gameScene(){
   const domeArt = ap => [(ap.P[0] + ap.P[2] - 66) / 2, (ap.P[1] + ap.P[3]) / 2 - 8];
   // It sits in the top-right corner, half up in the crowd above the panel so it clears the title. On short phones (no crowd strip)
   // it may tuck a few pixels into the rink's rounded bottom-right corner, which is boards, not ice.
-  function domeAt(g){ const { k, y0, x0, ap, pill } = g.art;
+  function domeAt(g){ const { k, y0, x0, ap, pill, pw } = g.art;
     if (pill){ const x = x0 + (ap.P[0] - 62) * k, w = (ap.P[2] - ap.P[0] + 62) * k, hh = Math.max(13, (ap.P[3] - ap.P[1]) * k); // where the old badge was
       return { pill: true, x, y: y0 + ap.P[1] * k, w, h: hh, r: hh / 2 }; }
     const r = clamp(Math.round(58 * k), 12, 15);
