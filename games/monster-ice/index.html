@@ -3050,7 +3050,6 @@ function gameScene(){
     const iw = ap.img.naturalWidth, ih = ap.img.naturalHeight, s2 = iw / ap.w;   // panel image pixels per art pixel
     if (panelCv.width !== iw || panelCv.height !== ih){ panelCv.width = iw; panelCv.height = ih; }
     pctx.globalCompositeOperation = 'source-over'; pctx.clearRect(0, 0, iw, ih); pctx.drawImage(ap.img, 0, 0);
-    if (!ready){ const tx = iw * 0.40, cx = tx + (iw - tx) * sp; pctx.globalCompositeOperation = 'source-atop'; pctx.fillStyle = 'rgba(10,6,24,.62)'; pctx.fillRect(cx, 0, iw - cx, ih * 0.6); pctx.fillStyle = 'rgba(255,255,255,.5)'; pctx.fillRect(cx - 1, 0, 2, ih * 0.6); }
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(panelCv, 0, y0, W, h);
     if (ready){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.16 + 0.14 * Math.sin(TT * 9); ctx.drawImage(panelCv, 0, 0, iw, ih * 0.6, 0, y0, W, h * 0.6); }
     ctx.restore();
@@ -3068,7 +3067,6 @@ function gameScene(){
     const { ap, k, sy, sh } = g.fart, ready = me.sp >= 1, iw = ap.img.naturalWidth, ih = ap.img.naturalHeight, cut = ih * 0.6;
     if (panelCv.width !== iw || panelCv.height !== ih){ panelCv.width = iw; panelCv.height = ih; }
     pctx.globalCompositeOperation = 'source-over'; pctx.clearRect(0, 0, iw, ih); pctx.drawImage(ap.img, 0, 0);
-    if (!ready){ const tx = iw * 0.38, cx = tx + (iw - tx) * me.sp; pctx.globalCompositeOperation = 'source-atop'; pctx.fillStyle = 'rgba(10,6,24,.62)'; pctx.fillRect(cx, 0, iw - cx, cut); pctx.fillStyle = 'rgba(255,255,255,.5)'; pctx.fillRect(cx - 1, 0, 2, cut); }
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(panelCv, 0, 0, iw, cut, 0, sy, W, sh);
     if (ready){ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.16 + 0.14 * Math.sin(TT * 9); ctx.drawImage(panelCv, 0, 0, iw, cut, 0, sy, W, sh); }
     ctx.restore();
