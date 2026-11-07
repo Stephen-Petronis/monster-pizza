@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Where in the World Is This?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brass:#c9a227; --brass-hi:#f3d77a; --brass-lo:#6e5212;
+  --copper:#b8693a; --walnut:#2a1a10; --walnut2:#3c2716;
+  --parch:#e8d9b0; --ink:#2b1d0e; --water:#16343a; --land:#d8c695;
+  --good:#7fd17a; --bad:#e0644a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--walnut);color:var(--parch);
+  font-family:"IM Fell English",Georgia,serif;user-select:none;-webkit-user-select:none;touch-action:none}
+body{
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,200,120,.08), transparent 60%),
+    repeating-linear-gradient(92deg, rgba(0,0,0,.12) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg,#3a2414,#20140b);
+}
+#app{position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display:grid;grid-template-columns:minmax(260px,40%) 1fr;grid-template-rows:auto 1fr;gap:10px;}
+@media (orientation:portrait){
+  #app{grid-template-columns:1fr;grid-template-rows:auto minmax(220px,38%) 1fr;}
+}
+/* ---------- header bar ---------- */
+#bar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px 0;}
+#bar h1{margin:0;font-family:"Cinzel Decorative",serif;font-size:clamp(14px,2.4vw,22px);color:var(--brass-hi);
+  text-shadow:0 1px 0 #000,0 0 12px rgba(243,215,122,.25);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gauges{display:flex;gap:8px}
+.gauge{font-family:"Cinzel",serif;font-size:12px;text-align:center;padding:4px 10px;border-radius:8px;
+  background:linear-gradient(#1a100a,#2c1c10);border:2px solid var(--brass-lo);box-shadow:inset 0 0 8px #000, 0 0 0 1px #000;}
+.gauge b{display:block;font-size:16px;color:var(--brass-hi);font-variant-numeric:tabular-nums;letter-spacing:1px}
+/* ---------- aperture ---------- */
+#scope{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding:4px 8px 8px}
+#apWrap{position:relative;width:min(100%, 100%);aspect-ratio:1/1;max-height:100%;}
+@media (orientation:portrait){ #apWrap{height:100%;width:auto} }
+@media (orientation:landscape){ #apWrap{width:100%;height:auto;max-width:calc(100vh - 170px)} }
+#ap{position:absolute;inset:9%;border-radius:50%;overflow:hidden;background:#000;}
+#ap .photo{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;filter:sepia(.18) contrast(1.05);
+  transition:transform .9s cubic-bezier(.3,.7,.2,1);max-width:none}
+#ap .glass{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.22), transparent 28%),
+             radial-gradient(circle, transparent 55%, rgba(0,0,0,.65) 100%);}
+#apSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#apMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:"Cinzel",serif;color:var(--brass-hi);font-size:14px;padding:22%;pointer-events:none;text-shadow:0 1px 2px #000}
+.scopeCtl{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+/* ---------- map ---------- */
+#mapBox{position:relative;min-height:0;margin:0 10px 10px 0;border-radius:14px;overflow:hidden;
+  border:6px solid transparent;
+  background:linear-gradient(var(--water),var(--water)) padding-box, linear-gradient(135deg,var(--brass-hi),var(--brass-lo) 40%,var(--brass) 60%,var(--brass-lo)) border-box;
+  box-shadow:0 6px 20px rgba(0,0,0,.6), inset 0 0 0 1px #000;}
+@media (orientation:portrait){ #mapBox{margin:0 10px 10px 10px} }
+#map{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
+#zoomBtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#scaleBar{position:absolute;left:12px;bottom:12px;font:12px "Cinzel",serif;color:var(--parch);text-shadow:0 1px 2px #000;pointer-events:none}
+#scaleBar i{display:block;height:6px;border:2px solid var(--parch);border-top:none;margin-top:2px}
+#lockBtn{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);}
+#hintTxt{position:absolute;left:50%;top:10px;transform:translateX(-50%);font:13px "Cinzel",serif;color:var(--parch);
+  background:rgba(20,12,6,.7);padding:4px 12px;border-radius:20px;border:1px solid var(--brass-lo);pointer-events:none;white-space:nowrap}
+/* ---------- buttons ---------- */
+.btn{font-family:"Cinzel",serif;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer;
+  padding:9px 18px;border-radius:10px;border:2px solid #000;
+  background:linear-gradient(180deg,var(--brass-hi),var(--brass) 45%,var(--brass-lo));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 3px 0 #000, 0 5px 10px rgba(0,0,0,.5);
+  text-shadow:0 1px 0 rgba(255,255,255,.4);}
+.btn:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 1px 0 #000}
+.btn[disabled]{filter:grayscale(.8) brightness(.6);cursor:default}
+.btn.round{width:40px;height:40px;padding:0;font-size:22px;border-radius:50%;line-height:1}
+.btn.small{font-size:12px;padding:6px 12px}
+#lockBtn.btn{padding:12px 26px;font-size:16px}
+.hidden{display:none!important}
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  background:rgba(10,6,3,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:20px}
+.card{max-width:560px;width:100%;max-height:100%;overflow:auto;text-align:center;padding:22px 24px;border-radius:16px;color:var(--ink);
+  background:radial-gradient(ellipse at 50% 0%, #f6ecd0, var(--parch) 60%, #cdb985);
+  border:6px solid transparent;
+  background-clip:padding-box;box-shadow:0 0 0 3px var(--brass-lo),0 0 0 6px var(--brass),0 0 0 8px #000, 0 20px 50px rgba(0,0,0,.7);}
+.card h2{font-family:"Cinzel Decorative",serif;margin:.1em 0 .3em;font-size:clamp(22px,5vw,34px);color:#4a2f0c}
+.card p{margin:.4em 0;font-size:17px;line-height:1.35}
+.card .big{font-family:"Cinzel",serif;font-size:clamp(30px,8vw,48px);font-weight:700;color:#5a3a08;font-variant-numeric:tabular-nums}
+.card .sub{font-family:"Cinzel",serif;font-size:14px;letter-spacing:.5px;color:#6b4e22}
+.card table{margin:10px auto;border-collapse:collapse;font-size:15px}
+.card td{padding:3px 10px;border-bottom:1px dashed rgba(74,47,12,.35);text-align:left}
+.card td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.card a{color:#6b3b0a}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+#resultPanel{position:absolute;left:12px;right:12px;bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;
+  padding:10px 14px;border-radius:12px;color:var(--ink);background:linear-gradient(#efe2bd,#d7c38f);
+  box-shadow:0 0 0 2px var(--brass-lo),0 0 0 4px #000,0 8px 20px rgba(0,0,0,.6)}
+#resultPanel .nm{font-family:"Cinzel",serif;font-weight:700;font-size:16px}
+#resultPanel .meta{font-size:15px}
+#resultPanel .pts{font-family:"Cinzel",serif;font-weight:700;font-size:24px;color:#5a3a08;font-variant-numeric:tabular-nums}
+#credit{font-size:11px;opacity:.8;margin-top:4px;max-width:90%;text-align:center}
+#credit a{color:var(--brass-hi)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar">
+    <h1>Where in the World Is This?</h1>
+    <div class="gauges">
+      <div class="gauge">ROUND<b id="gRound">–</b></div>
+      <div class="gauge">SCORE<b id="gScore">0</b></div>
+    </div>
+  </div>
+
+  <div id="scope">
+    <div id="apWrap">
+      <div id="ap"><img class="photo" id="photo" alt=""><div class="glass"></div></div>
+      <svg id="apSvg" viewBox="0 0 200 200"></svg>
+      <div id="apMsg"></div>
+    </div>
+    <div class="scopeCtl">
+      <button class="btn small" id="widenBtn" disabled>Widen aperture</button>
+    </div>
+    <div id="credit"></div>
+  </div>
+
+  <div id="mapBox">
+    <canvas id="map"></canvas>
+    <div id="hintTxt">Tap the map where you think it is</div>
+    <div id="zoomBtns">
+      <button class="btn round" id="zIn" aria-label="Zoom in">+</button>
+      <button class="btn round" id="zOut" aria-label="Zoom out">−</button>
+      <button class="btn round" id="zHome" aria-label="Whole world" style="font-size:18px">◎</button>
+    </div>
+    <div id="scaleBar"><span id="scaleTxt"></span><i id="scaleLine"></i></div>
+    <button class="btn hidden" id="lockBtn">Lock it in</button>
+    <div id="resultPanel" class="hidden">
+      <div>
+        <div class="nm" id="rName"></div>
+        <div class="meta" id="rMeta"></div>
+      </div>
+      <div class="pts" id="rPts"></div>
+      <button class="btn" id="nextBtn">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Title -->
+<div class="overlay" id="titleScreen">
+  <div class="card">
+    <h2>Where in the World<br>Is This?</h2>
+    <p>The aperture opens on a piece of somewhere famous.<br>Work out what it is, then pin it on the map.</p>
+    <p class="sub">Closer pins score more, and a dead-on pin pays out big.</p>
+    <p class="sub" id="bestLine"></p>
+    <div class="row"><button class="btn" id="startBtn" disabled>Loading the globe…</button></div>
+    <p class="sub" id="loadErr" style="color:#8a2a10"></p>
+  </div>
+</div>
+
+<!-- End -->
+<div class="overlay hidden" id="endScreen">
+  <div class="card">
+    <h2>Expedition Complete</h2>
+    <div class="big" id="endTotal">0</div>
+    <div class="sub" id="endBest"></div>
+    <table id="endTable"></table>
+    <div class="row"><button class="btn" id="againBtn">Another expedition</button></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIG — tune the game here
+   ===================================================================== */
+const CONFIG = {
+  roundsPerGame: 5,
+  // Score = (broad * e^(-d/broadKm) + precision * e^(-d/precisionKm)) * hintMultiplier
+  broadPoints: 7000,  broadKm: 1500,      // rewards being on the right continent/country
+  precisionPoints: 3000, precisionKm: 20, // rewards nailing the exact spot
+  // Aperture zoom levels (how much of the photo is visible). 1 = whole photo.
+  apertureZooms: [3.4, 2.2, 1.35],
+  hintMultipliers: [1.0, 0.8, 0.6],       // score multiplier for each widen level
+  revealZoom: 1.0,
+  maxMapScale: 400000,   // px per degree at max zoom (~0.3 m per px)
+  imageWidth: 1600,      // Wikimedia thumbnail width
+  landUrls: {
+    fast:   "https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json",
+    detail: "https://cdn.jsdelivr.net/npm/world-atlas@2/land-10m.json",
+  },
+  colors: { water:"#16343a", land:"#d8c695", coast:"#5b4a26" },
+};
+
+/* Landmarks: wiki = English Wikipedia article (its lead photo is used). */
+const LANDMARKS = [
+  {name:"Eiffel Tower", wiki:"Eiffel Tower", place:"Paris, France", lat:48.85826, lon:2.29450},
+  {name:"Statue of Liberty", wiki:"Statue of Liberty", place:"New York Harbor, USA", lat:40.68925, lon:-74.04450},
+  {name:"Stonehenge", wiki:"Stonehenge", place:"Wiltshire, England", lat:51.17886, lon:-1.82618},
+  {name:"Great Pyramid of Giza", wiki:"Great Pyramid of Giza", place:"Giza, Egypt", lat:29.97923, lon:31.13420},
+  {name:"Taj Mahal", wiki:"Taj Mahal", place:"Agra, India", lat:27.17502, lon:78.04216},
+  {name:"Colosseum", wiki:"Colosseum", place:"Rome, Italy", lat:41.89021, lon:12.49223},
+  {name:"Sydney Opera House", wiki:"Sydney Opera House", place:"Sydney, Australia", lat:-33.85678, lon:151.21530},
+  {name:"Christ the Redeemer", wiki:"Christ the Redeemer (statue)", place:"Rio de Janeiro, Brazil", lat:-22.95192, lon:-43.21049},
+  {name:"Machu Picchu", wiki:"Machu Picchu", place:"Cusco Region, Peru", lat:-13.16314, lon:-72.54496},
+  {name:"Big Ben", wiki:"Big Ben", place:"London, England", lat:51.50073, lon:-0.12465},
+  {name:"Leaning Tower of Pisa", wiki:"Leaning Tower of Pisa", place:"Pisa, Italy", lat:43.72299, lon:10.39659},
+  {name:"Petra", wiki:"Petra", place:"Ma'an, Jordan", lat:30.32219, lon:35.45152},
+  {name:"Golden Gate Bridge", wiki:"Golden Gate Bridge", place:"San Francisco, USA", lat:37.81993, lon:-122.47826},
+  {name:"Mount Rushmore", wiki:"Mount Rushmore", place:"South Dakota, USA", lat:43.87910, lon:-103.45907},
+  {name:"Chichén Itzá", wiki:"Chichen Itza", place:"Yucatán, Mexico", lat:20.68296, lon:-88.56865},
+  {name:"Angkor Wat", wiki:"Angkor Wat", place:"Siem Reap, Cambodia", lat:13.41250, lon:103.86667},
+  {name:"Burj Khalifa", wiki:"Burj Khalifa", place:"Dubai, UAE", lat:25.19720, lon:55.27440},
+  {name:"Sagrada Família", wiki:"Sagrada Família", place:"Barcelona, Spain", lat:41.40363, lon:2.17436},
+  {name:"Neuschwanstein Castle", wiki:"Neuschwanstein Castle", place:"Bavaria, Germany", lat:47.55760, lon:10.74980},
+  {name:"Moai at Ahu Tongariki", wiki:"Ahu Tongariki", place:"Easter Island, Chile", lat:-27.12556, lon:-109.27694},
+  {name:"Mount Fuji", wiki:"Mount Fuji", place:"Honshu, Japan", lat:35.36056, lon:138.72778},
+  {name:"Great Wall of China", wiki:"Great Wall of China", place:"near Beijing, China", lat:40.43190, lon:116.57040},
+  {name:"Saint Basil's Cathedral", wiki:"Saint Basil's Cathedral", place:"Moscow, Russia", lat:55.75250, lon:37.62310},
+  {name:"Parthenon", wiki:"Parthenon", place:"Athens, Greece", lat:37.97153, lon:23.72575},
+  {name:"Tower Bridge", wiki:"Tower Bridge", place:"London, England", lat:51.50546, lon:-0.07537},
+  {name:"Brandenburg Gate", wiki:"Brandenburg Gate", place:"Berlin, Germany", lat:52.51627, lon:13.37770},
+  {name:"Arc de Triomphe", wiki:"Arc de Triomphe", place:"Paris, France", lat:48.87378, lon:2.29504},
+  {name:"Niagara Falls", wiki:"Niagara Falls", place:"Ontario, Canada / New York, USA", lat:43.07728, lon:-79.07567},
+  {name:"Grand Canyon", wiki:"Grand Canyon", place:"Arizona, USA", lat:36.10697, lon:-112.11299},
+  {name:"Uluru", wiki:"Uluru", place:"Northern Territory, Australia", lat:-25.34444, lon:131.03694},
+  {name:"Forbidden City", wiki:"Forbidden City", place:"Beijing, China", lat:39.91690, lon:116.39720},
+  {name:"Hagia Sophia", wiki:"Hagia Sophia", place:"Istanbul, Turkey", lat:41.00858, lon:28.98017},
+  {name:"Space Needle", wiki:"Space Needle", place:"Seattle, USA", lat:47.62049, lon:-122.34928},
+  {name:"Empire State Building", wiki:"Empire State Building", place:"New York City, USA", lat:40.74844, lon:-73.98566},
+  {name:"Kinkaku-ji", wiki:"Kinkaku-ji", place:"Kyoto, Japan", lat:35.03937, lon:135.72924},
+  {name:"Matterhorn", wiki:"Matterhorn", place:"Swiss–Italian Alps", lat:45.97639, lon:7.65833},
+  {name:"Mont-Saint-Michel", wiki:"Mont-Saint-Michel", place:"Normandy, France", lat:48.63606, lon:-1.51146},
+  {name:"Table Mountain", wiki:"Table Mountain", place:"Cape Town, South Africa", lat:-33.96250, lon:18.40389},
+  {name:"Victoria Falls", wiki:"Victoria Falls", place:"Zambia / Zimbabwe", lat:-17.92436, lon:25.85619},
+  {name:"CN Tower", wiki:"CN Tower", place:"Toronto, Canada", lat:43.64257, lon:-79.38706},
+  {name:"Gateway Arch", wiki:"Gateway Arch", place:"St. Louis, USA", lat:38.62469, lon:-90.18478},
+  {name:"Alhambra", wiki:"Alhambra", place:"Granada, Spain", lat:37.17607, lon:-3.58808},
+  {name:"Borobudur", wiki:"Borobudur", place:"Central Java, Indonesia", lat:-7.60788, lon:110.20379},
+  {name:"Shwedagon Pagoda", wiki:"Shwedagon Pagoda", place:"Yangon, Myanmar", lat:16.79815, lon:96.14950},
+  {name:"Atomium", wiki:"Atomium", place:"Brussels, Belgium", lat:50.89496, lon:4.34153},
+  {name:"Sugarloaf Mountain", wiki:"Sugarloaf Mountain", place:"Rio de Janeiro, Brazil", lat:-22.94861, lon:-43.15694},
+  {name:"Marina Bay Sands", wiki:"Marina Bay Sands", place:"Singapore", lat:1.28340, lon:103.86070},
+  {name:"Petronas Towers", wiki:"Petronas Towers", place:"Kuala Lumpur, Malaysia", lat:3.15785, lon:101.71165},
+  {name:"Abu Simbel", wiki:"Abu Simbel temples", place:"Aswan Governorate, Egypt", lat:22.33722, lon:31.62583},
+  {name:"Hollywood Sign", wiki:"Hollywood Sign", place:"Los Angeles, USA", lat:34.13410, lon:-118.32150},
+  {name:"Iguazu Falls", wiki:"Iguazu Falls", place:"Argentina / Brazil", lat:-25.69528, lon:-54.43667},
+];
+
+/* =====================================================================
+   Utilities
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const rand = (a,b) => a + Math.random()*(b-a);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function haversineKm(lat1,lon1,lat2,lon2){
+  const R=6371.0088, toR=Math.PI/180;
+  const dLat=(lat2-lat1)*toR, dLon=(lon2-lon1)*toR;
+  const h=Math.sin(dLat/2)**2 + Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+function scoreFor(km, hintLevel){
+  const raw = CONFIG.broadPoints*Math.exp(-km/CONFIG.broadKm) + CONFIG.precisionPoints*Math.exp(-km/CONFIG.precisionKm);
+  return Math.round(raw * CONFIG.hintMultipliers[hintLevel]);
+}
+function fmtDist(km){
+  if (km < 1) return Math.round(km*1000) + " m";
+  if (km < 10) return km.toFixed(2) + " km";
+  if (km < 100) return km.toFixed(1) + " km";
+  return Math.round(km).toLocaleString() + " km";
+}
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- tiny synthesized sounds ---------- */
+let actx=null;
+function audio(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+function tick(t0, freq, dur, vol){
+  const a=audio(); if(!a) return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type="square"; o.frequency.value=freq;
+  g.gain.setValueAtTime(vol, a.currentTime+t0); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime+t0+dur);
+  o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+dur+.02);
+}
+function sndIris(){ for(let i=0;i<9;i++) tick(i*0.05, 900+Math.random()*500, 0.03, 0.05); tick(0.5, 180, 0.12, 0.08); }
+function sndPin(){ tick(0, 520, 0.05, 0.06); }
+function sndScore(good){ if(good){ tick(0,660,.12,.07); tick(.1,880,.12,.07); tick(.2,1320,.25,.07);} else { tick(0,300,.18,.07); tick(.15,220,.25,.07);} }
+
+/* =====================================================================
+   Aperture (brass ring + iris blades in SVG)
+   ===================================================================== */
+const NS="http://www.w3.org/2000/svg";
+const BLADES=9;
+let bladeEls=[];
+function buildAperture(){
+  const svg=$("apSvg");
+  svg.innerHTML=`
+  <defs>
+    <linearGradient id="brassG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dc85"/><stop offset=".35" stop-color="#c9a227"/>
+      <stop offset=".6" stop-color="#7a5a14"/><stop offset=".8" stop-color="#d9b44a"/><stop offset="1" stop-color="#5a420d"/>
+    </linearGradient>
+    <linearGradient id="bladeG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2b2b2b"/><stop offset=".5" stop-color="#474039"/><stop offset="1" stop-color="#1b1b1b"/>
+    </linearGradient>
+    <radialGradient id="copperG" cx=".4" cy=".35"><stop offset="0" stop-color="#e9a173"/><stop offset="1" stop-color="#6b3418"/></radialGradient>
+    <clipPath id="holeClip"><circle cx="100" cy="100" r="82"/></clipPath>
+  </defs>
+  <g id="gearTeeth"></g>
+  <g clip-path="url(#holeClip)" id="blades"></g>
+  <circle cx="100" cy="100" r="91" fill="none" stroke="url(#brassG)" stroke-width="18"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#000" stroke-width="2" opacity=".7"/>
+  <circle cx="100" cy="100" r="99.5" fill="none" stroke="#000" stroke-width="1.2" opacity=".8"/>
+  <circle cx="100" cy="100" r="86" fill="none" stroke="#fff3c0" stroke-width=".5" opacity=".5" stroke-dasharray="1 2.2"/>
+  <g id="bolts"></g>`;
+  // gear teeth around the outside
+  const teeth=svg.querySelector("#gearTeeth");
+  for(let i=0;i<36;i++){
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("x","96.5"); r.setAttribute("y","-3"); r.setAttribute("width","7"); r.setAttribute("height","8"); r.setAttribute("rx","1.2");
+    r.setAttribute("fill","url(#copperG)"); r.setAttribute("stroke","#000"); r.setAttribute("stroke-width",".6");
+    r.setAttribute("transform",`rotate(${i*10} 100 100)`);
+    teeth.appendChild(r);
+  }
+  const bolts=svg.querySelector("#bolts");
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2+Math.PI/8, x=100+Math.cos(a)*91, y=100+Math.sin(a)*91;
+    bolts.insertAdjacentHTML("beforeend",
+      `<circle cx="${x}" cy="${y}" r="3.4" fill="url(#copperG)" stroke="#000" stroke-width=".7"/>
+       <line x1="${x-2.2}" y1="${y}" x2="${x+2.2}" y2="${y}" stroke="#3a1a08" stroke-width=".9" transform="rotate(${i*37} ${x} ${y})"/>`);
+  }
+  // iris blades: each pivots on a point on the ring
+  const g=svg.querySelector("#blades"); bladeEls=[];
+  for(let i=0;i<BLADES;i++){
+    const a=(i/BLADES)*360;
+    const outer=document.createElementNS(NS,"g"); outer.setAttribute("transform",`rotate(${a} 100 100)`);
+    const inner=document.createElementNS(NS,"g");
+    // pivot at (100, 18); blade sweeps across the centre
+    const p=document.createElementNS(NS,"path");
+    p.setAttribute("d","M100 18 C 150 30, 175 85, 165 140 L 120 150 C 125 100, 110 60, 82 34 Z");
+    p.setAttribute("fill","url(#bladeG)"); p.setAttribute("stroke","#0c0c0c"); p.setAttribute("stroke-width","1");
+    inner.appendChild(p); outer.appendChild(inner); g.appendChild(outer);
+    bladeEls.push(inner);
+  }
+  setIris(0);
+}
+// open: 0 = closed, 1 = fully open
+function setIris(open){
+  const ang = 3 - open*47;
+  bladeEls.forEach(b=>b.setAttribute("transform",`rotate(${ang} 100 18)`));
+  const ph=document.getElementById("photo"); if(ph) ph.style.opacity = clamp(open*2.5,0,1);
+}
+let irisAnim=null;
+function animateIris(to, ms=700){
+  return new Promise(res=>{
+    cancelAnimationFrame(irisAnim);
+    const from = currentIris, t0=performance.now();
+    const step=t=>{
+      const k=clamp((t-t0)/ms,0,1), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      currentIris = from+(to-from)*e; setIris(currentIris);
+      if(k<1) irisAnim=requestAnimationFrame(step); else res();
+    };
+    irisAnim=requestAnimationFrame(step);
+  });
+}
+let currentIris=0;
+
+/* photo framing inside the aperture */
+const photoState={ img:null, focusX:.5, focusY:.5, zoom:1 };
+function layoutPhoto(){
+  const img=$("photo"), box=$("ap");
+  if(!img.naturalWidth) return;
+  const W=box.clientWidth, H=box.clientHeight;
+  const cover=Math.max(W/img.naturalWidth, H/img.naturalHeight);
+  const s=cover*photoState.zoom;
+  const dw=img.naturalWidth*s, dh=img.naturalHeight*s;
+  let x = W/2 - photoState.focusX*dw, y = H/2 - photoState.focusY*dh;
+  x = clamp(x, W-dw, 0); y = clamp(y, H-dh, 0);
+  img.style.width=img.naturalWidth+"px"; img.style.height=img.naturalHeight+"px";
+  img.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+}
+
+/* =====================================================================
+   World map (land / water only)
+   ===================================================================== */
+const canvas=$("map"), ctx=canvas.getContext("2d");
+let landPath=null, coastPath=null, landLevel="none";
+const view={ scale:1, offX:0, offY:0, W:0, H:0, dpr:1 };
+
+function decodeTopo(topo, objName){
+  const t=topo.transform;
+  const arcs=topo.arcs.map(arc=>{
+    let x=0,y=0; const out=[];
+    for(const p of arc){
+      if(t){ x+=p[0]; y+=p[1]; out.push([x*t.scale[0]+t.translate[0], y*t.scale[1]+t.translate[1]]); }
+      else out.push([p[0],p[1]]);
+    }
+    return out;
+  });
+  const ring = idxs => {
+    const pts=[];
+    idxs.forEach((i,k)=>{
+      const a = i<0 ? arcs[~i].slice().reverse() : arcs[i];
+      for(let j=(k?1:0); j<a.length; j++) pts.push(a[j]);
+    });
+    return pts;
+  };
+  const rings=[];
+  const obj=topo.objects[objName] || topo.objects[Object.keys(topo.objects)[0]];
+  const geoms = obj.type==="GeometryCollection" ? obj.geometries : [obj];
+  for(const g of geoms){
+    if(g.type==="Polygon") g.arcs.forEach(r=>rings.push(ring(r)));
+    else if(g.type==="MultiPolygon") g.arcs.forEach(poly=>poly.forEach(r=>rings.push(ring(r))));
+  }
+  return rings;
+}
+function buildPaths(rings){
+  const p=new Path2D();
+  for(const r of rings){
+    if(r.length<3) continue;
+    p.moveTo(r[0][0], -r[0][1]);
+    for(let i=1;i<r.length;i++) p.lineTo(r[i][0], -r[i][1]);
+    p.closePath();
+  }
+  landPath=p; coastPath=p;
+}
+async function loadLand(url, level){
+  const r=await fetch(url); if(!r.ok) throw new Error("land "+r.status);
+  const topo=await r.json();
+  buildPaths(decodeTopo(topo,"land"));
+  landLevel=level; draw();
+}
+
+function resizeMap(){
+  const r=canvas.getBoundingClientRect();
+  const oldW=view.W, oldH=view.H;
+  view.dpr=Math.min(window.devicePixelRatio||1, 2.5);
+  view.W=r.width; view.H=r.height;
+  canvas.width=Math.round(r.width*view.dpr); canvas.height=Math.round(r.height*view.dpr);
+  if(!oldW){ homeView(); }
+  else { // keep the same centre
+    view.offX += (view.W-oldW)/2; view.offY += (view.H-oldH)/2;
+    view.scale=Math.max(view.scale, minScale()); clampView();
+  }
+  draw();
+}
+const minScale = () => Math.min(view.W/360, view.H/170);
+function homeView(){ view.scale=minScale(); view.offX=view.W/2; view.offY=view.H/2+5*view.scale; clampView(); }
+function clampView(){
+  const s=view.scale, ww=360*s, wh=180*s;
+  if(ww<=view.W) view.offX=view.W/2; else view.offX=clamp(view.offX, view.W-180*s, 180*s);
+  if(wh<=view.H) view.offY=view.H/2; else view.offY=clamp(view.offY, view.H-90*s, 90*s);
+}
+const toScreen=(lat,lon)=>[view.offX+lon*view.scale, view.offY-lat*view.scale];
+const toGeo=(x,y)=>[ -(y-view.offY)/view.scale, (x-view.offX)/view.scale ];
+function zoomAt(f, sx, sy){
+  const ns=clamp(view.scale*f, minScale(), CONFIG.maxMapScale);
+  const gx=(sx-view.offX)/view.scale, gy=(sy-view.offY)/view.scale;
+  view.scale=ns; view.offX=sx-gx*ns; view.offY=sy-gy*ns; clampView(); draw();
+}
+
+let drawQueued=false;
+function draw(){ if(!drawQueued){ drawQueued=true; requestAnimationFrame(()=>{drawQueued=false; render();}); } }
+function render(){
+  const d=view.dpr, s=view.scale;
+  ctx.setTransform(d,0,0,d,0,0);
+  ctx.fillStyle=CONFIG.colors.water; ctx.fillRect(0,0,view.W,view.H);
+  if(landPath){
+    ctx.setTransform(d*s,0,0,d*s,d*view.offX,d*view.offY);
+    ctx.fillStyle=CONFIG.colors.land; ctx.fill(landPath,"evenodd");
+    ctx.strokeStyle=CONFIG.colors.coast; ctx.lineWidth=0.8/s; ctx.lineJoin="round"; ctx.stroke(coastPath);
+    ctx.setTransform(d,0,0,d,0,0);
+  }
+  // world edge
+  ctx.strokeStyle="rgba(0,0,0,.5)"; ctx.lineWidth=1;
+  const [ex,ey]=toScreen(90,-180); ctx.strokeRect(ex,ey,360*s,180*s);
+  // round markers
+  if(game.reveal){
+    const [ax,ay]=toScreen(game.reveal.lat, game.reveal.lon);
+    if(game.guess){
+      const [gx,gy]=toScreen(game.guess.lat, game.guess.lon);
+      ctx.save(); ctx.setLineDash([7,6]); ctx.lineWidth=2.5; ctx.strokeStyle="#2a1406";
+      ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(ax,ay); ctx.stroke();
+      ctx.setLineDash([7,6]); ctx.lineWidth=1.2; ctx.strokeStyle="#f3d77a"; ctx.stroke(); ctx.restore();
+    }
+    drawTarget(ax,ay);
+  }
+  if(game.guess){ const [gx,gy]=toScreen(game.guess.lat, game.guess.lon); drawPin(gx,gy); }
+  updateScaleBar();
+}
+function drawPin(x,y){
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(x+3,y+1,6,2.5,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="#1a1a1a"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-22); ctx.stroke();
+  const g=ctx.createRadialGradient(x-3,y-27,1,x,y-24,9); g.addColorStop(0,"#ffb38a"); g.addColorStop(1,"#8a2a10");
+  ctx.fillStyle=g; ctx.strokeStyle="#000"; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(x,y-25,7,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(x,y,1.6,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawTarget(x,y){
+  ctx.save();
+  const t=(performance.now()/600)%1;
+  ctx.strokeStyle=`rgba(243,215,122,${1-t})`; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(x,y,8+t*22,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle="#f3d77a"; ctx.strokeStyle="#000"; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  for(let i=0;i<10;i++){ const r=i%2?4:10, a=-Math.PI/2+i*Math.PI/5; ctx.lineTo(x+Math.cos(a)*r, y+Math.sin(a)*r); }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  if(game.phase==="reveal") draw(); // keep the ring pulsing
+}
+function updateScaleBar(){
+  const [lat]=toGeo(view.W/2, view.H/2);
+  const kmPerPx = 111.32*Math.cos(clamp(lat,-85,85)*Math.PI/180)/view.scale;
+  const target=kmPerPx*110;
+  const pow=Math.pow(10,Math.floor(Math.log10(target)));
+  const nice=[1,2,5,10].map(m=>m*pow).filter(v=>v<=target).pop()||pow;
+  $("scaleLine").style.width=(nice/kmPerPx)+"px";
+  $("scaleTxt").textContent=fmtDist(nice);
+}
+function flyTo(lat, lon, scale, ms=900){
+  const s0=view.scale, s1=clamp(scale,minScale(),CONFIG.maxMapScale);
+  const [c0lat,c0lon]=toGeo(view.W/2,view.H/2), t0=performance.now();
+  return new Promise(res=>{
+    const step=t=>{
+      const k=clamp((t-t0)/ms,0,1), e=1-Math.pow(1-k,3);
+      const s=Math.exp(Math.log(s0)+(Math.log(s1)-Math.log(s0))*e);
+      const la=c0lat+(lat-c0lat)*e, lo=c0lon+(lon-c0lon)*e;
+      view.scale=s; view.offX=view.W/2-lo*s; view.offY=view.H/2+la*s; clampView(); draw();
+      if(k<1) requestAnimationFrame(step); else res();
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+/* ---------- pointer input: pan, pinch, tap-to-pin ---------- */
+const pts=new Map(); let gesture=null;
+canvas.addEventListener("pointerdown",e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+  if(pts.size===1) gesture={type:"maybeTap", sx:e.offsetX, sy:e.offsetY, lx:e.offsetX, ly:e.offsetY, t:performance.now()};
+  else if(pts.size===2){ const [a,b]=[...pts.values()]; gesture={type:"pinch", d:Math.hypot(a.x-b.x,a.y-b.y), mx:(a.x+b.x)/2, my:(a.y+b.y)/2}; }
+});
+canvas.addEventListener("pointermove",e=>{
+  if(!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+  if(!gesture) return;
+  if(gesture.type==="pinch" && pts.size>=2){
+    const [a,b]=[...pts.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y), mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    view.offX+=mx-gesture.mx; view.offY+=my-gesture.my;
+    zoomAt(d/gesture.d, mx, my);
+    gesture.d=d; gesture.mx=mx; gesture.my=my;
+  } else if(gesture.type==="maybeTap"||gesture.type==="pan"){
+    if(gesture.type==="maybeTap" && Math.hypot(e.offsetX-gesture.sx,e.offsetY-gesture.sy)>7) gesture.type="pan";
+    if(gesture.type==="pan"){ view.offX+=e.offsetX-gesture.lx; view.offY+=e.offsetY-gesture.ly; clampView(); draw(); }
+    gesture.lx=e.offsetX; gesture.ly=e.offsetY;
+  }
+});
+function endPointer(e){
+  if(!pts.has(e.pointerId)) return;
+  pts.delete(e.pointerId);
+  if(gesture && gesture.type==="maybeTap" && pts.size===0 && performance.now()-gesture.t<600) placeGuess(gesture.sx, gesture.sy);
+  if(pts.size===0) gesture=null;
+  else if(pts.size===1){ const p=[...pts.values()][0]; gesture={type:"pan",lx:p.x,ly:p.y}; }
+}
+canvas.addEventListener("pointerup",endPointer);
+canvas.addEventListener("pointercancel",e=>{pts.delete(e.pointerId); if(!pts.size) gesture=null;});
+canvas.addEventListener("wheel",e=>{ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.0018), e.offsetX, e.offsetY); },{passive:false});
+canvas.addEventListener("dblclick",e=>{ e.preventDefault(); });
+$("zIn").onclick=()=>zoomAt(2.2, view.W/2, view.H/2);
+$("zOut").onclick=()=>zoomAt(1/2.2, view.W/2, view.H/2);
+$("zHome").onclick=()=>{ const [la,lo]=[0,0]; flyTo(la,lo,minScale(),600); };
+
+/* =====================================================================
+   Landmark photos from Wikipedia / Wikimedia Commons
+   ===================================================================== */
+async function fetchPhotos(list){
+  const out=new Map();
+  for(let i=0;i<list.length;i+=20){
+    const batch=list.slice(i,i+20);
+    const url="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1"+
+      "&prop=pageimages&piprop=thumbnail|name&pilicense=free&pithumbsize="+CONFIG.imageWidth+
+      "&titles="+encodeURIComponent(batch.map(b=>b.wiki).join("|"));
+    try{
+      const j=await (await fetch(url)).json();
+      const alias=new Map();
+      (j.query.normalized||[]).forEach(n=>alias.set(n.to,n.from));
+      (j.query.redirects||[]).forEach(r=>alias.set(r.to, alias.get(r.from)||r.from));
+      for(const p of j.query.pages||[]){
+        if(!p.thumbnail) continue;
+        const asked = alias.get(p.title)||p.title;
+        out.set(asked, {src:p.thumbnail.source, file:p.pageimage, title:p.title});
+      }
+    }catch(e){ console.warn("photo batch failed",e); }
+  }
+  return out;
+}
+function preload(src){
+  return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src; });
+}
+
+/* =====================================================================
+   Game flow
+   ===================================================================== */
+const game={ phase:"title", deck:[], round:0, total:0, results:[], current:null, guess:null, reveal:null, hint:0 };
+let photoBank=null;
+
+async function boot(){
+  buildAperture(); resizeMap();
+  window.addEventListener("resize",()=>{ resizeMap(); layoutPhoto(); });
+  const best=store.get("witwit_best",0);
+  if(best) $("bestLine").textContent="Best expedition: "+best.toLocaleString();
+  try{
+    const [_, photos] = await Promise.all([ loadLand(CONFIG.landUrls.fast,"50m"), fetchPhotos(LANDMARKS) ]);
+    photoBank=photos;
+    const usable=LANDMARKS.filter(l=>photoBank.has(l.wiki));
+    if(usable.length < CONFIG.roundsPerGame) throw new Error("Only "+usable.length+" photos available");
+    $("startBtn").disabled=false; $("startBtn").textContent="Begin expedition";
+    // sharpen coastlines in the background
+    loadLand(CONFIG.landUrls.detail,"10m").catch(()=>{});
+  }catch(e){
+    console.error(e);
+    $("startBtn").textContent="Couldn't reach the archives";
+    $("loadErr").textContent="The globe or the photos didn't load. This game needs an internet connection and has to run from a real web host (like GitHub Pages).";
+  }
+}
+
+function startGame(){
+  audio();
+  const usable=LANDMARKS.filter(l=>photoBank.has(l.wiki));
+  game.deck=shuffle(usable.slice()).slice(0, CONFIG.roundsPerGame + 3); // spares in case a photo fails
+  game.round=0; game.total=0; game.results=[];
+  $("gScore").textContent="0";
+  $("titleScreen").classList.add("hidden"); $("endScreen").classList.add("hidden");
+  nextRound();
+}
+
+async function nextRound(){
+  if(game.results.length>=CONFIG.roundsPerGame || !game.deck.length) return endGame();
+  game.phase="loading"; game.guess=null; game.reveal=null; game.hint=0;
+  $("resultPanel").classList.add("hidden"); $("lockBtn").classList.add("hidden");
+  $("hintTxt").classList.remove("hidden"); $("hintTxt").textContent="Study the aperture…";
+  $("widenBtn").disabled=true; $("credit").innerHTML="";
+  $("gRound").textContent=(game.results.length+1)+"/"+CONFIG.roundsPerGame;
+  await animateIris(0,400);
+  $("apMsg").textContent="";
+  flyTo(15,0,minScale(),700);
+
+  const lm=game.deck.shift(), ph=photoBank.get(lm.wiki);
+  let im;
+  try{ im=await preload(ph.src); }catch(e){ return nextRound(); }
+  game.current={...lm, photo:ph};
+  const img=$("photo"); img.src=im.src;
+  await (img.decode ? img.decode().catch(()=>{}) : Promise.resolve());
+  // pick an obscure-but-fair crop: near the middle of the photo, never dead centre
+  const ang=rand(0,Math.PI*2), r=rand(.08,.2);
+  photoState.focusX=clamp(.5+Math.cos(ang)*r,.2,.8);
+  photoState.focusY=clamp(.45+Math.sin(ang)*r,.2,.75);
+  photoState.zoom=CONFIG.apertureZooms[0];
+  img.style.transition="none"; layoutPhoto(); void img.offsetWidth; img.style.transition="";
+  sndIris(); await animateIris(1,900);
+  game.phase="guess";
+  $("hintTxt").textContent="Tap the map where you think it is";
+  $("widenBtn").disabled=false; updateWidenLabel();
+}
+function updateWidenLabel(){
+  const b=$("widenBtn"), next=game.hint+1;
+  if(next>=CONFIG.apertureZooms.length){ b.disabled=true; b.textContent="Aperture fully open"; return; }
+  b.textContent=`Widen aperture (max ${Math.round(CONFIG.hintMultipliers[next]*100)}%)`;
+}
+$("widenBtn").onclick=()=>{
+  if(game.phase!=="guess") return;
+  if(game.hint+1>=CONFIG.apertureZooms.length) return;
+  game.hint++; photoState.zoom=CONFIG.apertureZooms[game.hint];
+  // drift the focus toward the centre as it widens
+  photoState.focusX=.5+(photoState.focusX-.5)*.5; photoState.focusY=.5+(photoState.focusY-.5)*.5;
+  sndIris(); layoutPhoto(); updateWidenLabel();
+};
+
+function placeGuess(sx,sy){
+  if(game.phase!=="guess") return;
+  let [lat,lon]=toGeo(sx,sy);
+  if(lon<-180||lon>180||lat<-90||lat>90) return;
+  game.guess={lat,lon}; sndPin();
+  $("lockBtn").classList.remove("hidden"); $("hintTxt").classList.add("hidden");
+  draw();
+}
+$("lockBtn").onclick=async ()=>{
+  if(game.phase!=="guess"||!game.guess) return;
+  game.phase="reveal";
+  const lm=game.current, g=game.guess;
+  const km=haversineKm(g.lat,g.lon,lm.lat,lm.lon);
+  const pts=scoreFor(km, game.hint);
+  game.total+=pts; game.results.push({name:lm.name, km, pts});
+  game.reveal={lat:lm.lat, lon:lm.lon};
+  $("lockBtn").classList.add("hidden"); $("widenBtn").disabled=true;
+  // open the aperture all the way to show the whole photo
+  photoState.zoom=CONFIG.revealZoom; photoState.focusX=.5; photoState.focusY=.5; layoutPhoto();
+  $("credit").innerHTML=`<a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(lm.photo.file||"")}" target="_blank" rel="noopener">Photo: Wikimedia Commons</a> · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(lm.photo.title.replace(/ /g,"_"))}" target="_blank" rel="noopener">About ${lm.name}</a>`;
+  // frame both points
+  const midLat=(g.lat+lm.lat)/2, midLon=(g.lon+lm.lon)/2;
+  const dLon=Math.abs(g.lon-lm.lon)+1e-6, dLat=Math.abs(g.lat-lm.lat)+1e-6;
+  let sc=Math.min(view.W*0.6/dLon, view.H*0.5/dLat);
+  sc=Math.min(sc, view.W/(Math.max(km,0.4)/111.32*6)); // never zoom tighter than ~6x the miss distance
+  sndScore(pts>5000);
+  await flyTo(midLat, midLon, sc, 1100);
+  $("rName").textContent=lm.name;
+  $("rMeta").textContent=`${lm.place} · you were ${fmtDist(km)} away`+(game.hint?` · aperture widened ×${game.hint}`:"");
+  animateNumber($("rPts"), 0, pts, 900, v=>"+"+v.toLocaleString());
+  animateNumber($("gScore"), game.total-pts, game.total, 900, v=>v.toLocaleString());
+  $("nextBtn").textContent = game.results.length>=CONFIG.roundsPerGame ? "See results" : "Next";
+  $("resultPanel").classList.remove("hidden");
+  draw();
+};
+$("nextBtn").onclick=()=>nextRound();
+
+function animateNumber(el, from, to, ms, fmt){
+  const t0=performance.now();
+  const step=t=>{ const k=clamp((t-t0)/ms,0,1), e=1-Math.pow(1-k,3);
+    el.textContent=fmt(Math.round(from+(to-from)*e)); if(k<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+function endGame(){
+  game.phase="end";
+  const best=Math.max(store.get("witwit_best",0), game.total);
+  store.set("witwit_best", best);
+  $("endTotal").textContent=game.total.toLocaleString();
+  const max=CONFIG.roundsPerGame*(CONFIG.broadPoints+CONFIG.precisionPoints);
+  $("endBest").textContent=`out of ${max.toLocaleString()} · best ever ${best.toLocaleString()}`;
+  $("endTable").innerHTML=game.results.map(r=>`<tr><td>${r.name}</td><td>${fmtDist(r.km)}</td><td>${r.pts.toLocaleString()}</td></tr>`).join("");
+  $("bestLine").textContent="Best expedition: "+best.toLocaleString();
+  $("endScreen").classList.remove("hidden");
+}
+$("startBtn").onclick=startGame;
+$("againBtn").onclick=startGame;
+
+boot();
+</script>
+</body>
+</html>
