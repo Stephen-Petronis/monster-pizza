@@ -22,8 +22,8 @@ body{background:
   repeating-radial-gradient(circle at 10% 20%, rgba(255,255,255,.025) 0 1px, transparent 1px 4px),
   linear-gradient(180deg,#25262a,#151518);}
 #app{position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  display:grid;grid-template-columns:minmax(280px,40%) 1fr;grid-template-rows:auto 1fr;gap:8px;}
-@media (orientation:portrait){ #app{grid-template-columns:1fr;grid-template-rows:auto minmax(250px,44%) 1fr;} }
+  display:grid;grid-template-columns:minmax(300px,48%) 1fr;grid-template-rows:auto 1fr;gap:8px;}
+@media (orientation:portrait){ #app{grid-template-columns:1fr;grid-template-rows:auto minmax(280px,50%) 1fr;} }
 /* header */
 #bar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px 0;}
 #bar h1{margin:0;font-family:"Bungee",sans-serif;font-weight:400;font-size:clamp(13px,2.3vw,22px);color:var(--taxi);
@@ -32,11 +32,11 @@ body{background:
 .gauge{font-size:11px;letter-spacing:1px;text-align:center;padding:3px 10px;border-radius:6px;background:#000;border:2px solid var(--taxi);}
 .gauge b{display:block;font-family:"Bungee",sans-serif;font-weight:400;font-size:15px;color:var(--taxi);font-variant-numeric:tabular-nums}
 /* aperture column */
-#scope{display:grid;grid-template-rows:1fr auto auto;min-height:0;padding:2px 8px 8px;gap:6px}
+#scope{display:grid;grid-template-rows:1fr auto;min-height:0;padding:0 6px 6px;gap:4px}
 #apArea{position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
 #apWrap{position:relative;height:100%;max-width:100%;aspect-ratio:1/1}
 @media (orientation:landscape){ #apWrap{height:auto;width:100%;max-height:100%} }
-#ap{position:absolute;inset:9%;border-radius:50%;overflow:hidden;background:#000}
+#ap{position:absolute;inset:8.6%;border-radius:50%;overflow:hidden;background:#000}
 #ap .photo{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;filter:contrast(1.05) saturate(.9);
   transition:transform .9s cubic-bezier(.3,.7,.2,1)}
 #ap .glass{position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -47,31 +47,33 @@ body{background:
 .steam.s2{left:55%;animation-delay:1.4s} .steam.s1{left:25%}
 @keyframes steam{0%{transform:translateY(30%) scale(.6);opacity:0}30%{opacity:.8}100%{transform:translateY(-40%) scale(1.4);opacity:0}}
 /* rat + bubble */
-#host{display:flex;align-items:flex-end;gap:6px;min-height:84px}
-#rat{width:110px;height:86px;flex:none;overflow:visible}
+#host{display:flex;align-items:flex-end;gap:6px;min-height:64px}
+#rat{width:84px;height:66px;flex:none;overflow:visible}
+#widenBtn{position:absolute;right:0;top:0;width:58px;height:58px;padding:0;border-radius:50%;font-size:9px;line-height:1.1;z-index:3}
+#widenBtn span{display:block;font-size:20px;line-height:1}
 #rat .head{transform-origin:95px 60px;animation:bob 2.4s ease-in-out infinite}
 #rat.talk .head{animation:bob .35s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:rotate(0)}50%{transform:rotate(-4deg)}}
 #rat .tail{transform-origin:28px 82px;animation:wag 1.8s ease-in-out infinite}
 @keyframes wag{0%,100%{transform:rotate(0)}50%{transform:rotate(10deg)}}
-#bubble{position:relative;flex:1;min-height:56px;background:var(--cream);color:var(--ink);border-radius:14px;padding:8px 12px;
-  font-size:clamp(14px,1.9vw,17px);line-height:1.25;border:3px solid #000;box-shadow:3px 3px 0 #000;margin-bottom:22px}
+#bubble{position:relative;flex:1;min-height:46px;background:var(--cream);color:var(--ink);border-radius:14px;padding:6px 10px;
+  font-size:clamp(13px,1.8vw,17px);line-height:1.25;border:3px solid #000;box-shadow:3px 3px 0 #000;margin-bottom:14px}
 #bubble:before{content:"";position:absolute;left:-14px;bottom:10px;border:8px solid transparent;border-right:12px solid #000}
 #bubble:after{content:"";position:absolute;left:-8px;bottom:12px;border:6px solid transparent;border-right:9px solid var(--cream)}
 #bubble b{color:var(--brick)}
 .scopeCtl{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
-#credit{font-size:11px;opacity:.75;text-align:center}
-#credit a{color:var(--taxi)}
+#credit{font-size:11px;opacity:.8;margin-top:2px}
+#credit a{color:#555}
 /* map */
-#mapBox{position:relative;min-height:0;margin:0 10px 10px 0;border-radius:12px;overflow:hidden;border:4px solid #000;
-  outline:3px solid var(--taxi);outline-offset:-1px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+#mapBox{position:relative;min-height:0;margin:0 10px 10px 0;border-radius:12px;overflow:hidden;border:5px solid #111;
+  outline:2px solid #fff;outline-offset:-3px;box-shadow:0 6px 20px rgba(0,0,0,.6)}
 @media (orientation:portrait){ #mapBox{margin:0 10px 10px 10px} }
 #map{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
 #zoomBtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
-#scaleBar{position:absolute;left:12px;bottom:12px;font-size:12px;color:var(--cream);text-shadow:0 1px 2px #000;pointer-events:none}
-#scaleBar i{display:block;height:6px;border:2px solid var(--cream);border-top:none;margin-top:2px}
+#scaleBar{position:absolute;left:12px;bottom:12px;font:600 12px Helvetica,Arial,sans-serif;color:#111;text-shadow:0 0 3px #fff,0 0 3px #fff;pointer-events:none}
+#scaleBar i{display:block;height:6px;border:2px solid #111;border-top:none;margin-top:2px}
 #lockBtn{position:absolute;left:50%;bottom:12px;transform:translateX(-50%)}
-#hintTxt{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:13px;letter-spacing:.5px;background:rgba(0,0,0,.75);
+#hintTxt{position:absolute;left:50%;top:10px;transform:translateX(-50%);font:600 13px Helvetica,Arial,sans-serif;letter-spacing:.2px;background:#111;color:#fff;
   padding:4px 12px;border-radius:20px;border:1px solid var(--taxi);pointer-events:none;white-space:nowrap}
 .btn{font-family:"Bungee",sans-serif;font-weight:400;font-size:13px;color:var(--ink);cursor:pointer;padding:9px 16px;border-radius:8px;
   border:3px solid #000;background:var(--taxi);box-shadow:3px 3px 0 #000;
@@ -121,14 +123,11 @@ body{background:
         <div id="ap"><img class="photo" id="photo" alt=""><div class="glass"></div></div>
         <svg id="apSvg" viewBox="0 0 200 200"></svg>
       </div>
+      <button class="btn" id="widenBtn" disabled><span>🔍</span>Bigger</button>
     </div>
     <div id="host">
       <svg id="rat" viewBox="0 0 140 110"></svg>
       <div id="bubble"></div>
-    </div>
-    <div class="scopeCtl">
-      <button class="btn small" id="widenBtn" disabled>Gimme a bigger look</button>
-      <div id="credit"></div>
     </div>
   </div>
 
@@ -146,6 +145,7 @@ body{background:
       <div>
         <div class="nm" id="rName"></div>
         <div class="meta" id="rMeta"></div>
+        <div id="credit"></div>
       </div>
       <div class="pts" id="rPts"></div>
       <button class="btn" id="nextBtn">Next</button>
@@ -197,7 +197,17 @@ const CONFIG = {
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/main/public/data/new-york-city-boroughs.geojson",
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/new-york-city-boroughs.geojson",
   ],
-  colors:{ water:"#173a4a", land:"#e9e1cb", border:"#a3957a", coast:"#5a5141" },
+  colors:{ water:"#a9d2e3", land:"#f4f0e2", border:"#d9d0b6", coast:"#7fb0c6" },
+  subwayLineUrls: [
+    "https://services6.arcgis.com/IX0rbbPRMd0YfCJN/ArcGIS/rest/services/NYC_DoITT_Subway_Line/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+    "https://services3.arcgis.com/GVgbJbqm8hXASVYi/ArcGIS/rest/services/Subway_Lines_NYC/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+    "https://services5.arcgis.com/cuQhNeNcUrgLmYGD/ArcGIS/rest/services/NYC_Subway_Lines/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson",
+  ],
+  stationUrls: [ "https://data.ny.gov/resource/39hk-dx4f.json?$limit=1000" ],
+  lineWidthPx: 3.2,     // subway line thickness on screen
+  trunkColors: { "1":"#EE352E","2":"#EE352E","3":"#EE352E","4":"#00933C","5":"#00933C","6":"#00933C","7":"#B933AD",
+    A:"#0039A6",C:"#0039A6",E:"#0039A6",B:"#FF6319",D:"#FF6319",F:"#FF6319",M:"#FF6319",G:"#6CBE45",
+    J:"#996633",Z:"#996633",L:"#A7A9AC",N:"#FCCC0A",Q:"#FCCC0A",R:"#FCCC0A",W:"#FCCC0A",S:"#808183" },
 };
 const KX = Math.cos(40.70*Math.PI/180); // squish longitude so the city isn't stretched
 
@@ -448,6 +458,33 @@ function addRingsToPath(p, rings){
   for(const r of rings){ if(r.length<3) continue; p.moveTo(wx(r[0][0]),wy(r[0][1]));
     for(let i=1;i<r.length;i++) p.lineTo(wx(r[i][0]),wy(r[i][1])); p.closePath(); }
 }
+/* subway lines + stations (optional — the game works without them) */
+let subwayByColor=new Map(), stations=[];
+const prop=(o,k)=>{ for(const key in o) if(key.toLowerCase()===k) return o[key]; return undefined; };
+async function firstJson(urls){ for(const u of urls){ try{ const r=await fetch(u); if(r.ok) return await r.json(); }catch(e){} } return null; }
+async function loadSubway(){
+  const gj=await firstJson(CONFIG.subwayLineUrls); if(!gj||!gj.features) return;
+  const m=new Map();
+  for(const f of gj.features){
+    const g=f.geometry; if(!g) continue;
+    const sym=((prop(f.properties||{},"rt_symbol")||prop(f.properties||{},"name")||"S")+"").trim().charAt(0).toUpperCase();
+    const col=CONFIG.trunkColors[sym]||"#808183";
+    if(!m.has(col)) m.set(col,new Path2D());
+    const p=m.get(col), lines=g.type==="LineString"?[g.coordinates]:g.type==="MultiLineString"?g.coordinates:[];
+    for(const l of lines){ if(l.length<2) continue; p.moveTo(wx(l[0][0]),wy(l[0][1])); for(let i=1;i<l.length;i++) p.lineTo(wx(l[i][0]),wy(l[i][1])); }
+  }
+  // draw order: grey/brown under, the busy colours on top
+  const order=["#A7A9AC","#808183","#996633","#6CBE45","#B933AD","#FCCC0A","#FF6319","#0039A6","#00933C","#EE352E"];
+  subwayByColor=new Map([...m.entries()].sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0])));
+  draw();
+}
+async function loadStations(){
+  const j=await firstJson(CONFIG.stationUrls); if(!Array.isArray(j)) return;
+  stations=j.map(r=>{ const la=+(r.gtfs_latitude||r.latitude||(r.georeference&&r.georeference.coordinates&&r.georeference.coordinates[1]));
+    const lo=+(r.gtfs_longitude||r.longitude||(r.georeference&&r.georeference.coordinates&&r.georeference.coordinates[0]));
+    return [la,lo]; }).filter(([a,b])=>isFinite(a)&&isFinite(b)&&a>B.south&&a<B.north&&b>B.west&&b<B.east);
+  draw();
+}
 async function loadBoroughs(){
   let gj=null, lastErr;
   for(const url of CONFIG.boroughUrls){
@@ -504,16 +541,27 @@ function render(){
   const d=view.dpr,s=view.scale; ctx.setTransform(d,0,0,d,0,0);
   ctx.fillStyle=CONFIG.colors.water; ctx.fillRect(0,0,view.W,view.H);
   // little "you ain't in NYC" signs at the edges
-  ctx.save(); ctx.fillStyle="rgba(242,234,214,.22)"; ctx.font="600 13px Oswald, sans-serif"; ctx.textAlign="center";
-  const [jx,jy]=toScreen(40.74,-74.20); ctx.fillText("← JERSEY",jx,jy);
-  const [lx,ly]=toScreen(40.66,-73.745); ctx.fillText("LONG ISLAND →",lx,ly);
-  const [wx_,wy_]=toScreen(40.92,-73.78); ctx.fillText("↑ WESTCHESTER",wx_,wy_); ctx.restore();
+  edgeSign("← JERSEY",40.74,-74.21); edgeSign("LONG ISLAND →",40.66,-73.745); edgeSign("↑ WESTCHESTER",40.918,-73.80);
   if(allLand){
     ctx.setTransform(d*s,0,0,d*s,d*view.offX,d*view.offY);
     ctx.fillStyle=CONFIG.colors.land; ctx.fill(allLand,"evenodd");
     ctx.lineJoin="round";
-    ctx.strokeStyle=CONFIG.colors.border; ctx.lineWidth=1.2/s; boroughs.forEach(b=>ctx.stroke(b.path));
+    ctx.strokeStyle=CONFIG.colors.coast; ctx.lineWidth=1.6/s; ctx.stroke(allLand);
+    ctx.strokeStyle=CONFIG.colors.border; ctx.lineWidth=1.2/s; ctx.setLineDash([4/s,3/s]); boroughs.forEach(b=>ctx.stroke(b.path)); ctx.setLineDash([]);
+    // subway lines: white casing, then trunk colours
+    const lw=CONFIG.lineWidthPx*clamp(Math.pow(s/minScale(),.18),1,2.2);
+    ctx.lineCap="round";
+    if(subwayByColor.size){
+      ctx.strokeStyle="#fff"; ctx.lineWidth=(lw+2.2)/s; subwayByColor.forEach(p=>ctx.stroke(p));
+      subwayByColor.forEach((p,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=lw/s; ctx.stroke(p); });
+    }
     ctx.setTransform(d,0,0,d,0,0);
+    if(stations.length){
+      const r=clamp(lw*.62,1.6,4.2);
+      ctx.fillStyle="#fff"; ctx.strokeStyle="#111"; ctx.lineWidth=r>2.5?1.4:1;
+      for(const [la,lo] of stations){ const [x,y]=toScreen(la,lo); if(x<-6||y<-6||x>view.W+6||y>view.H+6) continue;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.stroke(); }
+    }
   }
   if(game.reveal){
     const [ax,ay]=toScreen(game.reveal.lat,game.reveal.lon);
@@ -525,10 +573,13 @@ function render(){
   if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon); drawPin(gx,gy); }
   updateScaleBar();
 }
+function edgeSign(t,lat,lon){ let [x,y]=toScreen(lat,lon); ctx.save(); ctx.font="700 11px Helvetica, Arial, sans-serif";
+  const w=ctx.measureText(t).width+12; x=clamp(x,w/2+6,view.W-w/2-56); y=clamp(y,16,view.H-16); ctx.fillStyle="rgba(17,17,17,.75)"; ctx.beginPath(); ctx.roundRect?ctx.roundRect(x-w/2,y-10,w,18,4):ctx.rect(x-w/2,y-10,w,18); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.fillText(t,x,y+3); ctx.restore(); }
 function drawPin(x,y){
   ctx.save(); ctx.fillStyle="rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(x+3,y+1,6,2.5,0,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-22); ctx.stroke();
-  ctx.fillStyle="#f7b500"; ctx.strokeStyle="#000"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y-25,7,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#111"; ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y-25,7.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(x,y,1.6,0,Math.PI*2); ctx.fill(); ctx.restore();
 }
 function drawTarget(x,y){
@@ -616,6 +667,7 @@ async function boot(){
   const best=store.get("ycyany_best",0); if(best) $("bestLine").textContent="Your best: "+best.toLocaleString();
   say(pick(SAL.intro));
   try{
+    loadSubway().catch(()=>{}); loadStations().catch(()=>{});
     const [,photos]=await Promise.all([loadBoroughs(), fetchPhotos(LANDMARKS)]);
     photoBank=photos;
     // trust Wikipedia's coordinates when they land inside the map window
@@ -663,8 +715,8 @@ async function nextRound(){
   say(lm.gone ? pick(SAL.startGone) : pick(SAL.start));
 }
 function updateWiden(){ const b=$("widenBtn"),n=game.hint+1;
-  if(n>=CONFIG.apertureZooms.length){ b.disabled=true; b.textContent="That's all ya get"; return; }
-  b.textContent=`Gimme a bigger look (max ${Math.round(CONFIG.hintMultipliers[n]*100)}%)`; }
+  if(n>=CONFIG.apertureZooms.length){ b.disabled=true; b.innerHTML="<span>🔍</span>Maxed"; return; }
+  b.innerHTML=`<span>🔍</span>Bigger<br>${Math.round(CONFIG.hintMultipliers[n]*100)}%`; }
 $("widenBtn").onclick=()=>{ if(game.phase!=="guess"||game.hint+1>=CONFIG.apertureZooms.length) return;
   game.hint++; photoState.zoom=CONFIG.apertureZooms[game.hint];
   photoState.focusX=.5+(photoState.focusX-.5)*.5; photoState.focusY=.5+(photoState.focusY-.5)*.5;
