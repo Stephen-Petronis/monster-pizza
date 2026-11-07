@@ -3990,6 +3990,10 @@ function drawHowTo() {
   const top = Math.max(18, H * 0.06);
   // page dots
   pages.forEach((_, i) => { circ(W / 2 + (i - (pages.length - 1) / 2) * 16, H - 112, i === G.howPage ? 5 : 3.5); fs(i === G.howPage ? '#ffe066' : 'rgba(255,255,255,.5)'); });
+  // shrink the page content so it never runs under the buttons on short screens
+  const contentBot = { controls: top + 372, cracks: top + 412, crosswalk: 506, grab: top + 392, shop: top + 440 }[pg] || H, room = H - 126 - (typeof safeInsets === 'function' ? safeInsets().b : 0);
+  const hsc = Math.min(1, room / contentBot);
+  ctx.save(); ctx.translate(W / 2, 0); ctx.scale(hsc, hsc); ctx.translate(-W / 2, 0);
   if (pg === 'controls') {
     if (MODE === 'level') { bubbleText('LEVEL 1', W / 2, top + 30, 22, '#ffffff', 'center', INK, 6); bubbleText('Home From School', W / 2, top + 64, 30, '#ffe066', 'center', INK, 7); }
     else { bubbleText('ENDLESS RIDE', W / 2, top + 40, 32, '#ff6b9a', 'center', INK, 7); bubbleText('How far can you go?', W / 2, top + 72, 16, '#ffffff', 'center', INK, 4); }
@@ -4065,6 +4069,7 @@ function drawHowTo() {
     bubbleText('Eat each neighborhood’s SNACK', W / 2, top + 404, 15, '#7ee8c4', 'center', INK, 4);
     bubbleText('for a few seconds of SUPER POWER!', W / 2, top + 426, 15, '#7ee8c4', 'center', INK, 4);
   }
+  ctx.restore();
   const last = G.howPage >= pages.length - 1;
   drawButton('howNext', last ? "LET'S GO!" : 'NEXT ▶', null, W / 2, H - 70, 200, 50, last ? '#36cfc9' : '#ff6b9a', 22, last ? 0.04 : 0);
   if (!last) drawButton('howSkip', 'SKIP ▶▶', null, W - 58, H - 22, 96, 30, '#9aa3b5', 13);
