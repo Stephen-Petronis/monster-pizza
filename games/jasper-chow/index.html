@@ -1576,7 +1576,7 @@ function onButton(b) {
     case 'pause': if (G.state === 'ride' || G.state === 'ready') { G.pausedFrom = G.state; G.state = 'paused'; touch = null; } break;
     case 'resume': G.state = G.pausedFrom || 'ride'; break;
     case 'quit': case 'menu': goTitle(); break;
-    case 'again': resetGame(MODE); break;
+    case 'again': if (G.state === 'end' && canPost() && G.wantIni && !G.iniAsked) { G.iniAsked = true; openInitials(); break; } resetGame(MODE); break;
   }
 }
 function goTitle() { G.zoom = 1; MODE = 'level'; buildLevel(); G.cars = []; G.parts = []; G.texts = []; G.state = 'title'; G.titleT = 0; }
@@ -4427,8 +4427,14 @@ function drawInitials() {
     bubbleText(G.iniBuf[k], x, cy + 2, 48, '#ff6b9a', 'center', INK, 7);
     drawButton('iniDn' + k, '▼', null, x, cy + 70, 60, 40, '#36cfc9', 18);
   }
-  drawButton('iniOk', 'SAVE', null, W / 2, cy + 150, 180, 50, '#ffb703', 22, 0.03);
-  drawButton('iniCancel', G.iniFrom === 'end' ? 'SKIP' : 'CANCEL', null, W / 2, cy + 210, 140, 38, '#9aa3b5', 16);
+  if (G.iniFrom === 'end' && G.final) {
+    const list = boardList(MODE).filter(r => !r.me), sc = G.final.total, rank = list.filter(r => r.score >= sc).length + 1, top = list[0];
+    bubbleText(`Your score: ${fmtN(sc)}`, W / 2, cy + 110, 16, '#ffffff', 'center', INK, 4);
+    const line = rank === 1 ? "That's #1 on the board!" : rank <= 10 ? `That puts you #${rank}!` : top ? `#1 is ${top.ini} with ${fmtN(top.score)}. Beat it!` : 'Be the first on the board!';
+    bubbleText(line, W / 2, cy + 133, 15, rank === 1 ? '#ffe066' : '#7ee8c4', 'center', INK, 4);
+  }
+  drawButton('iniOk', 'SAVE', null, W / 2, cy + 176, 180, 50, '#ffb703', 22, 0.03);
+  drawButton('iniCancel', G.iniFrom === 'end' ? 'SKIP' : 'CANCEL', null, W / 2, cy + 232, 140, 38, '#9aa3b5', 16);
 }
 function iniButton(id) {
   if (id.startsWith('iniUp') || id.startsWith('iniDn')) { const k = +id.slice(5), d = id.startsWith('iniUp') ? -1 : 1, i = ABC.indexOf(G.iniBuf[k]); G.iniBuf[k] = ABC[(i + d + 26) % 26]; return true; }
@@ -4703,13 +4709,14 @@ function drawEnd() {
   }
   if (tallyDone && canPost()) {
     const tEnd = 0.35 + rows * 0.32 + 0.4;
-    if (G.wantIni && !G.iniAsked && t > tEnd + 0.4) { G.iniAsked = true; openInitials(); }
+    if (G.wantIni && !G.iniAsked && t > tEnd + 0.15) { G.iniAsked = true; openInitials(); }
     const rk = myRank(MODE), msg = { saving: 'Posting score…', saved: rk ? `Posted! You're #${rk} on the board` : 'Posted to high scores!', local: rk ? `Saved! #${rk} on this device's board` : 'Saved on this device', noperm: 'Saved here (ask for Contributor access to post online)', notop: 'Beat the top 10 to get on the board!' }[G.posted];
     if (G.wantIni && !G.savedLocal && G.iniAsked) drawButton('post', 'ADD MY INITIALS', null, W / 2, H - 140, 220, 40, '#c77dff', 16);
     else if (msg) bubbleText(msg, W / 2, H - 140, 14, '#ffffff', 'center', INK, 4);
     else if (G.wantIni && !G.iniAsked) bubbleText('Get ready to sign in…', W / 2, H - 140, 14, '#ffe066', 'center', INK, 4);
   }
-  if (t > 1.0) {
+  const iniPending = canPost() && G.wantIni && !G.iniAsked;
+  if (t > 1.0 && !iniPending) {
     drawButton('again', 'RIDE AGAIN', null, W / 2, H - 86, 210, 50, '#ff6b9a', 22, 0.03);
     drawButton('menu', 'MENU', null, W / 2, H - 34, 130, 36, '#7ee8c4', 16);
   }
