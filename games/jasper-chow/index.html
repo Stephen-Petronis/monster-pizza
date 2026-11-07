@@ -4425,6 +4425,121 @@ function drawArcadeRow(by) {
 const _updateRideV5 = updateRide;
 updateRide = function (dt) { _updateRideV5(dt); ambientTick(dt); };
 
+
+/* =========================================================
+   STREET PROPS along the curb strip: glowing lamp posts, benches,
+   planters, newspaper boxes, cones, and a hot dog cart
+   ========================================================= */
+Object.assign(REASONS, { lamp: 'Bonked a lamp post!', bench: 'Tripped over a bench!', planter: 'Crashed into a planter!', news: 'Smacked the newspaper boxes!', cone: 'Knocked over a cone!', hotdog: 'Crashed into the hot dog cart!' });
+EXTRA_SPRITES.push('prop');
+const PROP_HIT = { lamp: [5, 5], bench: [7, 16], planter: [10, 10], news: [8, 12], cone: [6, 6], hotdog: [13, 18] };
+function propOK(y) {
+  if (nearInterG(y - 40, y + 40, 60)) return false;
+  for (const t of trees) if (!t.forest && Math.abs(t.y - y) < 34) return false;
+  for (const e of ents) if ((e.t === 'prop' || e.t === 'hydrant' || e.t === 'mailbox') && Math.abs(e.y - y) < 46) return false;
+  return true;
+}
+function addProp(y, theme, rnd, pick) {
+  const r = rnd(0, 1);
+  const k = r < 0.34 ? 'lamp' : r < 0.52 ? 'bench' : r < 0.67 ? 'planter' : r < 0.82 ? 'news' : r < 0.92 ? 'cone' : 'hotdog';
+  const x = k === 'hotdog' ? 246 : k === 'cone' ? 244 : 249;
+  ents.push({ t: 'prop', k, x, y, theme: theme || '', ph: rnd(0, 6), c: pick(['#4d96ff', '#ff595e', '#ffd166', '#8ac926', '#c77dff']) });
+}
+const _buildLevelProps = buildLevel;
+buildLevel = function () {
+  _buildLevelProps();
+  const R2 = mulberry(9090), rnd = (a, b) => a + R2() * (b - a), pick = a => a[Math.floor(R2() * a.length)];
+  const ts = trees.filter(t => !t.forest).map(t => t.y).sort((a, b) => a - b);
+  for (let i = 0; i + 1 < ts.length; i++) { const y = (ts[i] + ts[i + 1]) / 2; if (ts[i + 1] - ts[i] > 80 && y > 300 && y < L - 150 && Math.abs(y - HOME_Y) > 120 && R2() < 0.8 && propOK(y)) addProp(y, '', rnd, pick); }
+};
+const _genChunkProps = genChunk;
+genChunk = function () {
+  const y0 = G.gen.y, zk = zoneAt(y0), Z = ZONES[zk];
+  _genChunkProps();
+  if (!Z.street) return;
+  const ts = trees.filter(t => !t.forest && t.y > y0 - 200 && t.y < y0 + CHK + 200).map(t => t.y).sort((a, b) => a - b);
+  for (let i = 0; i + 1 < ts.length; i++) { const y = (ts[i] + ts[i + 1]) / 2; if (y >= y0 && y < y0 + CHK && ts[i + 1] - ts[i] > 80 && zoneAt(y) === zk && GR() < 0.8 && propOK(y)) addProp(y, Z.theme, grnd, gpick); }
+  if (!Z.pits) for (let y = y0 + grnd(30, 120); y < y0 + CHK - 30; y += grnd(130, 210)) if (zoneAt(y) === zk && propOK(y)) addProp(y, Z.theme, grnd, gpick);
+};
+const _colProps = collideExtra2;
+collideExtra2 = function (e, px, py, g, air) {
+  if (e.t === 'prop') { const hb = PROP_HIT[e.k]; if (!air && Math.abs(px - e.x) < hb[0] + 5 && Math.abs(py - e.y) < hb[1] + 4) { if (crash(e.k) && e.k === 'cone') e.down = true; } return; }
+  return _colProps(e, px, py, g, air);
+};
+const _dseProps = drawSpriteExtra;
+drawSpriteExtra = function (e, y) { if (e.t === 'prop') return drawProp(e, y); return _dseProps(e, y); };
+// warm light pools under lamps go down first, under everything
+const _drawZoneGroundProps = drawZoneGround;
+drawZoneGround = function (zk, top, bot) {
+  _drawZoneGroundProps(zk, top, bot);
+  for (const e of ents) if (e.t === 'prop' && e.k === 'lamp' && e.y > bot - 60 && e.y < top + 60) {
+    const y = sy(e.y), lp = proj(e.x - 14, y - 2, 1.32), pul = 0.85 + 0.15 * Math.sin(G.time * 2 + e.ph);
+    const g = ctx.createRadialGradient(lp[0], lp[1] + 6, 2, lp[0], lp[1] + 6, 46); g.addColorStop(0, `rgba(255,232,140,${0.38 * pul})`); g.addColorStop(1, 'rgba(255,232,140,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lp[0], lp[1] + 6, 46, 0, Math.PI * 2); ctx.fill();
+  }
+};
+function drawProp(e, y) {
+  const x = e.x, t = G.time;
+  switch (e.k) {
+    case 'lamp': {
+      const top = proj(x, y - 2, 1.32), arm = proj(x - 14, y - 2, 1.32);
+      ell(x, y, 6, 2.6); fs('rgba(43,29,74,.25)');
+      ctx.lineCap = 'round'; ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(top[0], top[1]); ctx.lineTo(arm[0], arm[1]); ctx.stroke();
+      const pc = e.theme === 'spooky' ? '#3d3552' : e.theme === 'xmas' ? '#2a8a4e' : '#2f4858';
+      ctx.strokeStyle = pc; ctx.lineWidth = 4; ctx.stroke();
+      circ(x, y - 2, 5); fso(pc, 2);
+      const lc = e.theme === 'spooky' ? '#ff9f1c' : '#ffe68a', pul = 0.8 + 0.2 * Math.sin(t * 2 + e.ph);
+      circ(arm[0], arm[1] + 3, 13 * pul); fs(e.theme === 'spooky' ? 'rgba(255,159,28,.35)' : 'rgba(255,240,170,.45)');
+      rr(arm[0] - 7, arm[1] - 4, 14, 9, 4); fso(pc, 2); ell(arm[0], arm[1] + 4, 5, 3); fso(lc, 1.4);
+      if (e.theme === 'xmas') { circ(top[0], top[1] + 10, 6); ctx.strokeStyle = '#2a8a4e'; ctx.lineWidth = 4; ctx.stroke(); circ(top[0], top[1] + 16, 2.4); fs('#e63946'); }
+      if (e.theme !== 'spooky' && e.theme !== 'xmas') { const by = lerp(y, top[1], 0.55), bx = lerp(x, top[0], 0.55), fl = Math.sin(t * 3 + e.ph) * 2; poly([[bx, by - 10], [bx + 12, by - 8 + fl], [bx + 12, by + 6 + fl], [bx, by + 4]]); fso(e.c, 1.6); drawStar(bx + 6, by - 2 + fl * 0.5, 3, 0, '#ffffff'); }
+      break;
+    }
+    case 'bench': {
+      shadow(x + 2, y + 2, 9, 18);
+      const lift = proj(x + 6, y, 1.08);
+      for (let k = 0; k < 3; k++) { rr(x - 7 + k * 4.5, y - 17, 4, 34, 1.5); fso(k === 2 ? '#c98a4a' : '#d9a066', 1.4); }
+      rr(lift[0] - 2, y - 18, 5, 36, 2); fso('#a0673c', 1.6);                                // backrest
+      for (const yy of [y - 14, y + 12]) { rr(x - 8, yy, 16, 3, 1); fs('#2f4858'); }
+      if (hash(Math.floor(e.y)) < 0.35) { circ(x - 1, y - 6, 4); fso('#ff9f1c', 1.2); circ(x - 2, y - 9, 2.2); fso('#ff9f1c', 1); const tl = Math.sin(t * 2.5 + e.ph) * 3; ctx.strokeStyle = '#ff9f1c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 2, y - 4); ctx.quadraticCurveTo(x + 6, y + tl, x + 3, y + 4); ctx.stroke(); }
+      else if (hash(Math.floor(e.y) + 3) < 0.4) { const pg = Math.abs(Math.sin(t * 6 + e.ph)) * 2; ell(x, y + 4, 4, 3); fso('#9aa3b5', 1.2); circ(x, y - pg, 2.4); fso('#9aa3b5', 1); }
+      break;
+    }
+    case 'planter': {
+      shadow(x, y + 2, 12, 5);
+      rr(x - 11, y - 14, 22, 16, 3); fso('#a0673c', 2); ctx.fillStyle = '#c98a4a'; ctx.fillRect(x - 10, y - 13, 20, 3);
+      for (let k = 0; k < 4; k++) { const fx = x - 7 + k * 4.6, sw = Math.sin(t * 2 + k + e.ph) * 1.5; ctx.strokeStyle = '#3a7d44'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, y - 13); ctx.lineTo(fx + sw, y - 22 - (k % 2) * 3); ctx.stroke(); circ(fx + sw, y - 23 - (k % 2) * 3, 3.2); fso(e.theme === 'spooky' ? '#ff9f1c' : ['#ff8fc7', '#ffe066', '#c77dff', '#ff595e'][k], 1.1); }
+      break;
+    }
+    case 'news': {
+      shadow(x, y + 2, 9, 12);
+      [['#4d96ff', -10], ['#ff595e', 0], ['#ffd166', 10]].forEach(([c, dy]) => { const yy = y + dy; rr(x - 7, yy - 13, 14, 12, 2); fso(c, 1.6); rr(x - 5, yy - 10, 10, 4, 1); fso('#ffffff', 1); ctx.fillStyle = INK; ctx.fillRect(x - 4, yy - 9, 8, 0.8); ctx.fillRect(x - 4, yy - 7.5, 6, 0.8); });
+      // a page flutters out now and then
+      const pt = (t * 0.3 + e.ph) % 4; if (pt < 1.2) { const px = x + 10 + pt * 18, py = y - 16 - Math.sin(pt * 4) * 6; ctx.save(); ctx.translate(px, py); ctx.rotate(pt * 4); rr(-4, -3, 8, 6, 1); fso('#ffffff', 1); ctx.restore(); }
+      break;
+    }
+    case 'cone': {
+      if (e.down) { ctx.save(); ctx.translate(x, y); ctx.rotate(1.3); poly([[-5, 4], [5, 4], [0, -12]]); fso('#ff7f11', 1.6); ctx.restore(); break; }
+      shadow(x, y + 1, 7, 3); rr(x - 7, y - 2, 14, 4, 1.5); fso('#ff7f11', 1.6);
+      poly([[x - 5, y - 1], [x + 5, y - 1], [x + 1.5, y - 16], [x - 1.5, y - 16]]); fso('#ff7f11', 1.6); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 3.6, y - 8, 7.2, 2.5);
+      break;
+    }
+    case 'hotdog': {
+      shadow(x, y + 3, 15, 20);
+      rr(x - 11, y - 18, 22, 34, 4); fso('#cdd5de', 2); rr(x - 9, y - 14, 18, 8, 2); fso('#ffe066', 1.2);
+      ctx.save(); ctx.translate(x, y - 1); ctx.rotate(-Math.PI / 2); ctx.font = `900 6px ${FONT}`; ctx.fillStyle = '#e63946'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('HOT DOGS', 0, 0); ctx.restore();
+      for (const wy of [y - 18, y + 16]) { circ(x + 11, wy, 3.5); fso('#2b2d42', 1.4); }
+      for (let k = 0; k < 2; k++) { const ph = (t * 0.9 + k * 0.5 + e.ph) % 1; circ(x - 4 + k * 6, y - 12 - ph * 16, 2.5 + ph * 3); fs(`rgba(255,255,255,${0.7 * (1 - ph)})`); }
+      const um = proj(x - 2, y - 2, 1.3), sw = Math.sin(t * 1.6 + e.ph) * 0.08;
+      ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 6, y); ctx.lineTo(um[0], um[1]); ctx.stroke();
+      ctx.save(); ctx.translate(um[0], um[1]); ctx.rotate(sw);
+      for (let k = 0; k < 8; k++) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 21, k * Math.PI / 4, (k + 1) * Math.PI / 4); ctx.closePath(); fso(k % 2 ? '#ffffff' : '#ff3b3b', 1.4); }
+      circ(0, 0, 3); fso('#ffe066', 1.2); ctx.restore();
+      break;
+    }
+  }
+}
+
 /* =========================================================
    BIRTHDAY PARTY — candle game (ported from Super Sullivan)
    ========================================================= */
