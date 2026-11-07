@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monster Pizza · Firebase rules</title><meta name="robots" content="noindex">
+<style>
+body{margin:0;font:17px/1.4 -apple-system,system-ui,sans-serif;background:#2a1650;color:#fff;padding:20px}
+h1{font-size:22px;margin:0 0 8px} ol{padding-left:22px} li{margin:10px 0}
+button,a.btn{display:block;width:100%;box-sizing:border-box;margin:14px 0;padding:18px;border:0;border-radius:16px;font:700 20px system-ui;text-align:center;text-decoration:none;color:#1a1024}
+#copy{background:#ffe600} a.btn{background:#7cf7ff} #ok{color:#8fdc4a;font-weight:700;min-height:1.4em;text-align:center}
+textarea{width:100%;height:140px;font:11px ui-monospace,monospace;border-radius:10px}
+</style></head><body>
+<h1>Turn on the online high scores</h1>
+<ol>
+<li>Tap <b>Copy the rules</b>.</li>
+<li>Tap <b>Open Firebase rules</b> and sign in.</li>
+<li>In the editor, tap <b>Delete all</b> trick: tap in the text, then use a keyboard shortcut if you have one, or do this on a computer (Ctrl/Cmd + A, then paste).</li>
+<li>Paste, then tap <b>Publish</b>.</li>
+</ol>
+<button id="copy">Copy the rules</button><div id="ok"></div>
+<a class="btn" href="https://console.firebase.google.com/project/monster-pizza-9bc93/firestore/rules" target="_blank" rel="noopener">Open Firebase rules</a>
+<textarea id="r" readonly>rules_version = &#x27;2&#x27;;
+// Firestore rules for the shared &quot;monster-pizza&quot; Firebase project (all arcade games).
+// Paste this whole file into Firebase console &gt; Firestore Database &gt; Rules, then Publish.
+// Anyone can read the score boards and add a score; nobody can edit or delete one.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{board}/{doc} {
+      allow read: if board.matches(&#x27;ss_g[0-3]&#x27;) || board == &#x27;wag&#x27; || board == &#x27;mi_hockey&#x27; || board == &#x27;mi_zomboni&#x27; || board == &#x27;cc_level&#x27; || board == &#x27;cc_endless&#x27;;
+
+      allow create: if
+        // Super Sullivan: one collection per minigame (ss_g0 .. ss_g3)
+        (board.matches(&#x27;ss_g[0-3]&#x27;)
+          &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.size() == 3
+          &amp;&amp; request.resource.data.k is number
+          &amp;&amp; request.resource.data.d is string &amp;&amp; request.resource.data.d.size() &lt;= 12
+          &amp;&amp; request.resource.data.t is timestamp)
+        ||
+        // Whack-A-Ghost: initials, score, round reached, time
+        (board == &#x27;wag&#x27;
+          &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;, &#x27;s&#x27;, &#x27;r&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.keys().hasAll([&#x27;n&#x27;, &#x27;s&#x27;, &#x27;r&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.matches(&#x27;[A-Z]{3}&#x27;)
+          &amp;&amp; request.resource.data.s is int &amp;&amp; request.resource.data.s &gt; 0 &amp;&amp; request.resource.data.s &lt;= 9999999
+          &amp;&amp; request.resource.data.r is int &amp;&amp; request.resource.data.r &gt;= 1 &amp;&amp; request.resource.data.r &lt;= 999
+          &amp;&amp; request.resource.data.t is timestamp)
+        ||
+        // Monster Hockey: initials, sort key, score shown (&quot;3-1 EZ&quot; for old wins, &quot;87.3%&quot; for the Zomboni board), time
+        ((board == &#x27;mi_hockey&#x27; || board == &#x27;mi_zomboni&#x27;)
+          &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.size() == 3
+          &amp;&amp; request.resource.data.k is number
+          &amp;&amp; request.resource.data.d is string &amp;&amp; request.resource.data.d.size() &lt;= 12
+          &amp;&amp; request.resource.data.t is timestamp)
+        ||
+        // Jasper Chow: initials, score, detail (&quot;20 TEETH&quot; or the neighborhood reached), time
+        ((board == &#x27;cc_level&#x27; || board == &#x27;cc_endless&#x27;)
+          &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.keys().hasAll([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.matches(&#x27;[A-Z]{3}&#x27;)
+          &amp;&amp; request.resource.data.k is number &amp;&amp; request.resource.data.k &gt;= 0 &amp;&amp; request.resource.data.k &lt;= 9999999
+          &amp;&amp; request.resource.data.d is string &amp;&amp; request.resource.data.d.size() &lt;= 16
+          &amp;&amp; request.resource.data.t is timestamp);
+
+      allow update, delete: if false;
+    }
+
+    // Monster Hockey online: a 4-letter room code holds the host&#x27;s hello (o); the guest writes its reply (a) once.
+    // Nothing else is stored, and nobody can list the rooms.
+    match /mi_rooms/{code} {
+      allow get: if code.matches(&#x27;[A-HJ-NP-Z]{4}&#x27;);
+      allow create: if code.matches(&#x27;[A-HJ-NP-Z]{4}&#x27;)
+        &amp;&amp; request.resource.data.keys().hasOnly([&#x27;o&#x27;, &#x27;t&#x27;])
+        &amp;&amp; request.resource.data.o is string &amp;&amp; request.resource.data.o.size() &lt; 20000
+        &amp;&amp; request.resource.data.t is timestamp;
+      allow update: if !(&#x27;a&#x27; in resource.data)
+        &amp;&amp; request.resource.data.diff(resource.data).affectedKeys().hasOnly([&#x27;a&#x27;])
+        &amp;&amp; request.resource.data.a is string &amp;&amp; request.resource.data.a.size() &lt; 20000;
+      allow list, delete: if false;
+    }
+  }
+}
+</textarea>
+<script>
+const r=document.getElementById('r'),ok=document.getElementById('ok');
+document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(r.value);ok.textContent='Copied! Now open Firebase.';}catch(e){r.focus();r.select();r.setSelectionRange(0,1e6);document.execCommand('copy');ok.textContent='Copied! Now open Firebase.';}};
+</script></body></html>
