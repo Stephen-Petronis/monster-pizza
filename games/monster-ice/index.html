@@ -870,9 +870,10 @@ stage.addEventListener('pointerdown', e => {
   const p = loc(e); p.id = e.pointerId; p.px = p.x; p.py = p.y; ptrs.set(e.pointerId, p);
   try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   if (inBox(p, CW - 20, CHROME_Y, 20, 20)){ p.ui = true; toggleMute(); return; }
+  if (PAUSE.on){ p.ui = true; hitBtn(pauseBtns(), p); return; }
   if (scene && scene.quit && inBox(p, 0, CHROME_Y, 20, 20)){ p.ui = true; SFX.tap();
-    if (scene.game && !(TT - quitArm < 2.5)){ quitArm = TT; toast('TAP X AGAIN TO QUIT'); return; }   // in a game: tap X twice to quit (no accidental quits)
-    quitArm = -9; if (G.online || NET.role) netClose(); go(titleScene()); return; }
+    if (scene.game){ openPause(); return; }   // in a game the corner button is PAUSE (quit is in that menu)
+    if (G.online || NET.role) netClose(); go(titleScene()); return; }
   scene && scene.down && scene.down(p);
 });
 stage.addEventListener('pointermove', e => { const p = ptrs.get(e.pointerId); if (!p || p.ui) return; const q = loc(e); p.px = p.x; p.py = p.y; p.x = q.x; p.y = q.y; scene && scene.move && scene.move(p); });
@@ -880,7 +881,10 @@ const ptrUp = e => { const p = ptrs.get(e.pointerId); if (!p) return; ptrs.delet
 stage.addEventListener('pointerup', ptrUp); stage.addEventListener('pointercancel', ptrUp);
 addEventListener('contextmenu', e => e.preventDefault());
 /* keyboard (desktop): arrows/WASD skate, Z pass, X shoot (hold for power), C or SPACE special, ENTER for menus */
-addEventListener('keydown', e => { INPUT = 'keys'; if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault(); if (scene && scene.key) scene.key(e.code, true, e.repeat); });
+addEventListener('keydown', e => { INPUT = 'keys'; if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (scene && scene.game && !e.repeat && (e.code === 'KeyP' || (e.code === 'Escape' && !PAUSE.on))){ if (PAUSE.on) PAUSE.on = false; else openPause(); return; }
+  if (PAUSE.on){ if (!e.repeat){ const b = pauseBtns(); if (e.code === 'Escape' || e.code === 'Enter') b[0].fn(); else if (e.code === 'KeyM' || e.code === 'KeyA') b.find(x => x.id === 'ctl') && b.find(x => x.id === 'ctl').fn(); } return; }
+  if (scene && scene.key) scene.key(e.code, true, e.repeat); });
 addEventListener('keyup', e => { if (scene && scene.key) scene.key(e.code, false, false); });
 
 /* buttons */
@@ -913,7 +917,7 @@ function drawFloat(arr){ for (const f of arr) T(f.text, f.x, f.y, f.col, 8); }
 
 /* ================= FLOW ================= */
 let scene = null, TT = 0;
-function go(s){ if (scene && scene.exit) scene.exit(); scene = s; s.enter && s.enter(); setMusic(s.music || 'menu', !s.keepSong); s.keepSong = false; musicDuck(s.music === 'game' || s.music === 'zomboni' ? CFG.music.gameVolume : s.game ? 0.6 : 1); }
+function go(s){ if (scene && scene.exit) scene.exit(); scene = s; PAUSE.on = false; s.enter && s.enter(); setMusic(s.music || 'menu', !s.keepSong); s.keepSong = false; musicDuck(s.music === 'game' || s.music === 'zomboni' ? CFG.music.gameVolume : s.game ? 0.6 : 1); }
 
 /* ---------- HIGH SCORES (device + shared Firebase board) ---------- */
 let HS = [];
@@ -1012,6 +1016,7 @@ function netRecv(m){
   if (m.t === 'snap'){ if (!NET.last || m.n > NET.last.n) NET.last = m; return; }
   if (m.t === 'in' || m.t === 'j') NET.inputs.push(m);
   else if (m.t === 'team'){ NET.peerTeam = m.team; NET.peerAuto = m.auto !== false; }
+  else if (m.t === 'auto') NET.peerAuto = m.auto !== false;   // guest changed MANUAL/AUTO in the pause menu
   else if (m.t === 'start') NET.start = m;
   else if (m.t === 'end'){ NET.end = m.res; NET.peerTeam = null; NET.start = null; }
   else if (m.t === 'bye') netDrop();
@@ -1265,8 +1270,9 @@ function drawChrome(){
   if (muted){ ctx.save(); ctx.strokeStyle = '#ff5d73'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + 8, y + 2); ctx.lineTo(x + 12, y + 9); ctx.moveTo(x + 12, y + 2); ctx.lineTo(x + 8, y + 9); ctx.stroke(); ctx.restore(); }
   else { R(x + 9, y + 3, 1, 5, '#f7efe0'); R(x + 11, y + 2, 1, 7, '#f7efe0'); }
   if (scene && scene.quit){ const q = CHROME_Y, armed = scene.game && TT - quitArm < 2.5;
-    if (LAYOUT === '2P' || armed){ C(9, q + 9, 8, armed ? '#ff3d1e' : 'rgba(10,6,24,.85)'); ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(9, q + 9, 8, 0, 7); ctx.stroke(); ctx.restore(); }
-    ctx.save(); ctx.strokeStyle = '#f7efe0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(5, q + 5); ctx.lineTo(13, q + 13); ctx.moveTo(13, q + 5); ctx.lineTo(5, q + 13); ctx.stroke(); ctx.restore(); }
+    if (LAYOUT === '2P' || armed || scene.game){ C(9, q + 9, 8, armed ? '#ff3d1e' : 'rgba(10,6,24,.85)'); ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(9, q + 9, 8, 0, 7); ctx.stroke(); ctx.restore(); }
+    if (scene.game){ R(5, q + 4, 3, 10, '#f7efe0'); R(10, q + 4, 3, 10, '#f7efe0'); }   // pause
+    else { ctx.save(); ctx.strokeStyle = '#f7efe0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(5, q + 5); ctx.lineTo(13, q + 13); ctx.moveTo(13, q + 5); ctx.lineTo(5, q + 13); ctx.stroke(); ctx.restore(); } }
 }
 function nightSky(seed = 1){
   R(0, 0, W, H, '#120a22');
@@ -2373,6 +2379,7 @@ function gameScene(){
       for (let k = s.trail.length - 1; k >= 0; k--){ s.trail[k].life -= dt; if (s.trail[k].life <= 0) s.trail.splice(k, 1); }
     }
     // who each player controls
+    if (G.online === 'host') P[1].auto = NET.peerAuto !== false;   // the guest can flip MANUAL/AUTO from their pause menu
     for (const pl of P) if (pl.human) withP(pl, () => {
       fixCtrl();
       const locked = ctrl && ctrl.frenzy > 0 && ctrl.team === PT && !gone(ctrl);   // a frenzied werewolf stays yours until you hit SWAP
@@ -2488,7 +2495,8 @@ function gameScene(){
     else end();
   }
   function nextPeriod(){ offer = null; period++;
-    if (trialSwitch() && period === 2){ P[0].auto = true; notice = { title: 'PERIOD 2: AUTO', col: '#b6ff4a', text: 'THE GAME JUMPS YOU\nTO THE MONSTER\nNEAREST THE PUCK.' }; } clock = period <= CFG.periods ? CFG.periodMinutes * 60 : 0; faceoff(); }
+    if (trialSwitch() && period === 2){ P[0].auto = true; notice = { title: 'PERIOD 2: AUTO', col: '#b6ff4a', text: 'THE GAME JUMPS YOU\nTO THE MONSTER\nNEAREST THE PUCK.' }; }
+    if (trialSwitch() && period === 3) notice = { pick: true, title: 'MANUAL OR AUTO?', col: '#ffd23f', text: 'YOU TRIED BOTH!\nWHICH DO YOU WANT\nFOR PERIOD 3?' }; clock = period <= CFG.periods ? CFG.periodMinutes * 60 : 0; faceoff(); }
   // the between-periods offer (world coords): drive the Zomboni for 15s, or skip
   const OFFER = { drive: btn(26, 162, 128, 24, 'DRIVE 15 SEC', () => takeOffer(0), '#b6ff4a'), skip: btn(46, 193, 88, 18, 'SKIP', () => takeOffer(1), '#c9a0ff') };
   function takeOffer(k){
@@ -3226,16 +3234,20 @@ function gameScene(){
     ctx.save(); ctx.translate(W, 254 + P2H); ctx.rotate(Math.PI); drawPanel(P[1]); ctx.restore();   // P2's panel faces them
   };
   // a message box over the rink: the game is paused until they tap OK
-  const NB = () => { const cx = CW / 2; return { box: [cx - 78, 70, 156, 132], ok: btn(cx - 40, 168, 80, 24, 'OK!', () => { notice = null; SFX.pick(); }, '#ffd23f') }; };
+  S.optChanged = () => { for (const pl of P) if (pl.human && !(G.online === 'host' && pl.team === 1)) pl.auto = OPT.autoSwitch; if (G.online === 'guest') netSend({ t: 'auto', auto: OPT.autoSwitch }); };
+  const pickCtl = auto => { OPT.autoSwitch = auto; OPT.picked = true; saveOpt(); P[0].auto = auto; notice = null; SFX.pick(); };
+  const NB = () => { const cx = CW / 2; return { box: [cx - 78, 70, 156, 132], btns: notice && notice.pick
+    ? [btn(cx - 72, 166, 68, 24, 'MANUAL', () => pickCtl(false), '#ff9a3a'), btn(cx + 4, 166, 68, 24, 'AUTO', () => pickCtl(true), '#b6ff4a')]
+    : [btn(cx - 40, 168, 80, 24, 'OK!', () => { notice = null; SFX.pick(); }, '#ffd23f')] }; };
   { const draw0 = S.draw, up0 = S.update, down0 = S.down, key0 = S.key;
     S.draw = () => { draw0(); if (!notice) return; const n = NB(), [x, y, w, h] = n.box;
       ctx.save(); ctx.setTransform(K, 0, 0, K, 0, OFFY * K); ctx.fillStyle = 'rgba(8,4,18,.55)'; ctx.fillRect(0, 0, CW, CH);
       R(x - 2, y - 2, w + 4, h + 4, '#000'); R(x, y, w, h, '#22143e'); R(x, y, w, 3, notice.col); R(x, y + h - 3, w, 3, notice.col);
-      T(notice.title, x + w / 2, y + 12, notice.col, 8); T(notice.text, x + w / 2, y + 36, '#f7efe0', 8); tiny('CHANGE IT ANYTIME IN OPTIONS', x + w / 2, y + 86, '#8a7ab8');
-      drawBtn(n.ok); ctx.restore(); };
+      T(notice.title, x + w / 2, y + 12, notice.col, 8); T(notice.text, x + w / 2, y + 36, '#f7efe0', 8); tiny(notice.pick ? 'CHANGE IT ANYTIME: TAP PAUSE' : period === 1 ? 'YOU PICK ONE BEFORE PERIOD 3' : 'CHANGE IT ANYTIME: TAP PAUSE', x + w / 2, y + 86, '#8a7ab8');
+      n.btns.forEach(drawBtn); ctx.restore(); };
     S.update = dt => { if (!notice) up0(dt); };
-    S.down = p => { if (!notice) return down0(p); p.ui = true; hitBtn([NB().ok], p); };
-    S.key = (c, dn, rep) => { if (!notice) return key0(c, dn, rep); if (dn && !rep && (c === 'Enter' || c === 'Space' || c === 'KeyZ' || c === 'Escape')) NB().ok.fn(); };
+    S.down = p => { if (!notice) return down0(p); p.ui = true; hitBtn(NB().btns, p); };
+    S.key = (c, dn, rep) => { if (!notice) return key0(c, dn, rep); if (!dn || rep) return; if (notice.pick){ if (c === 'Digit1' || c === 'KeyM') pickCtl(false); else if (c === 'Digit2' || c === 'KeyA') pickCtl(true); } else if (c === 'Enter' || c === 'Space' || c === 'KeyZ' || c === 'Escape') NB().btns[0].fn(); };
   }
   /* ---------- ONLINE: the host streams snapshots, the guest draws them and sends its stick + buttons ---------- */
   const ALL0 = [];   // fixed skater order so snapshots can point at skaters
@@ -3358,7 +3370,7 @@ function gameScene(){
     if (G.online === 'host'){ P[1].human = false; P[1].joy.id = null; G.online = null; G.twoP = false; NET.rec = false; toast('P2 LEFT. CPU TAKES OVER!'); }
     else { G.online = null; G.twoP = false; toast('LOST THE HOST'); go(titleScene()); }
   };
-  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, get gapInfo(){ const g = GEO[geoKey()]; return g.art ? { gap: g.art.y0 - g.pt, natural: (CH - SAFE_B) - g.art.ap.h * Math.min(W / g.art.ap.w, (CH - SAFE_B - g.pt + 6) / g.art.ap.h) - g.pt, pill: g.art.pill } : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
+  S._debug = () => ({ get geo(){ const g = GEO[geoKey()]; return { A: g.A, B: g.B, PILL: g.PILL }; }, get home(){ return joyHome(GEO[geoKey()]); }, get clock(){ return clock; }, setClock(v){ clock = v; }, get period(){ return period; }, get notice(){ return notice; }, get dome(){ const g = GEO[geoKey()]; return g.art && !g.fart ? domeAt(g) : null; }, get gapInfo(){ const g = GEO[geoKey()]; return g.art ? { gap: g.art.y0 - g.pt, natural: (CH - SAFE_B) - g.art.ap.h * Math.min(W / g.art.ap.w, (CH - SAFE_B - g.pt + 6) / g.art.ap.h) - g.pt, pill: g.art.pill } : null; }, P, get CUR(){ return CUR; }, get gU(){ return gU; }, get gT(){ return gT; }, startFight, get fight(){ return fight; }, get knocks(){ return knockCount; }, us, them, all, puck, get ctrl(){ return ctrl; }, get state(){ return state; }, score, special, startFinisher, set clock(v){ clock = v; } });
   return S;
 }
 
@@ -3798,6 +3810,27 @@ function resultScene(res){
   return S;
 }
 
+/* ================= PAUSE MENU (in games: the corner button) =================
+   Stops the game while open, except online, where the other player can't be paused (it says so). */
+const PAUSE = { on: false };
+function openPause(){ PAUSE.on = true; SFX.tap(); }
+function pauseBtns(){
+  const cx = CW / 2, y = 84, b = [btn(cx - 60, y + 28, 120, 24, 'RESUME', () => { PAUSE.on = false; SFX.pick(); }, '#b6ff4a')];
+  if (scene && scene.optChanged){ const c = btn(cx - 60, y + 76, 120, 24, OPT.autoSwitch ? 'AUTO' : 'MANUAL', () => { OPT.autoSwitch = !OPT.autoSwitch; OPT.picked = true; saveOpt(); scene.optChanged(); SFX.tap(); }, OPT.autoSwitch ? '#b6ff4a' : '#ff9a3a'); c.id = 'ctl'; b.push(c); }
+  b.push(btn(cx - 60, y + (scene && scene.optChanged ? 150 : 76), 120, 22, 'QUIT GAME', () => { PAUSE.on = false; if (G.online || NET.role) netClose(); go(titleScene()); }, '#ff5d73'));
+  return b;
+}
+function drawPause(){
+  const bs = pauseBtns(), cx = CW / 2, ctl = scene.optChanged, y = 84, h = ctl ? 190 : 120;
+  ctx.fillStyle = 'rgba(8,4,18,.7)'; ctx.fillRect(0, -OFFY, CW, CH + OFFY * 2);
+  R(cx - 74, y - 2, 148, h + 4, '#000'); R(cx - 72, y, 144, h, '#22143e'); R(cx - 72, y, 144, 3, '#ffd23f'); R(cx - 72, y + h - 3, 144, 3, '#ffd23f');
+  T('PAUSED', cx, y + 10, '#ffd23f', 8);
+  if (ctl){ tiny('SWITCHING MONSTERS', cx, y + 66, '#c9b8f0', 'center');
+    T(OPT.autoSwitch ? 'NEAREST THE PUCK\nAUTOMATICALLY' : 'YOU TAP SWAP\nTO CHANGE', cx, y + 106, OPT.autoSwitch ? '#d8ffb8' : '#ffd8b0', 8); tiny('TAP TO CHANGE', cx, y + 132, '#8a7ab8', 'center'); }
+  if (G.online) tiny('ONLINE GAMES KEEP GOING', cx, y + h - 12, '#ff9a3a', 'center');
+  bs.forEach(drawBtn);
+}
+
 /* ================= LOOP ================= */
 let last = performance.now();
 function frame(now){
@@ -3810,20 +3843,21 @@ function frame(now){
   }
   if (NET.dropped) netLost();
   if (netToast && (netToast.t -= dt) <= 0) netToast = null;
-  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(K, 0, 0, K, 0, 0); scene.update && scene.update(dt);
+  try { if (scene){ setLayout(scene.layout ? scene.layout() : 'P'); ctx.setTransform(K, 0, 0, K, 0, 0); if (!(PAUSE.on && !G.online)) scene.update && scene.update(dt);
     OFFY = LAYOUT === 'P' && EX && !scene.tallP ? scene.topAlign ? SAFE_T : clamp(Math.round((EX + SAFE_T - SAFE_B) / 2), SAFE_T, Math.max(SAFE_T, EX - SAFE_B)) : 0;
     if (LAYOUT === 'P') CHROME_Y = scene.tallP && (EX >= 24 || FULL) ? SAFE_T + 3 : 0;
     if (LAYOUT === 'P' && EX) R(0, 0, CW, CH, '#120a22');
     ctx.setTransform(K, 0, 0, K, 0, OFFY * K); scene.draw(); } } catch (err) { console.error(err); }
   ctx.setTransform(K, 0, 0, K, 0, OFFY * K);
   drawChrome();
+  if (PAUSE.on && scene) drawPause();
   if (netToast){   // wrapped to 19 letters a line so it fits the app's wide pixel font
     const lines = []; for (const word of String(netToast.text).split(' ')){ const l = lines.length - 1; if (l >= 0 && (lines[l] + ' ' + word).length <= 19) lines[l] += ' ' + word; else lines.push(word); }
     const w = Math.min(CW - 12, Math.max(...lines.map(l => l.length)) * 8 + 16), h = lines.length * 12 + 8, x = (CW - w) / 2;
     R(x, 40, w, h, '#000'); R(x + 1, 41, w - 2, h - 2, '#2a1446'); R(x + 1, 41, w - 2, 1, '#5cc8ff'); T(lines.join('\n'), CW / 2, 46, '#ffffff', 8, 'center', null); }
   requestAnimationFrame(frame);
 }
-window.__MI = { CFG, NET, toast, OPT, switchPickScene, optionsScene, shopScene, SHOP, setPrem, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
+window.__MI = { chromeY: () => CHROME_Y, CFG, NET, toast, OPT, switchPickScene, optionsScene, shopScene, SHOP, setPrem, monstersScene, onlineScene, hostScene, joinScene, pickScene, resultScene, art: { drawMonster, drawHero, drawHeadArt, TINY, TEAM, ROSTER, R, T, tiny, setTT: v => { TT = v; } }, music: () => musicActive() + ' ' + JSON.stringify(Object.fromEntries(Object.entries(TR).map(([k, t]) => [k, t.state + ':' + t.g.gain.value.toFixed(2)]))), get scene(){ return scene; }, go, gameScene, pickScene, titleScene, zamboniScene, G, get layout(){ return LAYOUT; } };
 go(titleScene());
 requestAnimationFrame(frame);
 })();
