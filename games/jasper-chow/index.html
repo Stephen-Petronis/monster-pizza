@@ -3479,7 +3479,7 @@ function placeFood(zk, y, x) {
 }
 const _buildLevelV4 = buildLevel;
 buildLevel = function () {
-  _buildLevelV4(); for (const y of [1900, 6200]) placeFood('carroll', y, 196);
+  _buildLevelV4();   // no snack boosters on the ride home to the party
   for (const e of ents) if (e.t === 'interHint' && e.inter === inters[2]) e.hint = 'No crossing guard this time \u2014 STOP on your own!';
 };
 
@@ -3862,7 +3862,7 @@ function drawShop() {
   const lh = fsz * 1.22, bubH = 14 * k + lines.length * lh, bubTop = L.top + logoH + 6 * k, bubBot = bubTop + bubH;
   // big Zed, a little left of center so the STARS sign fits beside him
   const zBottom = cTop + cH * 0.2, zH = clamp(Math.min(zBottom - (bubBot + 14 * k), W * 0.66), 120, 330), zW = zH * SHOPA_DIM.zbase[0] / SHOPA_DIM.zbase[1];
-  const zx = Math.max(zW / 2 - 14, W * 0.33);
+  const zx = Math.max(zW / 2 - 14, W * 0.42);
   // 1) workshop background
   const bgI = SA('bg');
   ctx.fillStyle = '#2a1650'; ctx.fillRect(0, 0, W, H);
@@ -3874,7 +3874,7 @@ function drawShop() {
   const look = S.sel != null && now - (S.msgT || 0) < 2500 ? [(S.sel - 1) * 0.8, 0.9] : null;
   drawZedFront(zx, zBottom, zW, t, now - (S.msgT || S.t0) < 1600, look);
   // 4) STARS sign standing on the counter, beside Zed
-  { const sw = clamp(W - (zx + zW * 0.34) - 10, 120, 170), sx = W - 8 - sw, sh = sw * 0.95, sy = cTop + 4 - sh;
+  { const sw = clamp(W - (zx + zW * 0.34) - 10, 120, 170) * 0.5, sx = W - 12 - sw, sh = sw * 0.95, sy = cTop + 4 - sh;
     const sway = Math.sin(t * 1.6) * 0.02;
     ctx.save(); ctx.translate(sx + sw / 2, cTop + 4); ctx.rotate(sway); ctx.translate(-(sx + sw / 2), -(cTop + 4));
     ctx.fillStyle = '#3a2350'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
@@ -3882,7 +3882,7 @@ function drawShop() {
     rr(sx + 3, sy + 4, sw, sh - 8, 14); fs('rgba(20,8,40,.45)');
     rr(sx, sy, sw, sh - 8, 14); fso('#2a1240', 4);
     ctx.save(); ctx.shadowColor = '#ff3bd5'; ctx.shadowBlur = 12; rr(sx + 6, sy + 6, sw - 12, sh - 20, 9); ctx.strokeStyle = '#ff5fd2'; ctx.lineWidth = 3; ctx.stroke(); ctx.restore();
-    for (let b = 0; b < 10; b++) { const on = Math.floor(t * 5 + b) % 2; circ(sx + 14 + b * (sw - 28) / 9, sy + 3, 2.2); fs(on ? '#ffe066' : '#ff8fc7'); }
+    for (let b = 0; b < 6; b++) { const on = Math.floor(t * 5 + b) % 2; circ(sx + 10 + b * (sw - 20) / 5, sy + 3, 1.8); fs(on ? '#ffe066' : '#ff8fc7'); }
     const hs = Math.min(30 * k, sw * 0.21);
     bubbleText('STARS', sx + sw / 2, sy + 12 + hs * 0.7, hs, '#ffe066', 'center', INK, 5);
     const ny = sy + (sh - 8) * 0.68, nsz = Math.min(42 * k, sw * 0.3) * (String(wallet()).length > 3 ? 0.8 : 1);
@@ -4036,7 +4036,7 @@ function drawHowTo() {
     bubbleText('GRAB THESE!', W / 2, top + 26, 26, '#7ee8c4', 'center', INK, 6);
     let y = top + 50; rr(18, y, W - 36, 112, 16); fso('rgba(255,255,255,.96)', 3);
     const grab = [['star', 'Stars', 'points'], ['helmet', 'Helmet', 'saves you'], ['snack', MODE === 'level' ? 'Pizza' : 'Snacks', 'SUPER power!'], ['tooth', 'Gold tooth', 'tooth back']];
-    if (MODE === 'level') grab.pop();
+    if (MODE === 'level') grab.splice(2, 2);
     grab.forEach((g2, i) => { const x = 18 + (W - 36) / grab.length * (i + 0.5), iy = y + 42;
       if (g2[0] === 'star') drawStar(x, iy, 12, Math.sin(t * 2) * 0.3); else if (g2[0] === 'helmet') drawHelmetPickup(x, iy + 18); else if (g2[0] === 'snack') { const k = ['pizza', 'dumpling', 'hotdog', 'icecream'][Math.floor(t / 1.2) % 4]; drawFood(MODE === 'level' ? 'pizza' : k, x, iy - 2 + Math.sin(t * 4) * 2, 1.2); } else { ctx.save(); ctx.translate(x, iy); toothIcon(0, 0, 11, '#ffd166'); ctx.restore(); }
       txt(g2[1], x, y + 76, 12, INK, 'center', 800); txt(g2[2], x, y + 92, 10, '#5a4a72', 'center', 600); });
@@ -4404,8 +4404,7 @@ function afterScore() {
   G.posted = null; G.myRank = null; G.savedLocal = false; G.iniAsked = false; G.wantIni = false;
   if (!canPost()) return;
   if (!BOARD.src) fsRefresh().catch(() => { });          // maybe the online board is reachable now
-  G.wantIni = qualifies(MODE, G.final.total);
-  if (!G.wantIni) G.posted = 'notop';
+  G.wantIni = true;   // adding your initials is the default; players can SKIP
 }
 
 /* --- initials picker (arcade style) --- */
@@ -4424,7 +4423,7 @@ function drawInitials() {
     drawButton('iniDn' + k, '▼', null, x, cy + 70, 60, 40, '#36cfc9', 18);
   }
   drawButton('iniOk', 'SAVE', null, W / 2, cy + 150, 180, 50, '#ffb703', 22, 0.03);
-  drawButton('iniCancel', 'CANCEL', null, W / 2, cy + 210, 140, 38, '#9aa3b5', 16);
+  drawButton('iniCancel', G.iniFrom === 'end' ? 'SKIP' : 'CANCEL', null, W / 2, cy + 210, 140, 38, '#9aa3b5', 16);
 }
 function iniButton(id) {
   if (id.startsWith('iniUp') || id.startsWith('iniDn')) { const k = +id.slice(5), d = id.startsWith('iniUp') ? -1 : 1, i = ABC.indexOf(G.iniBuf[k]); G.iniBuf[k] = ABC[(i + d + 26) % 26]; return true; }
@@ -4699,11 +4698,11 @@ function drawEnd() {
   }
   if (tallyDone && canPost()) {
     const tEnd = 0.35 + rows * 0.32 + 0.4;
-    if (G.wantIni && !G.iniAsked && t > tEnd + 0.7) { G.iniAsked = true; openInitials(); }
+    if (G.wantIni && !G.iniAsked && t > tEnd + 0.4) { G.iniAsked = true; openInitials(); }
     const rk = myRank(MODE), msg = { saving: 'Posting score…', saved: rk ? `Posted! You're #${rk} on the board` : 'Posted to high scores!', local: rk ? `Saved! #${rk} on this device's board` : 'Saved on this device', noperm: 'Saved here (ask for Contributor access to post online)', notop: 'Beat the top 10 to get on the board!' }[G.posted];
     if (G.wantIni && !G.savedLocal && G.iniAsked) drawButton('post', 'ADD MY INITIALS', null, W / 2, H - 140, 220, 40, '#c77dff', 16);
     else if (msg) bubbleText(msg, W / 2, H - 140, 14, '#ffffff', 'center', INK, 4);
-    else if (G.wantIni && !G.iniAsked) bubbleText('TOP 10! Get ready to sign in…', W / 2, H - 140, 14, '#ffe066', 'center', INK, 4);
+    else if (G.wantIni && !G.iniAsked) bubbleText('Get ready to sign in…', W / 2, H - 140, 14, '#ffe066', 'center', INK, 4);
   }
   if (t > 1.0) {
     drawButton('again', 'RIDE AGAIN', null, W / 2, H - 86, 210, 50, '#ff6b9a', 22, 0.03);
