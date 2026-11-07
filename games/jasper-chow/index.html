@@ -7,7 +7,7 @@
 <title>Jasper Chow: Scooter Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Luckiest+Guy&family=Bangers&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#8fd8ff;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh;height:100dvh}
@@ -4750,17 +4750,33 @@ function drawReady() {
 }
 
 // ---------- title screen, sticker style ----------
+// sticker-style title lettering: heavy comic font, chunky extrude, then pixelated like the sticker art
+const TITLE_FONT = "'Luckiest Guy', 'Fredoka', 'Arial Black', sans-serif", BANNER_FONT = "'Bangers', 'Luckiest Guy', 'Fredoka', sans-serif";
+let TITLE_FONTS_OK = false;
+try { Promise.all([document.fonts.load("60px 'Luckiest Guy'"), document.fonts.load("24px 'Bangers'")]).then(() => { TITLE_FONTS_OK = true; TITLE_CACHE.clear(); }).catch(() => { }); } catch (e) { }
+const TITLE_CACHE = new Map();
+function titleWordCanvas(txt, size, fill, shadeCol, rot, skew) {
+  const key = [txt, size, fill, rot, skew, TITLE_FONTS_OK].join('|');
+  if (TITLE_CACHE.has(key)) return TITLE_CACHE.get(key);
+  const PIX = 2.2;                                    // logical px per "pixel" — gives the stair-step pixel edges
+  const lw = size * (txt.length * 0.82 + 1.4), lh = size * 2.1;
+  const c = document.createElement('canvas'); c.width = Math.ceil(lw / PIX); c.height = Math.ceil(lh / PIX);
+  const x = c.getContext('2d'); x.scale(1 / PIX, 1 / PIX); x.translate(lw / 2, lh / 2); x.rotate(rot); x.transform(1, 0, skew, 1, 0, 0);
+  x.font = `bold ${size}px ${TITLE_FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+  const oy = size * 0.06;
+  for (let k = 8; k >= 1; k--) { x.strokeStyle = '#1a1024'; x.lineWidth = size * 0.2; x.strokeText(txt, k * 0.9, k * 1.2 + oy); x.fillStyle = '#1a1024'; x.fillText(txt, k * 0.9, k * 1.2 + oy); }
+  x.strokeStyle = '#ffffff'; x.lineWidth = size * 0.32; x.strokeText(txt, 0, oy);
+  x.strokeStyle = '#1a1024'; x.lineWidth = size * 0.17; x.strokeText(txt, 0, oy);
+  const g = x.createLinearGradient(0, -size * 0.4, 0, size * 0.5); g.addColorStop(0, fill); g.addColorStop(0.55, fill); g.addColorStop(0.6, shadeCol); g.addColorStop(1, shadeCol);
+  x.fillStyle = g; x.fillText(txt, 0, oy);
+  x.save(); x.beginPath(); x.rect(-lw, -size * 0.42, lw * 2, size * 0.14); x.clip(); x.fillStyle = 'rgba(255,255,255,.6)'; x.fillText(txt, 0, oy); x.restore();
+  // crisp pixel edges: no soft anti-aliased fringe
+  try { x.setTransform(1, 0, 0, 1, 0, 0); const id = x.getImageData(0, 0, c.width, c.height), d = id.data; for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 110 ? 0 : 255; x.putImageData(id, 0, 0); } catch (e) { }
+  const out = { c, lw, lh }; TITLE_CACHE.set(key, out); return out;
+}
 function titleWord(txt, x, y, size, fill, shadeCol, rot, skew) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.transform(1, 0, skew, 1, 0, 0);
-  ctx.font = `700 ${size}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
-  // chunky 3D extrude
-  for (let k = 7; k >= 1; k--) { ctx.strokeStyle = '#1a1024'; ctx.lineWidth = size * 0.2; ctx.strokeText(txt, k * 0.9, k * 1.1); ctx.fillStyle = '#1a1024'; ctx.fillText(txt, k * 0.9, k * 1.1); }
-  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = size * 0.3; ctx.strokeText(txt, 0, 0);
-  ctx.strokeStyle = '#1a1024'; ctx.lineWidth = size * 0.18; ctx.strokeText(txt, 0, 0);
-  const g = ctx.createLinearGradient(0, -size * 0.45, 0, size * 0.45); g.addColorStop(0, fill); g.addColorStop(0.58, fill); g.addColorStop(0.62, shadeCol); g.addColorStop(1, shadeCol);
-  ctx.fillStyle = g; ctx.fillText(txt, 0, 0);
-  ctx.save(); ctx.beginPath(); ctx.rect(-W, -size * 0.45, W * 2, size * 0.16); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText(txt, 0, 0); ctx.restore();
-  ctx.restore();
+  const w = titleWordCanvas(txt, size, fill, shadeCol, rot, skew);
+  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(w.c, x - w.lw / 2, y - w.lh / 2, w.lw, w.lh); ctx.restore();
 }
 function titleBurst(cx, cy, r, t) {
   const n = 14; ctx.beginPath();
@@ -4826,7 +4842,7 @@ function drawTitle() {
     poly([[-w / 2 - 18, -h / 2 + 4], [w / 2 + 6, -h / 2 - 4], [w / 2 + 22, -2], [w / 2 + 4, h / 2 + 2], [-w / 2 - 2, h / 2 + 4], [-w / 2 + 6, 2]]);
     ctx.fillStyle = '#1a1024'; ctx.save(); ctx.translate(4, 5); ctx.fill(); ctx.restore();
     ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = '#1a1024'; ctx.stroke();
-    ctx.transform(1, 0, -0.15, 1, 0, 0); ctx.font = `700 22px ${FONT}`; ctx.fillStyle = '#1a1024'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SCOOT HOME!', 2, 1);
+    ctx.transform(1, 0, -0.12, 1, 0, 0); ctx.font = `bold 26px ${BANNER_FONT}`; ctx.fillStyle = '#1a1024'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SCOOT HOME!', 2, 2);
     ctx.restore(); }
   // Jasper bursting out of a yellow comic burst
   if (HERO_IMG.complete && HERO_IMG.naturalWidth) {
