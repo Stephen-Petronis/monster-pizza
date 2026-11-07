@@ -1562,7 +1562,7 @@ function onButton(b) {
   sfx('click');
   if (iniButton(b)) return;
   switch (b) {
-    case 'scores': G.optFrom = G.state; BOARD.tab = MODE; G.state = 'board'; break;
+    case 'scores': G.optFrom = G.state; BOARD.tab = MODE; G.state = 'board'; if (BOARD.src !== 'fs' && BOARD.src !== 'claude') fsRefresh().then(() => { BOARD.fsFail = false; }).catch(() => { BOARD.fsFail = true; }); break;
     case 'tabLevel': BOARD.tab = 'level'; break;
     case 'tabEndless': BOARD.tab = 'endless'; break;
     case 'changeIni': openInitials(); break;
@@ -1586,7 +1586,7 @@ G.prev = { x: W / 2, tx: W / 2 };
 function optLayout() {
   const top = Math.max(70, H * 0.1);
   const sl = { x0: 60, x1: W - 60, y: top + 92 };
-  const strip = { x0: 28, x1: W - 28, y0: top + 196, y1: top + 196 + Math.min(150, H * 0.2) };
+  const strip = { x0: 28, x1: W - 28, y0: top + 196, y1: top + 196 + Math.max(70, Math.min(150, H * 0.2, H - 10 - 150 - (top + 196))) };
   return { top, sl, strip };
 }
 function setSlider(lx) {
@@ -1640,9 +1640,9 @@ function drawOptions() {
   ctx.restore();
   rr(strip.x0, strip.y0, strip.x1 - strip.x0, strip.y1 - strip.y0, 14); ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.stroke();
   bubbleText('Drag here to try it!', W / 2, strip.y0 + 16, 13, '#ffffff', 'center', INK, 3.5);
-  const by = Math.min(H - 110, strip.y1 + 50);
+  const by = Math.min(H - 84, strip.y1 + 62);
   drawButton('music', SETTINGS.music ? 'MUSIC: ON' : 'MUSIC: OFF', null, W / 2, by, 190, 42, SETTINGS.music ? '#c77dff' : '#9aa3b5', 17);
-  drawButton('back', 'BACK', null, W / 2, Math.min(H - 44, by + 62), 160, 48, '#ff6b9a', 22);
+  drawButton('back', 'BACK', null, W / 2, Math.min(H - 30, by + 60), 160, 48, '#ff6b9a', 22);
 }
 
 /* ---------- pause ---------- */
@@ -4449,7 +4449,7 @@ function drawBoard() {
   bubbleText('HIGH SCORES', W / 2, 46, 32, '#ffe066', 'center', INK, 7);
   const tabs = [['tabLevel', 'LEVEL 1', 'level'], ['tabEndless', 'ENDLESS', 'endless']];
   tabs.forEach(([id, label, m], k) => drawButton(id, label, null, W / 2 + (k ? 72 : -72), 92, 128, 38, BOARD.tab === m ? '#ff6b9a' : '#b9b1c9', 16));
-  const top = 122, rowH = Math.min(34, (H - top - 150) / 10);
+  const top = 122, rowH = Math.min(34, (H - top - 152) / 10);
   rr(16, top, W - 32, rowH * 10 + 20, 20); fso('rgba(255,255,255,.96)', 3);
   const list = boardList(BOARD.tab);
   if (!BOARD.src && !list.length) {
@@ -4472,7 +4472,7 @@ function drawBoard() {
     const rk = myRank(BOARD.tab); if (rk > 10 && BOARD.src === 'claude') bubbleText(`You're #${rk}`, W / 2, top + rowH * 10 + 34, 14, '#ffffff', 'center', INK, 4);
   }
   if (!BOARD.src && list.length) bubbleText('Saved on this device · online board offline', W / 2, top + rowH * 10 + 4, 12, '#ffffff', 'center', INK, 3);
-  const by = Math.min(H - 44, top + rowH * 10 + 70);
+  const by = Math.min(H - 30, top + rowH * 10 + 20 + 104);
   drawButton('changeIni', INI ? `INITIALS: ${INI}` : 'SET INITIALS', null, W / 2, by - 54, 190, 38, '#c77dff', 15);
   drawButton('back', 'BACK', null, W / 2, by, 150, 44, '#36cfc9', 20);
 }
@@ -4671,6 +4671,10 @@ function drawEnd() {
   drawBurst(W / 2, H * 0.3, G.over ? '#ffd6e8' : '#9ef0ff', G.over ? '#ffe9f2' : '#c9f7ff', t * 0.3);
   for (let i = 0; i < 40; i++) { const x = (hash(i * 7 + 1) * W + Math.sin(t * 2 + i) * 10), y = ((hash(i * 13 + 2) * H + t * (60 + hash(i) * 80)) % (H + 20)) - 10; ctx.save(); ctx.translate(x, y); ctx.rotate(t * 3 + i); ctx.fillStyle = ROOFS[i % ROOFS.length]; ctx.fillRect(-3, -5, 6, 10); ctx.restore(); }
   const pop = Math.min(1, t * 3);
+  { const sub = G.carHit || MODE === 'endless' ? 8 : 0, R0 = Math.min(W * 0.19, H * 0.085), rr0 = H < 700 ? 25 : 30;
+    const est = 74 + sub + R0 * 2.08 + 30 + (MODE === 'level' && !G.carHit ? 18 : 0) + fin.parts.length * rr0 + 64 + 20 + 16;
+    const room = H - (canPost() ? 172 : 124); G.endSc = Math.min(1, room / est); }
+  ctx.save(); ctx.translate(W / 2, 0); ctx.scale(G.endSc, G.endSc); ctx.translate(-W / 2, 0);
   const title = G.carHit ? 'GAME OVER' : MODE === 'level' ? 'MADE IT HOME!' : 'OUT OF TEETH!';
   bubbleText(title, W / 2, 44, 32 * (0.7 + 0.3 * pop), MODE === 'level' && !G.carHit ? '#ffe066' : '#ff6b9a', 'center', INK, 7);
   let y = 74;
@@ -4707,6 +4711,7 @@ function drawEnd() {
     if (G.newBest) { const s = 1 + Math.sin(t * 8) * 0.06; ctx.save(); ctx.translate(W / 2, by); ctx.scale(s, s); bubbleText('NEW HIGH SCORE!', 0, 0, 23, '#ff6b9a', 'center', INK, 5); ctx.restore(); }
     else bubbleText(MODE === 'level' && G.carHit ? 'Make it home to set a high score!' : `High score: ${fmtN(HS[MODE] ? HS[MODE].score : 0)}`, W / 2, by, 15, '#ffffff', 'center', INK, 4);
   }
+  ctx.restore();
   if (tallyDone && canPost()) {
     const tEnd = 0.35 + rows * 0.32 + 0.4;
     if (G.wantIni && !G.iniAsked && t > tEnd + 0.15) { G.iniAsked = true; openInitials(); }
@@ -4759,7 +4764,7 @@ function drawTitle() {
   bubbleText('Carroll Gardens, Brooklyn', W / 2, ly + 110, 14, '#ffe066', 'center', INK, 4);
   const bLvl = H - 160, bEnd = H - 98, bOpt = H - 40;
   // Jasper hero art
-  const ptop = ly + 124, avail = bLvl - 34 - ptop;
+  const ptop = ly + 124, avail = bLvl - 46 - ptop;
   if (HERO_IMG.complete && HERO_IMG.naturalWidth) {
     const hh = clamp(avail, 80, 420), hw = hh * HERO_IMG.naturalWidth / HERO_IMG.naturalHeight, bobH = Math.abs(Math.sin(t * 3)) * 5;
     ell(W / 2, ptop + hh - 4, hw * 0.42, 9); fs('rgba(59,42,82,.22)');
