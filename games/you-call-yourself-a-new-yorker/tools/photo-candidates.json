@@ -1,0 +1,6446 @@
+[
+ {
+  "file": "empire-state-building__01.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": true,
+  "commons": "File:ESBandDowntown2015.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AESBandDowntown2015.jpg",
+  "author": "Anthony Quintano: https://www.flickr.com/photos/quintanomedia/",
+  "license": "CC BY 2.0",
+  "srcW": 7020,
+  "srcH": 4680
+ },
+ {
+  "file": "empire-state-building__02.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": false,
+  "commons": "File:EmpireStateBuilding20205thAvenueEntrance.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEmpireStateBuilding20205thAvenueEntrance.jpg",
+  "author": "DanielPenfield",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4048,
+  "srcH": 3036
+ },
+ {
+  "file": "empire-state-building__03.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": false,
+  "commons": "File:EmpireStateBuilding202080thFloorSouthEastCorner.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEmpireStateBuilding202080thFloorSouthEastCorner.jpg",
+  "author": "DanielPenfield",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4048,
+  "srcH": 3036
+ },
+ {
+  "file": "empire-state-building__04.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": false,
+  "commons": "File:EmpireStateBuilding202086thFloorExteriorNorthwestCorner.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEmpireStateBuilding202086thFloorExteriorNorthwestCorner.jpg",
+  "author": "DanielPenfield",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4048,
+  "srcH": 3036
+ },
+ {
+  "file": "empire-state-building__05.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": false,
+  "commons": "File:EmpireStateBuilding highest point-crop.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEmpireStateBuilding_highest_point-crop.jpg",
+  "author": "PabEnrEsc",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2009,
+  "srcH": 2211
+ },
+ {
+  "file": "empire-state-building__06.jpg",
+  "id": "empire-state-building",
+  "name": "Empire State Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74844,
+  "lon": -73.98566,
+  "gone": null,
+  "current": false,
+  "commons": "File:Empire State Building 86th floor.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEmpire_State_Building_86th_floor.jpg",
+  "author": "James Petts",
+  "license": "CC BY-SA 2.0",
+  "srcW": 4608,
+  "srcH": 3456
+ },
+ {
+  "file": "statue-of-liberty__01.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": true,
+  "commons": "File:Front view of Statue of Liberty (cropped).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFront_view_of_Statue_of_Liberty_%28cropped%29.jpg",
+  "author": "AskALotl",
+  "license": "CC0",
+  "srcW": 2498,
+  "srcH": 3828
+ },
+ {
+  "file": "statue-of-liberty__02.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": false,
+  "commons": "File:2014-09-15 16-14-55 lion-belfort.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2014-09-15_16-14-55_lion-belfort.jpg",
+  "author": "Thomas Bresson",
+  "license": "CC BY 3.0",
+  "srcW": 8874,
+  "srcH": 5307
+ },
+ {
+  "file": "statue-of-liberty__03.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": false,
+  "commons": "File:Black Tom Island from Liberty Island June 2024.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABlack_Tom_Island_from_Liberty_Island_June_2024.jpg",
+  "author": "AskALotl",
+  "license": "CC0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "statue-of-liberty__04.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": false,
+  "commons": "File:CIRCLE LINE FERRY CARRIES TOURISTS TO STATUE OF LIBERTY IN UPPER NEW YORK BAY - NARA - 547838.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACIRCLE_LINE_FERRY_CARRIES_TOURISTS_TO_STATUE_OF_LIBERTY_IN_UPPER_NEW_YORK_BAY_-_NARA_-_547838.jpg",
+  "author": "Arthur Tress",
+  "license": "Public domain",
+  "srcW": 3000,
+  "srcH": 2032
+ },
+ {
+  "file": "statue-of-liberty__05.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": false,
+  "commons": "File:Collossal hand and torch. Bartholdi's statue of \"Liberty.\", from Robert N. Dennis collection of stereoscopic views.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACollossal_hand_and_torch._Bartholdi%27s_statue_of_%22Liberty.%22%2C_from_Robert_N._Dennis_collection_of_stereoscopic_views.jpg",
+  "author": "Unknown artistUnknown artist",
+  "license": "Public domain",
+  "srcW": 2737,
+  "srcH": 1403
+ },
+ {
+  "file": "statue-of-liberty__06.jpg",
+  "id": "statue-of-liberty",
+  "name": "Statue of Liberty",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.68925,
+  "lon": -74.0445,
+  "gone": null,
+  "current": false,
+  "commons": "File:Disc Sol BM GR1899.12-1.2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ADisc_Sol_BM_GR1899.12-1.2.jpg",
+  "author": "Unknown artistUnknown artist",
+  "license": "CC BY 2.5",
+  "srcW": 1660,
+  "srcH": 1580
+ },
+ {
+  "file": "chrysler-building__01.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": true,
+  "commons": "File:Chrysler Building spire, Manhattan, by Carol Highsmith (LOC highsm.04444).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_spire%2C_Manhattan%2C_by_Carol_Highsmith_%28LOC_highsm.04444%29.jpg",
+  "author": "Carol M. Highsmith",
+  "license": "Public domain",
+  "srcW": 2344,
+  "srcH": 4284
+ },
+ {
+  "file": "chrysler-building__02.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": false,
+  "commons": "File:Chrysler Building (1).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_%281%29.jpg",
+  "author": "Ferfive",
+  "license": "CC BY 4.0",
+  "srcW": 3072,
+  "srcH": 4080
+ },
+ {
+  "file": "chrysler-building__03.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": false,
+  "commons": "File:Chrysler Building 1965 (cropped).tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_1965_%28cropped%29.tif",
+  "author": "Edmund L. Mitchell",
+  "license": "No restrictions",
+  "srcW": 2920,
+  "srcH": 4293
+ },
+ {
+  "file": "chrysler-building__04.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": false,
+  "commons": "File:Chrysler Building 2005 4.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_2005_4.jpg",
+  "author": "Misterweiss at English Wikipedia",
+  "license": "Public domain",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "chrysler-building__05.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": false,
+  "commons": "File:Chrysler Building Lobby 2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_Lobby_2.jpg",
+  "author": "Tony Hisgett from Birmingham, UK",
+  "license": "CC BY 2.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "chrysler-building__06.jpg",
+  "id": "chrysler-building",
+  "name": "Chrysler Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75162,
+  "lon": -73.97548,
+  "gone": null,
+  "current": false,
+  "commons": "File:Chrysler Building Midtown Manhattan New York City 1932.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChrysler_Building_Midtown_Manhattan_New_York_City_1932.jpg",
+  "author": "Samuel Gottscho",
+  "license": "Public domain",
+  "srcW": 5359,
+  "srcH": 3779
+ },
+ {
+  "file": "flatiron-building__01.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": true,
+  "commons": "File:Edificio Fuller (Flatiron) en 2010 desde el Empire State crop boxin.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEdificio_Fuller_%28Flatiron%29_en_2010_desde_el_Empire_State_crop_boxin.jpg",
+  "author": "Imelenchon (original work)",
+  "license": "Public domain",
+  "srcW": 1489,
+  "srcH": 2818
+ },
+ {
+  "file": "flatiron-building__02.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": false,
+  "commons": "File:Colonel Donovan and staff of 165th Infantry, passing under the Victory Arch, New York City., 1919 - NARA - 533479.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AColonel_Donovan_and_staff_of_165th_Infantry%2C_passing_under_the_Victory_Arch%2C_New_York_City.%2C_1919_-_NARA_-_533479.jpg",
+  "author": "Paul Thompson",
+  "license": "Public domain",
+  "srcW": 2205,
+  "srcH": 3000
+ },
+ {
+  "file": "flatiron-building__03.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flatiron Art Space.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlatiron_Art_Space.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2064,
+  "srcH": 1381
+ },
+ {
+  "file": "flatiron-building__04.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flatiron Building.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlatiron_Building.JPG",
+  "author": "M.P. Tillema",
+  "license": "CC BY 2.5",
+  "srcW": 1536,
+  "srcH": 1969
+ },
+ {
+  "file": "flatiron-building__05.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flatiron Building (22680450934).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlatiron_Building_%2822680450934%29.jpg",
+  "author": "Alex Liivet from Chester, United Kingdom",
+  "license": "CC0",
+  "srcW": 3000,
+  "srcH": 4000
+ },
+ {
+  "file": "flatiron-building__06.jpg",
+  "id": "flatiron-building",
+  "name": "Flatiron Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74111,
+  "lon": -73.98972,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flatiron Building 252930243 a57b1b3f78.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlatiron_Building_252930243_a57b1b3f78.jpg",
+  "author": "nautical2k",
+  "license": "CC BY 2.0",
+  "srcW": 2816,
+  "srcH": 2112
+ },
+ {
+  "file": "grand-central-terminal__01.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": true,
+  "commons": "File:Image-Grand central Station Outside Night 2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AImage-Grand_central_Station_Outside_Night_2.jpg",
+  "author": "Fcb981 ; Eric Baetscher (attribution required)",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4726,
+  "srcH": 3805
+ },
+ {
+  "file": "grand-central-terminal__02.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": false,
+  "commons": "File:100Years 5900 (8435665301).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A100Years_5900_%288435665301%29.jpg",
+  "author": "Metropolitan Transportation Authority of the State of New York",
+  "license": "CC BY 2.0",
+  "srcW": 1920,
+  "srcH": 1276
+ },
+ {
+  "file": "grand-central-terminal__03.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": false,
+  "commons": "File:20th CL 50th anniversary at Grand Central Terminal.png",
+  "page": "https://commons.wikimedia.org/wiki/File%3A20th_CL_50th_anniversary_at_Grand_Central_Terminal.png",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 1735,
+  "srcH": 1419
+ },
+ {
+  "file": "grand-central-terminal__04.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Central Terminal Ceiling Spot.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Central_Terminal_Ceiling_Spot.jpg",
+  "author": "ThunderTheDog",
+  "license": "CC BY-SA 4.0",
+  "srcW": 8183,
+  "srcH": 5455
+ },
+ {
+  "file": "grand-central-terminal__05.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYC GC.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYC_GC.jpg",
+  "author": "Gianluca Miscione",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1936,
+  "srcH": 2592
+ },
+ {
+  "file": "grand-central-terminal__06.jpg",
+  "id": "grand-central-terminal",
+  "name": "Grand Central Terminal",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75273,
+  "lon": -73.97723,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Central Terminal Main Concourse May 2014 - 2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Central_Terminal_Main_Concourse_May_2014_-_2.jpg",
+  "author": "Danazar",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4988,
+  "srcH": 3325
+ },
+ {
+  "file": "times-square__01.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": true,
+  "commons": "File:New york times square-terabass.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_york_times_square-terabass.jpg",
+  "author": "Terabass",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3904,
+  "srcH": 2602
+ },
+ {
+  "file": "times-square__02.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": false,
+  "commons": "File:0480New York City Madame Tussauds crop.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A0480New_York_City_Madame_Tussauds_crop.jpg",
+  "author": "Laslovarga; cropped by Beyond My Ken (talk) 23:50, 2 May 2010 (UTC)",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2260,
+  "srcH": 1504
+ },
+ {
+  "file": "times-square__03.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": false,
+  "commons": "File:1 times square night 2013.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1_times_square_night_2013.jpg",
+  "author": "chensiyuan",
+  "license": "CC BY-SA 4.0",
+  "srcW": 7360,
+  "srcH": 4912
+ },
+ {
+  "file": "times-square__04.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": false,
+  "commons": "File:Camel Cigaretts Sign -- Times Square 1965.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACamel_Cigaretts_Sign_--_Times_Square_1965.jpg",
+  "author": "Jim Evans",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3634,
+  "srcH": 2503
+ },
+ {
+  "file": "times-square__05.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYC 07 2012 Times Square 4002.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYC_07_2012_Times_Square_4002.jpg",
+  "author": "Mariordo (Mario Roberto Durán Ortiz)",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2100,
+  "srcH": 1400
+ },
+ {
+  "file": "times-square__06.jpg",
+  "id": "times-square",
+  "name": "Times Square",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.758,
+  "lon": -73.9855,
+  "gone": null,
+  "current": false,
+  "commons": "File:New York-Manhattan-50-Times Square-1982-gje.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York-Manhattan-50-Times_Square-1982-gje.jpg",
+  "author": "Gerd Eichmann",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3605,
+  "srcH": 2164
+ },
+ {
+  "file": "one-world-trade-center__01.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": true,
+  "commons": "File:One World Trade Center Building.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AOne_World_Trade_Center_Building.jpg",
+  "author": "Praneeth Thalla",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3024,
+  "srcH": 4032
+ },
+ {
+  "file": "one-world-trade-center__02.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": false,
+  "commons": "File:174-photo pano of NYC (32756674773).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A174-photo_pano_of_NYC_%2832756674773%29.jpg",
+  "author": "Pedro Szekely from Los Angeles, USA",
+  "license": "CC BY-SA 2.0",
+  "srcW": 4777,
+  "srcH": 1600
+ },
+ {
+  "file": "one-world-trade-center__03.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": false,
+  "commons": "File:1WorldTradeCenterEntrance.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1WorldTradeCenterEntrance.jpg",
+  "author": "Mark Wyman",
+  "license": "CC BY 2.0",
+  "srcW": 4681,
+  "srcH": 3121
+ },
+ {
+  "file": "one-world-trade-center__04.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": false,
+  "commons": "File:911 memorial - panoramio (1).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A911_memorial_-_panoramio_%281%29.jpg",
+  "author": "Niels Mickers",
+  "license": "CC BY 3.0",
+  "srcW": 3264,
+  "srcH": 4912
+ },
+ {
+  "file": "one-world-trade-center__05.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": false,
+  "commons": "File:Festakt zur Neueröffnung des Militärhistorischen Museums der Bundeswehr - Daniel Libeskind.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFestakt_zur_Neuer%C3%B6ffnung_des_Milit%C3%A4rhistorischen_Museums_der_Bundeswehr_-_Daniel_Libeskind.jpg",
+  "author": "Bundeswehr-Fotos Wir.Dienen.Deutschland.",
+  "license": "CC BY 2.0",
+  "srcW": 3996,
+  "srcH": 2669
+ },
+ {
+  "file": "one-world-trade-center__06.jpg",
+  "id": "one-world-trade-center",
+  "name": "One World Trade Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.71274,
+  "lon": -74.01338,
+  "gone": null,
+  "current": false,
+  "commons": "File:Interior of the One World Observatory with visitors backlit against the windows, New York City.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AInterior_of_the_One_World_Observatory_with_visitors_backlit_against_the_windows%2C_New_York_City.jpg",
+  "author": "Christian David",
+  "license": "CC BY-SA 4.0",
+  "srcW": 7620,
+  "srcH": 5080
+ },
+ {
+  "file": "washington-square-arch__01.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": true,
+  "commons": "File:Washington Square Arch (40430304445).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWashington_Square_Arch_%2840430304445%29.jpg",
+  "author": "Nan Palmero from San Antonio, TX, USA",
+  "license": "CC BY 2.0",
+  "srcW": 3458,
+  "srcH": 5184
+ },
+ {
+  "file": "washington-square-arch__02.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": false,
+  "commons": "File:20140526-WashingtonArch SouthFace Night.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A20140526-WashingtonArch_SouthFace_Night.jpg",
+  "author": "Matt Joseph",
+  "license": "CC BY-SA 3.0",
+  "srcW": 5145,
+  "srcH": 3430
+ },
+ {
+  "file": "washington-square-arch__03.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": false,
+  "commons": "File:2015 Washington Square Arch from northwest.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2015_Washington_Square_Arch_from_northwest.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3456,
+  "srcH": 4608
+ },
+ {
+  "file": "washington-square-arch__04.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": false,
+  "commons": "File:Charles Frederick William Mielatz, Washington Arch, 1909, NGA 147305.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACharles_Frederick_William_Mielatz%2C_Washington_Arch%2C_1909%2C_NGA_147305.jpg",
+  "author": "Charles Frederick William Mielatz",
+  "license": "CC0",
+  "srcW": 2727,
+  "srcH": 4000
+ },
+ {
+  "file": "washington-square-arch__05.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": false,
+  "commons": "File:History of the Washington arch in Washington square, New York, including the ceremonies of laying the corner-stone and the dedication. (1896) (14587273200).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHistory_of_the_Washington_arch_in_Washington_square%2C_New_York%2C_including_the_ceremonies_of_laying_the_corner-stone_and_the_dedication._%281896%29_%2814587273200%29.jpg",
+  "author": "Internet Archive Book Images",
+  "license": "No restrictions",
+  "srcW": 2753,
+  "srcH": 1872
+ },
+ {
+  "file": "washington-square-arch__06.jpg",
+  "id": "washington-square-arch",
+  "name": "Washington Square Arch",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7311,
+  "lon": -73.99702,
+  "gone": null,
+  "current": false,
+  "commons": "File:New York Photo Safari OHNY Washington Square Park.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York_Photo_Safari_OHNY_Washington_Square_Park.jpg",
+  "author": "Laura Parkes",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3400,
+  "srcH": 3400
+ },
+ {
+  "file": "vessel-structure__01.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": true,
+  "commons": "File:Hudson Yards Plaza March 2019 53.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHudson_Yards_Plaza_March_2019_53.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "vessel-structure__02.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": false,
+  "commons": "File:15 Hudson Yards June 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A15_Hudson_Yards_June_2018.jpg",
+  "author": "Godsfriendchuck",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2001,
+  "srcH": 3858
+ },
+ {
+  "file": "vessel-structure__03.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": false,
+  "commons": "File:30 Hudson Yards 2019.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A30_Hudson_Yards_2019.jpg",
+  "author": "Antony-22",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2448,
+  "srcH": 3264
+ },
+ {
+  "file": "vessel-structure__04.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": false,
+  "commons": "File:35 Hudson Yards June 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A35_Hudson_Yards_June_2018.jpg",
+  "author": "Godsfriendchuck",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2259,
+  "srcH": 3938
+ },
+ {
+  "file": "vessel-structure__05.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": false,
+  "commons": "File:55 Hudson Yards June 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A55_Hudson_Yards_June_2018.jpg",
+  "author": "Godsfriendchuck",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2455,
+  "srcH": 3784
+ },
+ {
+  "file": "vessel-structure__06.jpg",
+  "id": "vessel-structure",
+  "name": "The Vessel",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75375,
+  "lon": -74.00213,
+  "gone": null,
+  "current": false,
+  "commons": "File:7 Extension to 34th St-Hudson Yards (20795497833).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A7_Extension_to_34th_St-Hudson_Yards_%2820795497833%29.jpg",
+  "author": "airbus777 from Washington, DC, USA",
+  "license": "CC BY 2.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__01.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": true,
+  "commons": "File:Solomon R. Guggenheim Museum (48059131351).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASolomon_R._Guggenheim_Museum_%2848059131351%29.jpg",
+  "author": "Ajay Suresh from New York, NY, USA",
+  "license": "CC BY 2.0",
+  "srcW": 5265,
+  "srcH": 2962
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__02.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": false,
+  "commons": "File:'Composition' by Piet Mondrian, 1929, Solomon R. Guggenheim Museum.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A%27Composition%27_by_Piet_Mondrian%2C_1929%2C_Solomon_R._Guggenheim_Museum.JPG",
+  "author": "Piet Mondrian",
+  "license": "Public domain",
+  "srcW": 2684,
+  "srcH": 2668
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__03.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": false,
+  "commons": "File:5 Av Sep 2022 133.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5_Av_Sep_2022_133.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__04.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": false,
+  "commons": "File:5 Av Sep 2022 137.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5_Av_Sep_2022_137.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__05.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": false,
+  "commons": "File:5 Av Sep 2022 145.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5_Av_Sep_2022_145.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "solomon-r-guggenheim-museum__06.jpg",
+  "id": "solomon-r-guggenheim-museum",
+  "name": "The Guggenheim",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.78298,
+  "lon": -73.95899,
+  "gone": null,
+  "current": false,
+  "commons": "File:Albert Gleizes, 1915, Brooklyn Bridge, oil and gouache on canvas, 102 x 102 cm, Solomon R. Guggenheim Museum, New York.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAlbert_Gleizes%2C_1915%2C_Brooklyn_Bridge%2C_oil_and_gouache_on_canvas%2C_102_x_102_cm%2C_Solomon_R._Guggenheim_Museum%2C_New_York.jpg",
+  "author": "Albert Gleizes",
+  "license": "Public domain",
+  "srcW": 2885,
+  "srcH": 2963
+ },
+ {
+  "file": "metropolitan-museum-of-art__01.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": true,
+  "commons": "File:Metropolitan Museum of Art (The Met) - Central Park, NYC.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AMetropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg",
+  "author": "Hugo Schneider",
+  "license": "CC BY-SA 2.0",
+  "srcW": 2666,
+  "srcH": 1488
+ },
+ {
+  "file": "metropolitan-museum-of-art__02.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": false,
+  "commons": "File:1325-50 Touyl Reliquienschrein anagoria.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1325-50_Touyl_Reliquienschrein_anagoria.JPG",
+  "author": "Attributed to Jean de Touyl (French, died 1349)",
+  "license": "Public domain",
+  "srcW": 3548,
+  "srcH": 2292
+ },
+ {
+  "file": "metropolitan-museum-of-art__03.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": false,
+  "commons": "File:1891 Monet The four trees anagoria.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1891_Monet_The_four_trees_anagoria.JPG",
+  "author": "Claude Monet",
+  "license": "Public domain",
+  "srcW": 2008,
+  "srcH": 1920
+ },
+ {
+  "file": "metropolitan-museum-of-art__04.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": false,
+  "commons": "File:4 Jean Le Noir. Miniature from Psalter of Bonne of Luxemburg 1348-49 Metropolitan Museum, N-Y.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A4_Jean_Le_Noir._Miniature_from_Psalter_of_Bonne_of_Luxemburg_1348-49_Metropolitan_Museum%2C_N-Y.jpg",
+  "author": "Jean Le Noir",
+  "license": "Public domain",
+  "srcW": 1953,
+  "srcH": 1391
+ },
+ {
+  "file": "metropolitan-museum-of-art__05.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": false,
+  "commons": "File:Amedeo Modigliani, 1919, Jeanne Hébuterne, oil on canvas, 91.4 x 73 cm, Metropolitan Museum of Art.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAmedeo_Modigliani%2C_1919%2C_Jeanne_H%C3%A9buterne%2C_oil_on_canvas%2C_91.4_x_73_cm%2C_Metropolitan_Museum_of_Art.jpg",
+  "author": "Amedeo Modigliani",
+  "license": "Public domain",
+  "srcW": 2948,
+  "srcH": 3690
+ },
+ {
+  "file": "metropolitan-museum-of-art__06.jpg",
+  "id": "metropolitan-museum-of-art",
+  "name": "The Met",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77943,
+  "lon": -73.96324,
+  "gone": null,
+  "current": false,
+  "commons": "File:Andrea da giona, altarpiece with christ in mayesty, s. john the b., s. margareth, liguria, 1434.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAndrea_da_giona%2C_altarpiece_with_christ_in_mayesty%2C_s._john_the_b.%2C_s._margareth%2C_liguria%2C_1434.JPG",
+  "author": "sailko",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2082,
+  "srcH": 1773
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__01.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": true,
+  "commons": "File:Bethesda Terrace and Fountain, Central Park, 2025.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABethesda_Terrace_and_Fountain%2C_Central_Park%2C_2025.jpg",
+  "author": "Julian Lupyan",
+  "license": "CC0",
+  "srcW": 3811,
+  "srcH": 2853
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__02.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": false,
+  "commons": "File:2910-Central Park-Conservatory Pond.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2910-Central_Park-Conservatory_Pond.JPG",
+  "author": "Ingfbruno",
+  "license": "CC BY-SA 3.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__03.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": false,
+  "commons": "File:2927-Central Park-Bethesda Fountain.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2927-Central_Park-Bethesda_Fountain.JPG",
+  "author": "Ingfbruno",
+  "license": "CC BY-SA 3.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__04.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": false,
+  "commons": "File:Angel of the Waters, Central Park, 2025.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAngel_of_the_Waters%2C_Central_Park%2C_2025.jpg",
+  "author": "Julian Lupyan",
+  "license": "CC0",
+  "srcW": 3929,
+  "srcH": 2947
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__05.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": false,
+  "commons": "File:Angel of the Waters Fountain and Bethesda Terrace, Central Park, NYC.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAngel_of_the_Waters_Fountain_and_Bethesda_Terrace%2C_Central_Park%2C_NYC.jpg",
+  "author": "Ahodges7",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4000,
+  "srcH": 2256
+ },
+ {
+  "file": "bethesda-terrace-and-fountain__06.jpg",
+  "id": "bethesda-terrace-and-fountain",
+  "name": "Bethesda Fountain",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.77412,
+  "lon": -73.97082,
+  "gone": null,
+  "current": false,
+  "commons": "File:Annual report of the Board of Commissioners of the Central Park (1858) (18407508186).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAnnual_report_of_the_Board_of_Commissioners_of_the_Central_Park_%281858%29_%2818407508186%29.jpg",
+  "author": "Internet Archive Book Images",
+  "license": "No restrictions",
+  "srcW": 3572,
+  "srcH": 1564
+ },
+ {
+  "file": "rockefeller-center__01.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": true,
+  "commons": "File:Rockefeller Center 2 (New York) (44331718505).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ARockefeller_Center_2_%28New_York%29_%2844331718505%29.jpg",
+  "author": "VillageHero from Ulm, Germany",
+  "license": "CC BY-SA 2.0",
+  "srcW": 5184,
+  "srcH": 2920
+ },
+ {
+  "file": "rockefeller-center__02.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": false,
+  "commons": "File:1221 Avenue of the Americas.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1221_Avenue_of_the_Americas.jpg",
+  "author": "dconvertini",
+  "license": "CC BY-SA 2.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "rockefeller-center__03.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": false,
+  "commons": "File:1230 Avenue of the Americas.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1230_Avenue_of_the_Americas.jpg",
+  "author": "dconvertini",
+  "license": "CC BY-SA 2.0",
+  "srcW": 5953,
+  "srcH": 3992
+ },
+ {
+  "file": "rockefeller-center__04.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": false,
+  "commons": "File:30 Rockefeller Plaza view from Empire State Building, around 1 pm.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A30_Rockefeller_Plaza_view_from_Empire_State_Building%2C_around_1_pm.jpg",
+  "author": "David.Cole",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1469,
+  "srcH": 2443
+ },
+ {
+  "file": "rockefeller-center__05.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": false,
+  "commons": "File:47 50 Streets entrance 2010 vc.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A47_50_Streets_entrance_2010_vc.jpg",
+  "author": "inazakira",
+  "license": "CC BY-SA 2.0",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "rockefeller-center__06.jpg",
+  "id": "rockefeller-center",
+  "name": "Rockefeller Center",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.75874,
+  "lon": -73.97867,
+  "gone": null,
+  "current": false,
+  "commons": "File:75 Rockefeller Plaza.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A75_Rockefeller_Plaza.jpg",
+  "author": "dconvertini",
+  "license": "CC BY-SA 2.0",
+  "srcW": 2471,
+  "srcH": 3706
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__01.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": true,
+  "commons": "File:St. Patrick's Cathedral - 2026 (55284018525).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASt._Patrick%27s_Cathedral_-_2026_%2855284018525%29.jpg",
+  "author": "Ajay Suresh",
+  "license": "CC BY 4.0",
+  "srcW": 2674,
+  "srcH": 2674
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__02.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": false,
+  "commons": "File:2016 St. Patrick's Cathedral - Manhattan 07.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2016_St._Patrick%27s_Cathedral_-_Manhattan_07.JPG",
+  "author": "Farragutful",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4608,
+  "srcH": 3456
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__03.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": false,
+  "commons": "File:500 PATRICK V 5537 best.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A500_PATRICK_V_5537_best.jpg",
+  "author": "Peter K Burian",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2800,
+  "srcH": 4200
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__04.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronze doors to Saint Patrick's Cathedral, New York, New York LCCN2011631248.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronze_doors_to_Saint_Patrick%27s_Cathedral%2C_New_York%2C_New_York_LCCN2011631248.tif",
+  "author": "Carol M. Highsmith",
+  "license": "Public domain",
+  "srcW": 5804,
+  "srcH": 7402
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__05.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": false,
+  "commons": "File:Detail of the facade of St Patrick's Cathedral in New York City.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ADetail_of_the_facade_of_St_Patrick%27s_Cathedral_in_New_York_City.JPG",
+  "author": "Matt Weaver",
+  "license": "Public domain",
+  "srcW": 1987,
+  "srcH": 2981
+ },
+ {
+  "file": "st-patrick-s-cathedral-manhattan__06.jpg",
+  "id": "st-patrick-s-cathedral-manhattan",
+  "name": "St. Patrick's Cathedral",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7585,
+  "lon": -73.976,
+  "gone": null,
+  "current": false,
+  "commons": "File:Facade of Saint Patrick's by David Shankbone.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFacade_of_Saint_Patrick%27s_by_David_Shankbone.jpg",
+  "author": "David Shankbone",
+  "license": "CC BY 2.5",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "apollo-theater__01.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": true,
+  "commons": "File:Harlem - Apollo Theater (48555309512).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHarlem_-_Apollo_Theater_%2848555309512%29.jpg",
+  "author": "Ajay Suresh from New York, NY, USA",
+  "license": "CC BY 2.0",
+  "srcW": 3011,
+  "srcH": 3011
+ },
+ {
+  "file": "apollo-theater__02.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apollo Theater, Harlem (2011).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApollo_Theater%2C_Harlem_%282011%29.jpg",
+  "author": "Jujus367",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1530,
+  "srcH": 2048
+ },
+ {
+  "file": "apollo-theater__03.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apollo Theater - Amateur Night @ Nat King Cole Walk (4593575798).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApollo_Theater_-_Amateur_Night_%40_Nat_King_Cole_Walk_%284593575798%29.jpg",
+  "author": "Paul Sableman",
+  "license": "CC BY 2.0",
+  "srcW": 2736,
+  "srcH": 3648
+ },
+ {
+  "file": "apollo-theater__04.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apollo Theater - panoramio.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApollo_Theater_-_panoramio.jpg",
+  "author": "Pablo Costa Tirado (…",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2736,
+  "srcH": 3648
+ },
+ {
+  "file": "apollo-theater__05.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apollo Theater from the stage.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApollo_Theater_from_the_stage.jpg",
+  "author": "David Shankbone",
+  "license": "CC BY 3.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "apollo-theater__06.jpg",
+  "id": "apollo-theater",
+  "name": "Apollo Theater",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.81003,
+  "lon": -73.95005,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apollo Theatre from west.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApollo_Theatre_from_west.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1921,
+  "srcH": 2840
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__01.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": true,
+  "commons": "File:Cathedral of St. John the Divine (52009407636).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACathedral_of_St._John_the_Divine_%2852009407636%29.jpg",
+  "author": "ajay_suresh",
+  "license": "CC BY 2.0",
+  "srcW": 2915,
+  "srcH": 2915
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__02.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": false,
+  "commons": "File:1905-10-28 Cathedral of St John the Divine PE (in construction) NY City A.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1905-10-28_Cathedral_of_St_John_the_Divine_PE_%28in_construction%29_NY_City_A.jpg",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 3212,
+  "srcH": 2056
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__03.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": false,
+  "commons": "File:401-499 Cathedral Pkwy - panoramio.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A401-499_Cathedral_Pkwy_-_panoramio.jpg",
+  "author": "Pablo Costa Tirado (…",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3624,
+  "srcH": 4036
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__04.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": false,
+  "commons": "File:Avalon Morningside sun snow jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAvalon_Morningside_sun_snow_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 3000,
+  "srcH": 2400
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__05.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": false,
+  "commons": "File:Cathedral of Saint John the Divine, NYC (2014) - 18.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACathedral_of_Saint_John_the_Divine%2C_NYC_%282014%29_-_18.JPG",
+  "author": "Another Believer",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4000,
+  "srcH": 3000
+ },
+ {
+  "file": "cathedral-of-st-john-the-divine__06.jpg",
+  "id": "cathedral-of-st-john-the-divine",
+  "name": "Cathedral of St. John the Divine",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.80385,
+  "lon": -73.96186,
+  "gone": null,
+  "current": false,
+  "commons": "File:Cathedral of Saint John the Divine, NYC (2014) - 28.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACathedral_of_Saint_John_the_Divine%2C_NYC_%282014%29_-_28.JPG",
+  "author": "Another Believer",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3000,
+  "srcH": 4000
+ },
+ {
+  "file": "new-york-stock-exchange-building__01.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": true,
+  "commons": "File:New York Stock Exchange - panoramio (2).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York_Stock_Exchange_-_panoramio_%282%29.jpg",
+  "author": "TomasEE",
+  "license": "CC BY 3.0",
+  "srcW": 5187,
+  "srcH": 3444
+ },
+ {
+  "file": "new-york-stock-exchange-building__02.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYSE Xmas Time.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYSE_Xmas_Time.JPG",
+  "author": "ThreeOneFive (talk)",
+  "license": "Public domain",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "new-york-stock-exchange-building__03.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYSE facade.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYSE_facade.jpg",
+  "author": "Ryan Schwark",
+  "license": "CC0",
+  "srcW": 3888,
+  "srcH": 2592
+ },
+ {
+  "file": "new-york-stock-exchange-building__04.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYSE on Broad Street (1).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYSE_on_Broad_Street_%281%29.jpg",
+  "author": "AviaWiki",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3648,
+  "srcH": 2736
+ },
+ {
+  "file": "new-york-stock-exchange-building__05.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYSE นายกรัฐมนตรี เข้าร่วมการประชุมสมัชชาสหประชาชาติ - Flickr - Abhisit Vejjajiva (15).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYSE_%E0%B8%99%E0%B8%B2%E0%B8%A2%E0%B8%81%E0%B8%A3%E0%B8%B1%E0%B8%90%E0%B8%A1%E0%B8%99%E0%B8%95%E0%B8%A3%E0%B8%B5_%E0%B9%80%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B8%A3%E0%B9%88%E0%B8%A7%E0%B8%A1%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%8A%E0%B8%B8%E0%B8%A1%E0%B8%AA%E0%B8%A1%E0%B8%B1%E0%B8%8A%E0%B8%8A%E0%B8%B2%E0%B8%AA%E0%B8%AB%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%8A%E0%B8%B2%E0%B8%8A%E0%B8%B2%E0%B8%95%E0%B8%B4_-_Flickr_-_Abhisit_Vejjajiva_%2815%29.jpg",
+  "author": "Government of Thailand",
+  "license": "CC BY 2.0",
+  "srcW": 3413,
+  "srcH": 5120
+ },
+ {
+  "file": "new-york-stock-exchange-building__06.jpg",
+  "id": "new-york-stock-exchange-building",
+  "name": "New York Stock Exchange",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7069,
+  "lon": -74.01126,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYSX-Interior.png",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYSX-Interior.png",
+  "author": "AndrewHenkelman",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2832,
+  "srcH": 4240
+ },
+ {
+  "file": "little-island-at-pier-55__01.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": true,
+  "commons": "File:Little Island at Pier 55.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ALittle_Island_at_Pier_55.jpg",
+  "author": "Praneeth Thalla",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4080,
+  "srcH": 3072
+ },
+ {
+  "file": "little-island-at-pier-55__02.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": false,
+  "commons": "File:Amptheater Little Island NYC.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAmptheater_Little_Island_NYC.jpg",
+  "author": "AtsushiJC",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6016,
+  "srcH": 4016
+ },
+ {
+  "file": "little-island-at-pier-55__03.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": false,
+  "commons": "File:At New York, USA 2017 268.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAt_New_York%2C_USA_2017_268.jpg",
+  "author": "Photograph by Mike Peel (www.mikepeel.net).",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "little-island-at-pier-55__04.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": false,
+  "commons": "File:At New York, USA 2017 287.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAt_New_York%2C_USA_2017_287.jpg",
+  "author": "Photograph by Mike Peel (www.mikepeel.net).",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "little-island-at-pier-55__05.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": false,
+  "commons": "File:Entrance to Little Island.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEntrance_to_Little_Island.jpg",
+  "author": "Gilad Evans",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "little-island-at-pier-55__06.jpg",
+  "id": "little-island-at-pier-55",
+  "name": "Little Island",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.74203,
+  "lon": -74.01036,
+  "gone": null,
+  "current": false,
+  "commons": "File:Governors Island from One World Observatory 2017.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGovernors_Island_from_One_World_Observatory_2017.jpg",
+  "author": "Antony-22",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4608,
+  "srcH": 3456
+ },
+ {
+  "file": "the-cloisters__01.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": true,
+  "commons": "File:The Met Cloisters.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AThe_Met_Cloisters.jpg",
+  "author": "Christopher Down",
+  "license": "CC BY 4.0",
+  "srcW": 5579,
+  "srcH": 3114
+ },
+ {
+  "file": "the-cloisters__02.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": false,
+  "commons": "File:Adoration of the Magi MET LC tr 232 2016 d01.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAdoration_of_the_Magi_MET_LC_tr_232_2016_d01.jpg",
+  "author": "",
+  "license": "CC0",
+  "srcW": 2667,
+  "srcH": 4000
+ },
+ {
+  "file": "the-cloisters__03.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": false,
+  "commons": "File:Alexander the Great or Hector of Troy (detail), tapestry, France or South Lowlands, 1400-1410 (5453445613).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAlexander_the_Great_or_Hector_of_Troy_%28detail%29%2C_tapestry%2C_France_or_South_Lowlands%2C_1400-1410_%285453445613%29.jpg",
+  "author": "Sharon Mollerus",
+  "license": "CC BY 2.0",
+  "srcW": 2104,
+  "srcH": 3000
+ },
+ {
+  "file": "the-cloisters__04.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": false,
+  "commons": "File:Alexander the Great or Hector of Troy (from the Nine Heroes Tapestries) MET ra47.101.2d.R.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAlexander_the_Great_or_Hector_of_Troy_%28from_the_Nine_Heroes_Tapestries%29_MET_ra47.101.2d.R.jpg",
+  "author": "anonymous",
+  "license": "CC0",
+  "srcW": 1317,
+  "srcH": 2000
+ },
+ {
+  "file": "the-cloisters__05.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": false,
+  "commons": "File:Annunciation Triptych (Merode Altarpiece) MET DP273206.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAnnunciation_Triptych_%28Merode_Altarpiece%29_MET_DP273206.jpg",
+  "author": "Robert Campin",
+  "license": "CC0",
+  "srcW": 1959,
+  "srcH": 996
+ },
+ {
+  "file": "the-cloisters__06.jpg",
+  "id": "the-cloisters",
+  "name": "The Cloisters",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.86486,
+  "lon": -73.9318,
+  "gone": null,
+  "current": false,
+  "commons": "File:Apostle Spoon MET sf55-42-6d1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AApostle_Spoon_MET_sf55-42-6d1.jpg",
+  "author": "",
+  "license": "CC0",
+  "srcW": 1086,
+  "srcH": 2290
+ },
+ {
+  "file": "brooklyn-bridge__01.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": true,
+  "commons": "File:Brooklyn Bridge and the Lower Manhattan skyline from Pebble Beach, New York.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Bridge_and_the_Lower_Manhattan_skyline_from_Pebble_Beach%2C_New_York.jpg",
+  "author": "Christian David",
+  "license": "CC BY-SA 4.0",
+  "srcW": 26508,
+  "srcH": 8836
+ },
+ {
+  "file": "brooklyn-bridge__02.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": false,
+  "commons": "File:1883 Frank Leslie's Illustrated Newspaper Brooklyn Bridge New York City.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1883_Frank_Leslie%27s_Illustrated_Newspaper_Brooklyn_Bridge_New_York_City.jpg",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 2556,
+  "srcH": 3718
+ },
+ {
+  "file": "brooklyn-bridge__03.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": false,
+  "commons": "File:1905 The Spider's Web, Brooklyn Bridge, NY City A.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1905_The_Spider%27s_Web%2C_Brooklyn_Bridge%2C_NY_City_A.jpg",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 8441,
+  "srcH": 13178
+ },
+ {
+  "file": "brooklyn-bridge__04.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": false,
+  "commons": "File:BrooklynBridgeNoPeople.png",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklynBridgeNoPeople.png",
+  "author": "AndrewHenkelman",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5728,
+  "srcH": 8592
+ },
+ {
+  "file": "brooklyn-bridge__05.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": false,
+  "commons": "File:BrooklynBridgeSchematic.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklynBridgeSchematic.jpg",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 1118,
+  "srcH": 1920
+ },
+ {
+  "file": "brooklyn-bridge__06.jpg",
+  "id": "brooklyn-bridge",
+  "name": "Brooklyn Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.70608,
+  "lon": -73.99685,
+  "gone": null,
+  "current": false,
+  "commons": "File:BrooklynBridgeWalkwayCrowd.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklynBridgeWalkwayCrowd.jpg",
+  "author": "EazyDee107",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "manhattan-bridge__01.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": true,
+  "commons": "File:Manhattan Bridge, New York City, 20231001 1051 0959.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AManhattan_Bridge%2C_New_York_City%2C_20231001_1051_0959.jpg",
+  "author": "Jakub Hałun",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4697,
+  "srcH": 2945
+ },
+ {
+  "file": "manhattan-bridge__02.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:2024-11-17-Manhattan Bridge Dumbo-0407.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2024-11-17-Manhattan_Bridge_Dumbo-0407.jpg",
+  "author": "Superbass",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4124,
+  "srcH": 6186
+ },
+ {
+  "file": "manhattan-bridge__03.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:MB north bikeway jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AMB_north_bikeway_jeh.JPG",
+  "author": "This photo was taken by participant/team Jim Henderson as part of the Commons:Wikis Take Manhattan project on October 4,",
+  "license": "Public domain",
+  "srcW": 2996,
+  "srcH": 2251
+ },
+ {
+  "file": "manhattan-bridge__04.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:Manhattan Br Western columns jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AManhattan_Br_Western_columns_jeh.JPG",
+  "author": "Jim.henderson",
+  "license": "Public domain",
+  "srcW": 3168,
+  "srcH": 4224
+ },
+ {
+  "file": "manhattan-bridge__05.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:Manhattan Bridge- July 13, 2022.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AManhattan_Bridge-_July_13%2C_2022.jpg",
+  "author": "KoRoBeNiKi",
+  "license": "CC BY 4.0",
+  "srcW": 1536,
+  "srcH": 2048
+ },
+ {
+  "file": "manhattan-bridge__06.jpg",
+  "id": "manhattan-bridge",
+  "name": "Manhattan Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.7075,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:Manhattan Bridge Arch and Colonnade.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AManhattan_Bridge_Arch_and_Colonnade.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2205,
+  "srcH": 867
+ },
+ {
+  "file": "williamsburg-bridge__01.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": true,
+  "commons": "File:Williamsburg Bridge full.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWilliamsburg_Bridge_full.jpg",
+  "author": "Praneeth Thalla",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "williamsburg-bridge__02.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bicycle and pedestrian lane, Williamsburg Bridge, New York City - 20200906.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABicycle_and_pedestrian_lane%2C_Williamsburg_Bridge%2C_New_York_City_-_20200906.jpg",
+  "author": "Andre Carrotflower",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3803,
+  "srcH": 2852
+ },
+ {
+  "file": "williamsburg-bridge__03.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": false,
+  "commons": "File:Cont Army Plz Billyb jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACont_Army_Plz_Billyb_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 3060,
+  "srcH": 3353
+ },
+ {
+  "file": "williamsburg-bridge__04.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": false,
+  "commons": "File:Fuhgeddaboudit.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFuhgeddaboudit.jpg",
+  "author": "Daniel Schwen",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4368,
+  "srcH": 2912
+ },
+ {
+  "file": "williamsburg-bridge__05.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": false,
+  "commons": "File:Lower East Side, New York, NY, USA - panoramio - Sergei Gussev (1).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ALower_East_Side%2C_New_York%2C_NY%2C_USA_-_panoramio_-_Sergei_Gussev_%281%29.jpg",
+  "author": "Sergei Gussev",
+  "license": "CC BY 3.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "williamsburg-bridge__06.jpg",
+  "id": "williamsburg-bridge",
+  "name": "Williamsburg Bridge",
+  "boro": [
+   "Manhattan",
+   "Brooklyn"
+  ],
+  "lat": 40.71361,
+  "lon": -73.97194,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYC \"J\" train.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYC_%22J%22_train.JPG",
+  "author": "Joe r caronetti",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3648,
+  "srcH": 2736
+ },
+ {
+  "file": "queensboro-bridge__01.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": true,
+  "commons": "File:Queensboro Bridge October 2024 006.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AQueensboro_Bridge_October_2024_006.jpg",
+  "author": "Kidfly182",
+  "license": "CC BY 4.0",
+  "srcW": 4608,
+  "srcH": 2072
+ },
+ {
+  "file": "queensboro-bridge__02.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": false,
+  "commons": "File:Blackwell's Island Bridge, ca. 1907.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABlackwell%27s_Island_Bridge%2C_ca._1907.jpg",
+  "author": "George Grantham Bain",
+  "license": "Public domain",
+  "srcW": 5493,
+  "srcH": 3630
+ },
+ {
+  "file": "queensboro-bridge__03.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bridgemarket north side jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABridgemarket_north_side_jeh.jpg",
+  "author": "Jim.henderson.",
+  "license": "Public domain",
+  "srcW": 1600,
+  "srcH": 1200
+ },
+ {
+  "file": "queensboro-bridge__04.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": false,
+  "commons": "File:EdKochBdge 20231017 094700.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEdKochBdge_20231017_094700.jpg",
+  "author": "CaptJayRuffins",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4000,
+  "srcH": 2252
+ },
+ {
+  "file": "queensboro-bridge__05.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": false,
+  "commons": "File:QBB pinacle 5BBT jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AQBB_pinacle_5BBT_jeh.JPG",
+  "author": "Jim.henderson",
+  "license": "Public domain",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "queensboro-bridge__06.jpg",
+  "id": "queensboro-bridge",
+  "name": "Queensboro Bridge",
+  "boro": [
+   "Manhattan",
+   "Queens"
+  ],
+  "lat": 40.75667,
+  "lon": -73.95444,
+  "gone": null,
+  "current": false,
+  "commons": "File:Queensboro Bridge 1908 LOC 3c00105u.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AQueensboro_Bridge_1908_LOC_3c00105u.jpg",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 3708,
+  "srcH": 2096
+ },
+ {
+  "file": "coney-island-cyclone__01.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": true,
+  "commons": "File:Cyclone Roller Coaster (Coney Island, New York) 001.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACyclone_Roller_Coaster_%28Coney_Island%2C_New_York%29_001.jpg",
+  "author": "Leonard J. DeFrancisci",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4000,
+  "srcH": 3000
+ },
+ {
+  "file": "coney-island-cyclone__02.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": false,
+  "commons": "File:2010-03-21 at 11-00-57.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_11-00-57.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2200,
+  "srcH": 1465
+ },
+ {
+  "file": "coney-island-cyclone__03.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island 2010 109.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_2010_109.JPG",
+  "author": "Mttbme",
+  "license": "CC BY 3.0",
+  "srcW": 2848,
+  "srcH": 2134
+ },
+ {
+  "file": "coney-island-cyclone__04.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island Brooklyn Jul 2019 88.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_Brooklyn_Jul_2019_88.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "coney-island-cyclone__05.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island beach and amusement parks (June 2016).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_beach_and_amusement_parks_%28June_2016%29.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "coney-island-cyclone__06.jpg",
+  "id": "coney-island-cyclone",
+  "name": "The Cyclone",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57509,
+  "lon": -73.97755,
+  "gone": null,
+  "current": false,
+  "commons": "File:Cyclone Roller Coaster.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACyclone_Roller_Coaster.jpg",
+  "author": "Uri Baruchin from London, UK",
+  "license": "CC BY 2.0",
+  "srcW": 2160,
+  "srcH": 1440
+ },
+ {
+  "file": "wonder-wheel__01.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": true,
+  "commons": "File:Wonder Wheel off-season 1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWonder_Wheel_off-season_1.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3384,
+  "srcH": 2438
+ },
+ {
+  "file": "wonder-wheel__02.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": false,
+  "commons": "File:2010-03-21 at 11-00-57.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_11-00-57.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2200,
+  "srcH": 1465
+ },
+ {
+  "file": "wonder-wheel__03.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island beach and amusement parks (June 2016).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_beach_and_amusement_parks_%28June_2016%29.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "wonder-wheel__04.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": false,
+  "commons": "File:Newyork15.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANewyork15.jpg",
+  "author": "Andrea favia",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5312,
+  "srcH": 2988
+ },
+ {
+  "file": "wonder-wheel__05.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": false,
+  "commons": "File:South wall New York Aquarium.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASouth_wall_New_York_Aquarium.JPG",
+  "author": "Eliedion",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2816,
+  "srcH": 2112
+ },
+ {
+  "file": "wonder-wheel__06.jpg",
+  "id": "wonder-wheel",
+  "name": "Wonder Wheel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57416,
+  "lon": -73.97853,
+  "gone": null,
+  "current": false,
+  "commons": "File:Wonder Wheel, Coney Island at night (June 2016) 2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWonder_Wheel%2C_Coney_Island_at_night_%28June_2016%29_2.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4000,
+  "srcH": 6000
+ },
+ {
+  "file": "parachute-jump__01.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": true,
+  "commons": "File:Parachute Jump on Coney Island.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AParachute_Jump_on_Coney_Island.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2964,
+  "srcH": 4564
+ },
+ {
+  "file": "parachute-jump__02.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": false,
+  "commons": "File:2010-03-21 at 10-52-34.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_10-52-34.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2672,
+  "srcH": 4000
+ },
+ {
+  "file": "parachute-jump__03.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": false,
+  "commons": "File:2010-03-21 at 11-00-57.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_11-00-57.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2200,
+  "srcH": 1465
+ },
+ {
+  "file": "parachute-jump__04.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": false,
+  "commons": "File:Airborne school (9516647992).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAirborne_school_%289516647992%29.jpg",
+  "author": "The U.S. Army",
+  "license": "Public domain",
+  "srcW": 4500,
+  "srcH": 3375
+ },
+ {
+  "file": "parachute-jump__05.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island Brooklyn Jul 2019 45.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_Brooklyn_Jul_2019_45.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "parachute-jump__06.jpg",
+  "id": "parachute-jump",
+  "name": "Parachute Jump",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.57409,
+  "lon": -73.98432,
+  "gone": null,
+  "current": false,
+  "commons": "File:Coney Island beach and amusement parks (June 2016).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_beach_and_amusement_parks_%28June_2016%29.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "barclays-center__01.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": true,
+  "commons": "File:Barclays Center - 2026 (55268559424).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_-_2026_%2855268559424%29.jpg",
+  "author": "Ajay Suresh",
+  "license": "CC BY 4.0",
+  "srcW": 8126,
+  "srcH": 4571
+ },
+ {
+  "file": "barclays-center__02.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": false,
+  "commons": "File:Atlantic Terminal td (2019-03-30) 020 - Barclays Center.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAtlantic_Terminal_td_%282019-03-30%29_020_-_Barclays_Center.jpg",
+  "author": "Tdorante10",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5472,
+  "srcH": 3648
+ },
+ {
+  "file": "barclays-center__03.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": false,
+  "commons": "File:Barclays-Center-6-19-11.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays-Center-6-19-11.jpg",
+  "author": "L. Frank Cabrera",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2592,
+  "srcH": 1552
+ },
+ {
+  "file": "barclays-center__04.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": false,
+  "commons": "File:Barclays Center Boston Celtics-Brooklyn Nets 2012.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_Boston_Celtics-Brooklyn_Nets_2012.jpg",
+  "author": "Erik Cleves Kristensen",
+  "license": "CC BY 2.0",
+  "srcW": 4320,
+  "srcH": 3240
+ },
+ {
+  "file": "barclays-center__05.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": false,
+  "commons": "File:Barclays Center Oculus.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_Oculus.jpg",
+  "author": "Darkhunger at English Wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "barclays-center__06.jpg",
+  "id": "barclays-center",
+  "name": "Barclays Center",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.68265,
+  "lon": -73.97524,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bklyn Nets arena Feb 2012 jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABklyn_Nets_arena_Feb_2012_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 2401,
+  "srcH": 1198
+ },
+ {
+  "file": "brooklyn-museum__01.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": true,
+  "commons": "File:Brooklyn Museum - Entrance (52302265063).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Museum_-_Entrance_%2852302265063%29.jpg",
+  "author": "ajay_suresh",
+  "license": "CC BY 2.0",
+  "srcW": 3768,
+  "srcH": 2826
+ },
+ {
+  "file": "brooklyn-museum__02.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": false,
+  "commons": "File:A Morning Snow-Hudson River at the Brooklyn Museum (80534)a.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AA_Morning_Snow-Hudson_River_at_the_Brooklyn_Museum_%2880534%29a.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3261,
+  "srcH": 2312
+ },
+ {
+  "file": "brooklyn-museum__03.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": false,
+  "commons": "File:BrooklynMuseumJanuary2007.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklynMuseumJanuary2007.jpg",
+  "author": "PaladinHero1 at English Wikipedia (Original text: Brent Nycz)",
+  "license": "CC BY 2.5",
+  "srcW": 2048,
+  "srcH": 1536
+ },
+ {
+  "file": "brooklyn-museum__04.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": false,
+  "commons": "File:Brooklyn Botanic Garden New York May 2015 002.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Botanic_Garden_New_York_May_2015_002.jpg",
+  "author": "King of Hearts",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4800,
+  "srcH": 3200
+ },
+ {
+  "file": "brooklyn-museum__05.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": false,
+  "commons": "File:Brooklyn Institute of Arts and Sciences, Brooklyn, N.Y (NYPL b12647398-70040).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Institute_of_Arts_and_Sciences%2C_Brooklyn%2C_N.Y_%28NYPL_b12647398-70040%29.tiff",
+  "author": "Detroit Publishing Company",
+  "license": "Public domain",
+  "srcW": 2456,
+  "srcH": 1616
+ },
+ {
+  "file": "brooklyn-museum__06.jpg",
+  "id": "brooklyn-museum",
+  "name": "Brooklyn Museum",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6712,
+  "lon": -73.9636,
+  "gone": null,
+  "current": false,
+  "commons": "File:Brooklyn Museum Night 2015.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Museum_Night_2015.jpg",
+  "author": "Cm300883",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4898,
+  "srcH": 3265
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__01.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": true,
+  "commons": "File:Soldiers' and Sailors' Arch - Grand Army Plaza (55268471678).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASoldiers%27_and_Sailors%27_Arch_-_Grand_Army_Plaza_%2855268471678%29.jpg",
+  "author": "ajay_suresh",
+  "license": "CC BY 4.0",
+  "srcW": 5080,
+  "srcH": 5080
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__02.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": false,
+  "commons": "File:Soldiers' and Sailors' Arch.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASoldiers%27_and_Sailors%27_Arch.jpg",
+  "author": "Padraic Ryan - User: (WT-shared) Padraic at wts wikivoyage",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1998,
+  "srcH": 2477
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__03.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Army Plaza Brooklyn New York August 2013.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Army_Plaza_Brooklyn_New_York_August_2013.jpg",
+  "author": "King of Hearts",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3000,
+  "srcH": 2400
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__04.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": false,
+  "commons": "File:Christmas 2013 from the Brooklyn Mirador.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChristmas_2013_from_the_Brooklyn_Mirador.JPG",
+  "author": "Richard F Kessler",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1984,
+  "srcH": 1488
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__05.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": false,
+  "commons": "File:Prospect Park (Brooklyn), 2.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AProspect_Park_%28Brooklyn%29%2C_2.JPG",
+  "author": "Elisa Rolle",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3872,
+  "srcH": 2592
+ },
+ {
+  "file": "soldiers-and-sailors-arch-brooklyn__06.jpg",
+  "id": "soldiers-and-sailors-arch-brooklyn",
+  "name": "Soldiers' and Sailors' Arch",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.67347,
+  "lon": -73.97003,
+  "gone": null,
+  "current": false,
+  "commons": "File:The Soldiers and Sailors Memorial Arch at Grand Army Plaza.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AThe_Soldiers_and_Sailors_Memorial_Arch_at_Grand_Army_Plaza.jpg",
+  "author": "Jeffrey O. Gustafson",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1919,
+  "srcH": 2265
+ },
+ {
+  "file": "green-wood-cemetery__01.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": true,
+  "commons": "File:Green-Wood Cemetery gate (53784p) cropped.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGreen-Wood_Cemetery_gate_%2853784p%29_cropped.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 7896,
+  "srcH": 5995
+ },
+ {
+  "file": "green-wood-cemetery__02.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:2015 Green-Wood Cemetery Gate from outside left detail.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2015_Green-Wood_Cemetery_Gate_from_outside_left_detail.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2908,
+  "srcH": 1795
+ },
+ {
+  "file": "green-wood-cemetery__03.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:2015 Hezekiah Pierrepont Memorial 1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2015_Hezekiah_Pierrepont_Memorial_1.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3670,
+  "srcH": 2668
+ },
+ {
+  "file": "green-wood-cemetery__04.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:European Beech Tree and Mausoleums at Green-Wood Cemetery, Brooklyn, NY - September 19, 2015.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEuropean_Beech_Tree_and_Mausoleums_at_Green-Wood_Cemetery%2C_Brooklyn%2C_NY_-_September_19%2C_2015.jpg",
+  "author": "Marty Aligata",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2288,
+  "srcH": 1712
+ },
+ {
+  "file": "green-wood-cemetery__05.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:Fort Hamilton Gatehouse, Greenwood Cemetery.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFort_Hamilton_Gatehouse%2C_Greenwood_Cemetery.jpg",
+  "author": "Bestbudbrian",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2048,
+  "srcH": 1359
+ },
+ {
+  "file": "green-wood-cemetery__06.jpg",
+  "id": "green-wood-cemetery",
+  "name": "Green-Wood Cemetery",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6525,
+  "lon": -73.99083,
+  "gone": null,
+  "current": false,
+  "commons": "File:Governor DeWitt Clinton statue at Green-Wood Cemetery (side) (61924).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGovernor_DeWitt_Clinton_statue_at_Green-Wood_Cemetery_%28side%29_%2861924%29.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3501,
+  "srcH": 3059
+ },
+ {
+  "file": "verrazzano-narrows-bridge__01.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": true,
+  "commons": "File:Verrazano Bridge2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AVerrazano_Bridge2.jpg",
+  "author": "H.L.I.T.",
+  "license": "Public domain",
+  "srcW": 2224,
+  "srcH": 1996
+ },
+ {
+  "file": "verrazzano-narrows-bridge__02.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": false,
+  "commons": "File:2011-10-23-queen-mary-2-mast-under-verrazano-narrows-bridge.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2011-10-23-queen-mary-2-mast-under-verrazano-narrows-bridge.jpg",
+  "author": "Paul Sladen",
+  "license": "CC0",
+  "srcW": 3968,
+  "srcH": 2976
+ },
+ {
+  "file": "verrazzano-narrows-bridge__03.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": false,
+  "commons": "File:B&T 9891 (6808498097).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AB%26T_9891_%286808498097%29.jpg",
+  "author": "Metropolitan Transportation Authority of the State of New York",
+  "license": "CC BY 2.0",
+  "srcW": 1116,
+  "srcH": 1680
+ },
+ {
+  "file": "verrazzano-narrows-bridge__04.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": false,
+  "commons": "File:Fort Wadsworth.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFort_Wadsworth.JPG",
+  "author": "Publicganda",
+  "license": "CC BY-SA 3.0",
+  "srcW": 8192,
+  "srcH": 1856
+ },
+ {
+  "file": "verrazzano-narrows-bridge__05.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": false,
+  "commons": "File:The Narrows - panoramio.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AThe_Narrows_-_panoramio.jpg",
+  "author": "beglib",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1999,
+  "srcH": 1471
+ },
+ {
+  "file": "verrazzano-narrows-bridge__06.jpg",
+  "id": "verrazzano-narrows-bridge",
+  "name": "Verrazzano-Narrows Bridge",
+  "boro": [
+   "Brooklyn",
+   "Staten Island"
+  ],
+  "lat": 40.60667,
+  "lon": -74.04472,
+  "gone": null,
+  "current": false,
+  "commons": "File:Verbridge1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AVerbridge1.jpg",
+  "author": "Dogma5",
+  "license": "Public domain",
+  "srcW": 3000,
+  "srcH": 784
+ },
+ {
+  "file": "unisphere__01.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": true,
+  "commons": "File:Unisphere-2 (27835155267).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AUnisphere-2_%2827835155267%29.jpg",
+  "author": "Ajay Suresh from New York, NY, USA",
+  "license": "CC BY 2.0",
+  "srcW": 4608,
+  "srcH": 3456
+ },
+ {
+  "file": "unisphere__02.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field baseball stadium - July 2024.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_baseball_stadium_-_July_2024.jpg",
+  "author": "LostplanetKD73",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "unisphere__03.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": false,
+  "commons": "File:Entrance Plaza, Queens Botanical Garden.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEntrance_Plaza%2C_Queens_Botanical_Garden.jpg",
+  "author": "Queensbotanicalgarden",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6016,
+  "srcH": 4000
+ },
+ {
+  "file": "unisphere__04.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": false,
+  "commons": "File:Etihad Park April 2026.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEtihad_Park_April_2026.jpg",
+  "author": "Bananza76",
+  "license": "CC0",
+  "srcW": 5712,
+  "srcH": 4284
+ },
+ {
+  "file": "unisphere__05.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flushing Meadows Carousel 06.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlushing_Meadows_Carousel_06.JPG",
+  "author": "Peter Greenberg",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "unisphere__06.jpg",
+  "id": "unisphere",
+  "name": "The Unisphere",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74613,
+  "lon": -73.84501,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flushing Meadows Natatorium-1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlushing_Meadows_Natatorium-1.jpg",
+  "author": "Leo Chiou",
+  "license": "CC BY-SA 4.0",
+  "srcW": 7349,
+  "srcH": 4905
+ },
+ {
+  "file": "new-york-state-pavilion__01.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:1965 World's Fair- New York State Pavilion.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1965_World%27s_Fair-_New_York_State_Pavilion.jpg",
+  "author": "Gary Lee Todd, Ph.D.",
+  "license": "CC0",
+  "srcW": 3505,
+  "srcH": 2319
+ },
+ {
+  "file": "new-york-state-pavilion__02.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field baseball stadium - July 2024.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_baseball_stadium_-_July_2024.jpg",
+  "author": "LostplanetKD73",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "new-york-state-pavilion__03.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:Entrance Plaza, Queens Botanical Garden.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEntrance_Plaza%2C_Queens_Botanical_Garden.jpg",
+  "author": "Queensbotanicalgarden",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6016,
+  "srcH": 4000
+ },
+ {
+  "file": "new-york-state-pavilion__04.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:Etihad Park April 2026.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEtihad_Park_April_2026.jpg",
+  "author": "Bananza76",
+  "license": "CC0",
+  "srcW": 5712,
+  "srcH": 4284
+ },
+ {
+  "file": "new-york-state-pavilion__05.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flushing Meadow Corona Park NY State Pavillon from the 1964 Worlds Fair.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlushing_Meadow_Corona_Park_NY_State_Pavillon_from_the_1964_Worlds_Fair.jpg",
+  "author": "Ken-Photographer",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4271,
+  "srcH": 2828
+ },
+ {
+  "file": "new-york-state-pavilion__06.jpg",
+  "id": "new-york-state-pavilion",
+  "name": "New York State Pavilion",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74389,
+  "lon": -73.84667,
+  "gone": null,
+  "current": false,
+  "commons": "File:Flushing Meadows Carousel 06.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFlushing_Meadows_Carousel_06.JPG",
+  "author": "Peter Greenberg",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5184,
+  "srcH": 3456
+ },
+ {
+  "file": "citi-field__01.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": true,
+  "commons": "File:Citi Field baseball stadium - July 2024.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_baseball_stadium_-_July_2024.jpg",
+  "author": "LostplanetKD73",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "citi-field__02.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": false,
+  "commons": "File:5.9.14CitiFieldControlRoomByLuigiNovi5.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5.9.14CitiFieldControlRoomByLuigiNovi5.jpg",
+  "author": "Nightscream",
+  "license": "CC BY 3.0",
+  "srcW": 3264,
+  "srcH": 2184
+ },
+ {
+  "file": "citi-field__03.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field (48613685207).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_%2848613685207%29.jpg",
+  "author": "Ajay Suresh from New York, NY, USA",
+  "license": "CC BY 2.0",
+  "srcW": 4516,
+  "srcH": 2540
+ },
+ {
+  "file": "citi-field__04.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field Day.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_Day.jpg",
+  "author": "Sam Smith",
+  "license": "Public domain",
+  "srcW": 3872,
+  "srcH": 2592
+ },
+ {
+  "file": "citi-field__05.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "citi-field__06.jpg",
+  "id": "citi-field",
+  "name": "Citi Field",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7571,
+  "lon": -73.8458,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field and Arthur Ashe Stadium.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Arthur_Ashe_Stadium.jpg",
+  "author": "Dicklyon",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1512,
+  "srcH": 2412
+ },
+ {
+  "file": "arthur-ashe-stadium__01.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": true,
+  "commons": "File:Arthur Ashe Stadium with the roof closed (32938595438).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AArthur_Ashe_Stadium_with_the_roof_closed_%2832938595438%29.jpg",
+  "author": "Carine06 from UK",
+  "license": "CC BY-SA 2.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "arthur-ashe-stadium__02.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": false,
+  "commons": "File:2019 USTA NTC Court 4 and Ashe.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2019_USTA_NTC_Court_4_and_Ashe.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5152,
+  "srcH": 3864
+ },
+ {
+  "file": "arthur-ashe-stadium__03.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": false,
+  "commons": "File:Arthur Ashe Stadium, July 7, 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AArthur_Ashe_Stadium%2C_July_7%2C_2018.jpg",
+  "author": "D. Benjamin Miller",
+  "license": "CC0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "arthur-ashe-stadium__04.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": false,
+  "commons": "File:Arthur Ashe Stadium (48613684807).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AArthur_Ashe_Stadium_%2848613684807%29.jpg",
+  "author": "Ajay Suresh from New York, NY, USA",
+  "license": "CC BY 2.0",
+  "srcW": 3844,
+  "srcH": 2162
+ },
+ {
+  "file": "arthur-ashe-stadium__05.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": false,
+  "commons": "File:Aryna Sabalenka vs. Qinwen Zheng in a quarterfinals of the 2024 US Open - 01.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAryna_Sabalenka_vs._Qinwen_Zheng_in_a_quarterfinals_of_the_2024_US_Open_-_01.jpg",
+  "author": "Oleg Yunakov",
+  "license": "CC BY-SA 4.0",
+  "srcW": 8064,
+  "srcH": 6048
+ },
+ {
+  "file": "arthur-ashe-stadium__06.jpg",
+  "id": "arthur-ashe-stadium",
+  "name": "Arthur Ashe Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75,
+  "lon": -73.8467,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "pepsi-cola-sign__01.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": true,
+  "commons": "File:4610 Center Boulevard behind Pepsi sign jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A4610_Center_Boulevard_behind_Pepsi_sign_jeh.JPG",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 3672,
+  "srcH": 4502
+ },
+ {
+  "file": "pepsi-cola-sign__02.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": false,
+  "commons": "File:New York City37.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York_City37.jpg",
+  "author": "user:matanya",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2832,
+  "srcH": 2128
+ },
+ {
+  "file": "pepsi-cola-sign__03.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": false,
+  "commons": "File:Pepsi-Cola sign SWW.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3APepsi-Cola_sign_SWW.jpg",
+  "author": "Solowomanwalks",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3943,
+  "srcH": 2268
+ },
+ {
+  "file": "pepsi-cola-sign__04.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": false,
+  "commons": "File:Pepsi-Cola sign park view.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3APepsi-Cola_sign_park_view.jpg",
+  "author": "Sashimi-b",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6016,
+  "srcH": 4016
+ },
+ {
+  "file": "pepsi-cola-sign__05.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": false,
+  "commons": "File:Wiki Takes LIC Tour Start.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWiki_Takes_LIC_Tour_Start.jpg",
+  "author": "GaoKyle",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2268,
+  "srcH": 4032
+ },
+ {
+  "file": "pepsi-cola-sign__06.jpg",
+  "id": "pepsi-cola-sign",
+  "name": "Pepsi-Cola Sign",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7476,
+  "lon": -73.9572,
+  "gone": null,
+  "current": false,
+  "commons": "File:Long Island City Pepsi Cola Sign - May 2026.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ALong_Island_City_Pepsi_Cola_Sign_-_May_2026.jpg",
+  "author": "Anonymouscarrots",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5712,
+  "srcH": 4284
+ },
+ {
+  "file": "hell-gate-bridge__01.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": true,
+  "commons": "File:Hell Gate Bridge (60275p).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHell_Gate_Bridge_%2860275p%29.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 8853,
+  "srcH": 3598
+ },
+ {
+  "file": "hell-gate-bridge__02.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": false,
+  "commons": "File:Acela crosses Little Hell Gate SB fr under TBB jeh cropped.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAcela_crosses_Little_Hell_Gate_SB_fr_under_TBB_jeh_cropped.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 2670,
+  "srcH": 1638
+ },
+ {
+  "file": "hell-gate-bridge__03.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": false,
+  "commons": "File:Astoria Ditmars Boulevard tunnel vc.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAstoria_Ditmars_Boulevard_tunnel_vc.jpg",
+  "author": "Jason Eppink from New York City, USA",
+  "license": "CC BY 2.0",
+  "srcW": 3648,
+  "srcH": 2736
+ },
+ {
+  "file": "hell-gate-bridge__04.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Kill - Randalls Island - New York City.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Kill_-_Randalls_Island_-_New_York_City.jpg",
+  "author": "Peter Greenberg",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4618,
+  "srcH": 3464
+ },
+ {
+  "file": "hell-gate-bridge__05.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Kill and Hell Gate Bridge east of Triboro jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Kill_and_Hell_Gate_Bridge_east_of_Triboro_jeh.jpg",
+  "author": "Jim.henderson at English Wikipedia",
+  "license": "Public domain",
+  "srcW": 2091,
+  "srcH": 2340
+ },
+ {
+  "file": "hell-gate-bridge__06.jpg",
+  "id": "hell-gate-bridge",
+  "name": "Hell Gate Bridge",
+  "boro": [
+   "Queens",
+   "Manhattan"
+  ],
+  "lat": 40.78222,
+  "lon": -73.92167,
+  "gone": null,
+  "current": false,
+  "commons": "File:Hell Gate (95023027).jpeg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHell_Gate_%2895023027%29.jpeg",
+  "author": "Noki Va",
+  "license": "CC BY 3.0",
+  "srcW": 2048,
+  "srcH": 1365
+ },
+ {
+  "file": "twa-flight-center__01.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": true,
+  "commons": "File:Ehemaliges TWA-Terminal am John F. Kennedy International Airport in New York.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEhemaliges_TWA-Terminal_am_John_F._Kennedy_International_Airport_in_New_York.JPG",
+  "author": "Roland Arhelger",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2595,
+  "srcH": 978
+ },
+ {
+  "file": "twa-flight-center__02.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": false,
+  "commons": "File:A Crowded Room.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AA_Crowded_Room.jpg",
+  "author": "Rich Lemonie",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4896,
+  "srcH": 3264
+ },
+ {
+  "file": "twa-flight-center__03.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": false,
+  "commons": "File:Ambassadors Club, TWA Flight Center, John F. Kennedy International Airport, Jamaica, Queens, New York City, NY (48589082067).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAmbassadors_Club%2C_TWA_Flight_Center%2C_John_F._Kennedy_International_Airport%2C_Jamaica%2C_Queens%2C_New_York_City%2C_NY_%2848589082067%29.jpg",
+  "author": "Warren LeMay from Cullowhee, NC, United States",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "twa-flight-center__04.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": false,
+  "commons": "File:Aviacionavion.png",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAviacionavion.png",
+  "author": "Turkmenistan.airlines.frontview.arp.jpg: elfuser derivative work: Elfuser (talk)",
+  "license": "Public domain",
+  "srcW": 1600,
+  "srcH": 1600
+ },
+ {
+  "file": "twa-flight-center__05.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bar Counter at TWA Flight Center, 1962.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABar_Counter_at_TWA_Flight_Center%2C_1962.jpg",
+  "author": "Samuel H. Gottscho and William H. Schleisner",
+  "license": "Public domain",
+  "srcW": 5412,
+  "srcH": 4300
+ },
+ {
+  "file": "twa-flight-center__06.jpg",
+  "id": "twa-flight-center",
+  "name": "TWA Flight Center",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.6461,
+  "lon": -73.777,
+  "gone": null,
+  "current": false,
+  "commons": "File:Cover Sheet - Trans World Airlines Flight Center, John F. Kennedy International Airport, Jamaica Bay, Queens (subdivision), Queens County, NY HABS NY-6371 (sheet 1 of 32).tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACover_Sheet_-_Trans_World_Airlines_Flight_Center%2C_John_F._Kennedy_International_Airport%2C_Jamaica_Bay%2C_Queens_%28subdivision%29%2C_Queens_County%2C_NY_HABS_NY-6371_%28sheet_1_of_32%29.tif",
+  "author": "Beyer Blinder Belle Architects and Planners",
+  "license": "Public domain",
+  "srcW": 17143,
+  "srcH": 13590
+ },
+ {
+  "file": "kaufman-astoria-studios__01.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": true,
+  "commons": "File:Kaufman Studio 35 Av 35 St sun jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AKaufman_Studio_35_Av_35_St_sun_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 4000,
+  "srcH": 3000
+ },
+ {
+  "file": "kaufman-astoria-studios__02.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": false,
+  "commons": "File:Kaufman gate 36 St 35 Av jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AKaufman_gate_36_St_35_Av_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 4896,
+  "srcH": 3672
+ },
+ {
+  "file": "kaufman-astoria-studios__03.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": false,
+  "commons": "File:Kaufman Univ Studio LIC jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AKaufman_Univ_Studio_LIC_jeh.JPG",
+  "author": "Jim.henderson",
+  "license": "Public domain",
+  "srcW": 2588,
+  "srcH": 2204
+ },
+ {
+  "file": "kaufman-astoria-studios__04.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": false,
+  "commons": "File:Paramount Studios, now known as Kaufman-Astoria Studios. Wide shot of center of building from 35 the Ave..JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AParamount_Studios%2C_now_known_as_Kaufman-Astoria_Studios._Wide_shot_of_center_of_building_from_35_the_Ave..JPG",
+  "author": "MrShah2012",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4912,
+  "srcH": 3264
+ },
+ {
+  "file": "kaufman-astoria-studios__05.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": false,
+  "commons": "File:Paramount Studios, now known as Kaufman-Astoria Studios. Corner shot showing building spanning between 36 th and 35 th streets..JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AParamount_Studios%2C_now_known_as_Kaufman-Astoria_Studios._Corner_shot_showing_building_spanning_between_36_th_and_35_th_streets..JPG",
+  "author": "MrShah2012",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4912,
+  "srcH": 3264
+ },
+ {
+  "file": "kaufman-astoria-studios__06.jpg",
+  "id": "kaufman-astoria-studios",
+  "name": "Kaufman Astoria Studios",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.7563,
+  "lon": -73.9254,
+  "gone": null,
+  "current": false,
+  "commons": "File:Paramount Studios, now known as Kaufman-Astoria Studios.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AParamount_Studios%2C_now_known_as_Kaufman-Astoria_Studios.JPG",
+  "author": "MrShah2012",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4912,
+  "srcH": 3264
+ },
+ {
+  "file": "yankee-stadium__01.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": true,
+  "commons": "File:Yankee Stadium overhead 2010.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AYankee_Stadium_overhead_2010.jpg",
+  "author": "vtravelled.com",
+  "license": "CC BY 2.0",
+  "srcW": 3872,
+  "srcH": 2592
+ },
+ {
+  "file": "yankee-stadium__02.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": false,
+  "commons": "File:161st Street Yankee Stadium IRT Jerome southbound platform 2009 Yankee Stadium.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A161st_Street_Yankee_Stadium_IRT_Jerome_southbound_platform_2009_Yankee_Stadium.JPG",
+  "author": "TLK in 3",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1600,
+  "srcH": 1200
+ },
+ {
+  "file": "yankee-stadium__03.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": false,
+  "commons": "File:2014 Yankee Stadium prior to day game.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2014_Yankee_Stadium_prior_to_day_game.jpg",
+  "author": "Beyond My Ken",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1600,
+  "srcH": 1129
+ },
+ {
+  "file": "yankee-stadium__04.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": false,
+  "commons": "File:Aaron Judge first home run 2022.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAaron_Judge_first_home_run_2022.jpg",
+  "author": "Adc95",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "yankee-stadium__05.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": false,
+  "commons": "File:Babe Ruth signed baseball.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABabe_Ruth_signed_baseball.JPG",
+  "author": "Shamblesuk at English Wikipedia",
+  "license": "GFDL",
+  "srcW": 3872,
+  "srcH": 2592
+ },
+ {
+  "file": "yankee-stadium__06.jpg",
+  "id": "yankee-stadium",
+  "name": "Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.82919,
+  "lon": -73.9265,
+  "gone": null,
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "bronx-zoo__01.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": true,
+  "commons": "File:Bronx Zoo 001.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoo_001.jpg",
+  "author": "Postdlf",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2556,
+  "srcH": 1896
+ },
+ {
+  "file": "bronx-zoo__02.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Zoo - NY - USA - panoramio (30).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoo_-_NY_-_USA_-_panoramio_%2830%29.jpg",
+  "author": "Paulo JC Nogueira",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 2448
+ },
+ {
+  "file": "bronx-zoo__03.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Zoo 005.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoo_005.jpg",
+  "author": "Postdlf",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "bronx-zoo__04.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Zoo Monorail 2011 vc.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoo_Monorail_2011_vc.jpg",
+  "author": "Shinya Suzuki from New York, U.S.A.",
+  "license": "CC BY 2.0",
+  "srcW": 2592,
+  "srcH": 1728
+ },
+ {
+  "file": "bronx-zoo__05.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Zoo center.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoo_center.jpg",
+  "author": "Ryan Schwark",
+  "license": "CC0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "bronx-zoo__06.jpg",
+  "id": "bronx-zoo",
+  "name": "Bronx Zoo",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8506,
+  "lon": -73.8769,
+  "gone": null,
+  "current": false,
+  "commons": "File:Bronx Zoological Park - DPLA - 0810d730971bf313f10ec4cd0d521a5e.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABronx_Zoological_Park_-_DPLA_-_0810d730971bf313f10ec4cd0d521a5e.jpg",
+  "author": "Edmund F. Arras",
+  "license": "Public domain",
+  "srcW": 4345,
+  "srcH": 3281
+ },
+ {
+  "file": "enid-a-haupt-conservatory__01.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": true,
+  "commons": "File:Haupt Conservatory, Mar 2019.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHaupt_Conservatory%2C_Mar_2019.jpg",
+  "author": "Antigng",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "enid-a-haupt-conservatory__02.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": false,
+  "commons": "File:New York Botanical Garden October 2016 004 edit.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York_Botanical_Garden_October_2016_004_edit.jpg",
+  "author": "King of Hearts",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4950,
+  "srcH": 3960
+ },
+ {
+  "file": "enid-a-haupt-conservatory__03.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": false,
+  "commons": "File:Ny-botanical-haupt-conservatory.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANy-botanical-haupt-conservatory.JPG",
+  "author": "Dmadeo",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4000,
+  "srcH": 3000
+ },
+ {
+  "file": "enid-a-haupt-conservatory__04.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYBG Conservatory NY1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYBG_Conservatory_NY1.jpg",
+  "author": "Acroterion",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5428,
+  "srcH": 3900
+ },
+ {
+  "file": "enid-a-haupt-conservatory__05.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": false,
+  "commons": "File:Inside view of the Haupt Conservatory in October, 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AInside_view_of_the_Haupt_Conservatory_in_October%2C_2018.jpg",
+  "author": "Antigng",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "enid-a-haupt-conservatory__06.jpg",
+  "id": "enid-a-haupt-conservatory",
+  "name": "Enid A. Haupt Conservatory",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86265,
+  "lon": -73.88042,
+  "gone": null,
+  "current": false,
+  "commons": "File:NYBG conservatory NY2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYBG_conservatory_NY2.jpg",
+  "author": "Acroterion",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5472,
+  "srcH": 3651
+ },
+ {
+  "file": "edgar-allan-poe-cottage__01.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": true,
+  "commons": "File:Edgar Allan Poe's house in the Bronx.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEdgar_Allan_Poe%27s_house_in_the_Bronx.jpg",
+  "author": "Zoirusha at English Wikipedia",
+  "license": "Public domain",
+  "srcW": 2662,
+  "srcH": 2102
+ },
+ {
+  "file": "edgar-allan-poe-cottage__02.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": false,
+  "commons": "File:P1020279.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AP1020279.JPG",
+  "author": "Zoirusha at English Wikipedia",
+  "license": "Public domain",
+  "srcW": 2662,
+  "srcH": 2102
+ },
+ {
+  "file": "edgar-allan-poe-cottage__03.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": false,
+  "commons": "File:VirginiaPoeBedroom.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AVirginiaPoeBedroom.jpg",
+  "author": "Midnightdreary",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2048,
+  "srcH": 1536
+ },
+ {
+  "file": "edgar-allan-poe-cottage__04.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Concourse Mar 2026 49.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Concourse_Mar_2026_49.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2576,
+  "srcH": 1932
+ },
+ {
+  "file": "edgar-allan-poe-cottage__05.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Concourse Mar 2026 53.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Concourse_Mar_2026_53.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4080,
+  "srcH": 3060
+ },
+ {
+  "file": "edgar-allan-poe-cottage__06.jpg",
+  "id": "edgar-allan-poe-cottage",
+  "name": "Edgar Allan Poe Cottage",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.86498,
+  "lon": -73.89421,
+  "gone": null,
+  "current": false,
+  "commons": "File:Grand Concourse Mar 2026 55.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGrand_Concourse_Mar_2026_55.jpg",
+  "author": "Epicgenius",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4080,
+  "srcH": 3060
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__01.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": true,
+  "commons": "File:HallofFameColumns.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHallofFameColumns.jpg",
+  "author": "H0n0r at English Wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1414,
+  "srcH": 2048
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__02.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": false,
+  "commons": "File:Booker t washington half dollar 1946.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABooker_t_washington_half_dollar_1946.jpg",
+  "author": "Seauton",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5760,
+  "srcH": 2873
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__03.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": false,
+  "commons": "File:Hall of Fame Teachers Tile.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHall_of_Fame_Teachers_Tile.jpg",
+  "author": "",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2048,
+  "srcH": 1536
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__04.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": false,
+  "commons": "File:Hall of Fame for Great Americans at Bronx Community College IMG 5252 HLG.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHall_of_Fame_for_Great_Americans_at_Bronx_Community_College_IMG_5252_HLG.jpg",
+  "author": "Hugo L. González",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__05.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": false,
+  "commons": "File:Hall of Fame for Great Americans at Bronx Community College IMG 5259 HLG.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHall_of_Fame_for_Great_Americans_at_Bronx_Community_College_IMG_5259_HLG.jpg",
+  "author": "Hugo L. González",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "hall-of-fame-for-great-americans__06.jpg",
+  "id": "hall-of-fame-for-great-americans",
+  "name": "Hall of Fame for Great Americans",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8587,
+  "lon": -73.9128,
+  "gone": null,
+  "current": false,
+  "commons": "File:Hofsouthjeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHofsouthjeh.jpg",
+  "author": "Jim.henderson",
+  "license": "Public domain",
+  "srcW": 3072,
+  "srcH": 2304
+ },
+ {
+  "file": "st-george-terminal__01.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": true,
+  "commons": "File:St. George Terminal td (2022-07-04) 009 - Arch.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASt._George_Terminal_td_%282022-07-04%29_009_-_Arch.jpg",
+  "author": "Tdorante10",
+  "license": "CC BY-SA 4.0",
+  "srcW": 5472,
+  "srcH": 3648
+ },
+ {
+  "file": "st-george-terminal__02.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": false,
+  "commons": "File:Ferry Terminal, St. George, Staten Island, N.Y. (buildings with trains and r.r. tracks) (NYPL b15279351-104684).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3AFerry_Terminal%2C_St._George%2C_Staten_Island%2C_N.Y._%28buildings_with_trains_and_r.r._tracks%29_%28NYPL_b15279351-104684%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 2488,
+  "srcH": 1682
+ },
+ {
+  "file": "st-george-terminal__03.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": false,
+  "commons": "File:Introducing New USB-Wi-Fi Buses (27077866825).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AIntroducing_New_USB-Wi-Fi_Buses_%2827077866825%29.jpg",
+  "author": "Metropolitan Transportation Authority of the State of New York",
+  "license": "CC BY 2.0",
+  "srcW": 1680,
+  "srcH": 1118
+ },
+ {
+  "file": "st-george-terminal__04.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": false,
+  "commons": "File:MTA Bus New Flyer C40LF 207.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AMTA_Bus_New_Flyer_C40LF_207.JPG",
+  "author": "Chris Torres (xxshadow93xx)",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2744,
+  "srcH": 1724
+ },
+ {
+  "file": "st-george-terminal__05.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": false,
+  "commons": "File:MTA New York City Transit 2015 Novabus LFS.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AMTA_New_York_City_Transit_2015_Novabus_LFS.jpg",
+  "author": "GK tramrunner229",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2377,
+  "srcH": 1762
+ },
+ {
+  "file": "st-george-terminal__06.jpg",
+  "id": "st-george-terminal",
+  "name": "St. George Ferry Terminal",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.6436,
+  "lon": -74.0739,
+  "gone": null,
+  "current": false,
+  "commons": "File:St. George Terminal Main Concourse.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASt._George_Terminal_Main_Concourse.jpg",
+  "author": "Philroc",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "snug-harbor-cultural-center__01.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": true,
+  "commons": "File:SH 1000E north jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASH_1000E_north_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 3401,
+  "srcH": 2800
+ },
+ {
+  "file": "snug-harbor-cultural-center__02.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": false,
+  "commons": "File:Church, Music Hall and Fountain, Sailors' Snug Harbor, Staten Island (NYPL b15279351-105046).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3AChurch%2C_Music_Hall_and_Fountain%2C_Sailors%27_Snug_Harbor%2C_Staten_Island_%28NYPL_b15279351-105046%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 2488,
+  "srcH": 1682
+ },
+ {
+  "file": "snug-harbor-cultural-center__03.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": false,
+  "commons": "File:Greek Revival - Staten Island, NY - Sailors' Snug Harbor (Building \"C\") (1).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGreek_Revival_-_Staten_Island%2C_NY_-_Sailors%27_Snug_Harbor_%28Building_%22C%22%29_%281%29.jpg",
+  "author": "Bmzuckerman",
+  "license": "CC BY 4.0",
+  "srcW": 3824,
+  "srcH": 5728
+ },
+ {
+  "file": "snug-harbor-cultural-center__04.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": false,
+  "commons": "File:Harper's weekly (1867) (14596664047).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHarper%27s_weekly_%281867%29_%2814596664047%29.jpg",
+  "author": "Bonner, John, 1828-1899; Curtis, George William, 1824-1892; Alden, Henry Mills, 1836-1919; Conant, Samuel Stillman, 1831",
+  "license": "No restrictions",
+  "srcW": 3104,
+  "srcH": 2154
+ },
+ {
+  "file": "snug-harbor-cultural-center__05.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": false,
+  "commons": "File:Noble Maritime Collection entrance jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANoble_Maritime_Collection_entrance_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4608,
+  "srcH": 3072
+ },
+ {
+  "file": "snug-harbor-cultural-center__06.jpg",
+  "id": "snug-harbor-cultural-center",
+  "name": "Snug Harbor",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.64417,
+  "lon": -74.1025,
+  "gone": null,
+  "current": false,
+  "commons": "File:SH 1000B front jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASH_1000B_front_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 3999,
+  "srcH": 3502
+ },
+ {
+  "file": "historic-richmond-town__01.jpg",
+  "id": "historic-richmond-town",
+  "name": "Historic Richmond Town",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.57111,
+  "lon": -74.14583,
+  "gone": null,
+  "current": false,
+  "commons": "File:Diner Film Set.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ADiner_Film_Set.jpg",
+  "author": "SgtPepp6r",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4032,
+  "srcH": 3024
+ },
+ {
+  "file": "historic-richmond-town__02.jpg",
+  "id": "historic-richmond-town",
+  "name": "Historic Richmond Town",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.57111,
+  "lon": -74.14583,
+  "gone": null,
+  "current": false,
+  "commons": "File:Richmond Co. Jail, Richmond, Staten Island (NYPL b15279351-104819).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3ARichmond_Co._Jail%2C_Richmond%2C_Staten_Island_%28NYPL_b15279351-104819%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 2440,
+  "srcH": 1618
+ },
+ {
+  "file": "conference-house__01.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": true,
+  "commons": "File:Billop House, Hylan Boulevard, Tottenville, Richmond County, NY HABS NY,43-TOTVI,1-1.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABillop_House%2C_Hylan_Boulevard%2C_Tottenville%2C_Richmond_County%2C_NY_HABS_NY%2C43-TOTVI%2C1-1.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 5000,
+  "srcH": 3550
+ },
+ {
+  "file": "conference-house__02.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": false,
+  "commons": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (4).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEaster_Egg_Hunt_at_Conference_House_in_TottenVille_Staten_Island%2C_NYC_-_panoramio_%284%29.jpg",
+  "author": "MikeinNYC",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4592,
+  "srcH": 2576
+ },
+ {
+  "file": "conference-house__03.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": false,
+  "commons": "File:The Conference House (erected 1668) Tottenville, Staten Island, N.Y (NYPL b15279351-104555).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3AThe_Conference_House_%28erected_1668%29_Tottenville%2C_Staten_Island%2C_N.Y_%28NYPL_b15279351-104555%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 2464,
+  "srcH": 1731
+ },
+ {
+  "file": "conference-house__04.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": false,
+  "commons": "File:Billop(sic) House, Conference Room, (1668) Staten ISland, N.Y. by Ottilie Johnson (NYPL b15279351-104553).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABillop%28sic%29_House%2C_Conference_Room%2C_%281668%29_Staten_ISland%2C_N.Y._by_Ottilie_Johnson_%28NYPL_b15279351-104553%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 2488,
+  "srcH": 1692
+ },
+ {
+  "file": "conference-house__05.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": false,
+  "commons": "File:Conference House (NYPL b15279351-104557).tiff",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConference_House_%28NYPL_b15279351-104557%29.tiff",
+  "author": "Scan by NYPL",
+  "license": "Public domain",
+  "srcW": 1682,
+  "srcH": 2464
+ },
+ {
+  "file": "conference-house__06.jpg",
+  "id": "conference-house",
+  "name": "Conference House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.5025,
+  "lon": -74.25222,
+  "gone": null,
+  "current": false,
+  "commons": "File:Conference House - Fancy Bedroom.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConference_House_-_Fancy_Bedroom.jpg",
+  "author": "Marzenego",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2448,
+  "srcH": 3264
+ },
+ {
+  "file": "alice-austen-house__01.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": true,
+  "commons": "File:Clear Comfort 01.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AClear_Comfort_01.jpg",
+  "author": "Blindowlphotography",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2560,
+  "srcH": 1920
+ },
+ {
+  "file": "alice-austen-house__02.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": false,
+  "commons": "File:Elizabeth Alice Austen House, 2 Hyland Boulevard, Rosebank, Richmond County, NY HABS NY,43-ROSE,1-6.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElizabeth_Alice_Austen_House%2C_2_Hyland_Boulevard%2C_Rosebank%2C_Richmond_County%2C_NY_HABS_NY%2C43-ROSE%2C1-6.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 3587,
+  "srcH": 5000
+ },
+ {
+  "file": "alice-austen-house__03.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": false,
+  "commons": "File:Elizabeth Alice Austen House, 2 Hyland Boulevard, Rosebank, Richmond County, NY HABS NY,43-ROSE,1-8.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElizabeth_Alice_Austen_House%2C_2_Hyland_Boulevard%2C_Rosebank%2C_Richmond_County%2C_NY_HABS_NY%2C43-ROSE%2C1-8.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 5000,
+  "srcH": 3574
+ },
+ {
+  "file": "alice-austen-house__04.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": false,
+  "commons": "File:Elizabeth Alice Austen House, 2 Hyland Boulevard, Rosebank, Richmond County, NY HABS NY,43-ROSE,1-10.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElizabeth_Alice_Austen_House%2C_2_Hyland_Boulevard%2C_Rosebank%2C_Richmond_County%2C_NY_HABS_NY%2C43-ROSE%2C1-10.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 5000,
+  "srcH": 3586
+ },
+ {
+  "file": "alice-austen-house__05.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": false,
+  "commons": "File:Elizabeth Alice Austen House, 2 Hyland Boulevard, Rosebank, Richmond County, NY HABS NY,43-ROSE,1-7.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElizabeth_Alice_Austen_House%2C_2_Hyland_Boulevard%2C_Rosebank%2C_Richmond_County%2C_NY_HABS_NY%2C43-ROSE%2C1-7.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 3625,
+  "srcH": 5000
+ },
+ {
+  "file": "alice-austen-house__06.jpg",
+  "id": "alice-austen-house",
+  "name": "Alice Austen House",
+  "boro": [
+   "Staten Island"
+  ],
+  "lat": 40.61528,
+  "lon": -74.06306,
+  "gone": null,
+  "current": false,
+  "commons": "File:Elizabeth Alice Austen House, 2 Hyland Boulevard, Rosebank, Richmond County, NY HABS NY,43-ROSE,1-3.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElizabeth_Alice_Austen_House%2C_2_Hyland_Boulevard%2C_Rosebank%2C_Richmond_County%2C_NY_HABS_NY%2C43-ROSE%2C1-3.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 5000,
+  "srcH": 3576
+ },
+ {
+  "file": "ebbets-field__01.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": true,
+  "commons": "File:Ebbets1913OpeningDay.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEbbets1913OpeningDay.jpg",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 1753,
+  "srcH": 1275
+ },
+ {
+  "file": "ebbets-field__02.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": false,
+  "commons": "File:Barclays Center western side.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_western_side.jpg",
+  "author": "AEMoreira042281",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1024,
+  "srcH": 768
+ },
+ {
+  "file": "ebbets-field__03.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "ebbets-field__04.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": false,
+  "commons": "File:Crowd at Ebbets Field.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACrowd_at_Ebbets_Field.jpg",
+  "author": "Bain News Service, publisher",
+  "license": "Public domain",
+  "srcW": 4466,
+  "srcH": 3052
+ },
+ {
+  "file": "ebbets-field__05.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": false,
+  "commons": "File:Ebbets Field 1920 10 06.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEbbets_Field_1920_10_06.jpg",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 1014,
+  "srcH": 582
+ },
+ {
+  "file": "ebbets-field__06.jpg",
+  "id": "ebbets-field",
+  "name": "Ebbets Field",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.6651,
+  "lon": -73.958,
+  "gone": "Demolished 1960",
+  "current": false,
+  "commons": "File:Ebbets Field Apartments jeh.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEbbets_Field_Apartments_jeh.JPG",
+  "author": "Jim.henderson",
+  "license": "Public domain",
+  "srcW": 3072,
+  "srcH": 2304
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__01.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": true,
+  "commons": "File:Pennsylvania Station aerial view, 1910s.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3APennsylvania_Station_aerial_view%2C_1910s.jpg",
+  "author": "Detroit Publishing Company",
+  "license": "Public domain",
+  "srcW": 8791,
+  "srcH": 6873
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__02.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": false,
+  "commons": "File:Bromley Manhattan V. 2 Plate 20 publ. 1920.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABromley_Manhattan_V._2_Plate_20_publ._1920.jpg",
+  "author": "George W. Bromley and Walter S. Bromley",
+  "license": "Public domain",
+  "srcW": 6490,
+  "srcH": 4583
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__03.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": false,
+  "commons": "File:Brooklyn Museum - Pennsylvania Station Excavation - George Wesley Bellows - overall.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABrooklyn_Museum_-_Pennsylvania_Station_Excavation_-_George_Wesley_Bellows_-_overall.jpg",
+  "author": "George Bellows",
+  "license": "Public domain",
+  "srcW": 1536,
+  "srcH": 1253
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__04.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": false,
+  "commons": "File:Eagle Scout Memorial Fountain Kansas City MO.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEagle_Scout_Memorial_Fountain_Kansas_City_MO.jpg",
+  "author": "User:Charvex",
+  "license": "Public domain",
+  "srcW": 1208,
+  "srcH": 863
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__05.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": false,
+  "commons": "File:Excavation Penn Station Ernest Lawson 1906.jpeg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AExcavation_Penn_Station_Ernest_Lawson_1906.jpeg",
+  "author": "Ernest Lawson",
+  "license": "Public domain",
+  "srcW": 1120,
+  "srcH": 846
+ },
+ {
+  "file": "pennsylvania-station-1910-1963__06.jpg",
+  "id": "pennsylvania-station-1910-1963",
+  "name": "The original Penn Station",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7506,
+  "lon": -73.9935,
+  "gone": "Demolished 1963",
+  "current": false,
+  "commons": "File:Greyhound Bus Terminal, 33rd and 34th Streets between Seventh and Eighth Avenues, Manhattan (NYPL b13668355-482565).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AGreyhound_Bus_Terminal%2C_33rd_and_34th_Streets_between_Seventh_and_Eighth_Avenues%2C_Manhattan_%28NYPL_b13668355-482565%29.jpg",
+  "author": "Berenice Abbott",
+  "license": "Public domain",
+  "srcW": 2330,
+  "srcH": 1892
+ },
+ {
+  "file": "world-trade-center-1973-2001__01.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": true,
+  "commons": "File:World Trade Center, New York City - aerial view (March 2001).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AWorld_Trade_Center%2C_New_York_City_-_aerial_view_%28March_2001%29.jpg",
+  "author": "Jeffmock",
+  "license": "Public domain",
+  "srcW": 1361,
+  "srcH": 1924
+ },
+ {
+  "file": "world-trade-center-1973-2001__02.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": false,
+  "commons": "File:360-degree Panorama from the roof of the New York World Trade Center.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A360-degree_Panorama_from_the_roof_of_the_New_York_World_Trade_Center.jpg",
+  "author": "Dheera Venkatraman (http://dheera.net/)",
+  "license": "CC0",
+  "srcW": 10800,
+  "srcH": 896
+ },
+ {
+  "file": "world-trade-center-1973-2001__03.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": false,
+  "commons": "File:Aerial view of New York City, with a focus on the Brooklyn Bridge, through which the Twin Towers of the World Trade Center are visible LCCN2011634928.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAerial_view_of_New_York_City%2C_with_a_focus_on_the_Brooklyn_Bridge%2C_through_which_the_Twin_Towers_of_the_World_Trade_Center_are_visible_LCCN2011634928.tif",
+  "author": "Carol M. Highsmith",
+  "license": "Public domain",
+  "srcW": 6033,
+  "srcH": 7705
+ },
+ {
+  "file": "world-trade-center-1973-2001__04.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": false,
+  "commons": "File:Austin Tobin Plaza Marriott World Trade Center - 1995.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAustin_Tobin_Plaza_Marriott_World_Trade_Center_-_1995.jpg",
+  "author": "zombieite",
+  "license": "CC BY 2.0",
+  "srcW": 937,
+  "srcH": 1372
+ },
+ {
+  "file": "world-trade-center-1973-2001__05.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": false,
+  "commons": "File:Lower Manhattan from Jersey City September 2020 HDR panorama (cropped).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ALower_Manhattan_from_Jersey_City_September_2020_HDR_panorama_%28cropped%29.jpg",
+  "author": "King of Hearts",
+  "license": "CC BY-SA 4.0",
+  "srcW": 1499,
+  "srcH": 2150
+ },
+ {
+  "file": "world-trade-center-1973-2001__06.jpg",
+  "id": "world-trade-center-1973-2001",
+  "name": "The Twin Towers",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7115,
+  "lon": -74.0125,
+  "gone": "Lost September 11, 2001",
+  "current": false,
+  "commons": "File:Radio Row, Cortlandt Street, Manhattan (NYPL b13668355-482561).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ARadio_Row%2C_Cortlandt_Street%2C_Manhattan_%28NYPL_b13668355-482561%29.jpg",
+  "author": "Berenice Abbott",
+  "license": "Public domain",
+  "srcW": 2377,
+  "srcH": 1917
+ },
+ {
+  "file": "cbgb__01.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": true,
+  "commons": "File:CBGB club facade.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACBGB_club_facade.jpg",
+  "author": "Adicarlo at English Wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1600,
+  "srcH": 1200
+ },
+ {
+  "file": "cbgb__02.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": false,
+  "commons": "File:CBGB closed.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACBGB_closed.JPG",
+  "author": "Noeticsage at English Wikipedia",
+  "license": "CC BY 2.5",
+  "srcW": 2816,
+  "srcH": 2112
+ },
+ {
+  "file": "cbgb__03.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": false,
+  "commons": "File:CBGB the day after.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACBGB_the_day_after.JPG",
+  "author": "Romanontheprowl",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3456,
+  "srcH": 2304
+ },
+ {
+  "file": "cbgb__04.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": false,
+  "commons": "File:ExCBGB.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AExCBGB.jpg",
+  "author": "Sbazzone",
+  "license": "Public domain",
+  "srcW": 2033,
+  "srcH": 1920
+ },
+ {
+  "file": "cbgb__05.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": false,
+  "commons": "File:Mike at CBGBs (14169483159).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AMike_at_CBGBs_%2814169483159%29.jpg",
+  "author": "Eden, Janine and Jim from New York City",
+  "license": "CC BY 2.0",
+  "srcW": 2872,
+  "srcH": 2056
+ },
+ {
+  "file": "cbgb__06.jpg",
+  "id": "cbgb",
+  "name": "CBGB",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.7253,
+  "lon": -73.99198,
+  "gone": "Closed 2006",
+  "current": false,
+  "commons": "File:RamonesCBGB.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ARamonesCBGB.jpg",
+  "author": "Stig Nygaard from Copenhagen, Denmark",
+  "license": "CC BY 2.0",
+  "srcW": 2592,
+  "srcH": 1944
+ },
+ {
+  "file": "5-pointz__01.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": true,
+  "commons": "File:View of 5 Pointz, January 20, 2013.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AView_of_5_Pointz%2C_January_20%2C_2013.jpg",
+  "author": "Ezmosis",
+  "license": "CC BY-SA 3.0",
+  "srcW": 5616,
+  "srcH": 3744
+ },
+ {
+  "file": "5-pointz__02.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": false,
+  "commons": "File:5 Pointz Building Rear View.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5_Pointz_Building_Rear_View.jpg",
+  "author": "Vinniebar at English Wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3872,
+  "srcH": 2592
+ },
+ {
+  "file": "5-pointz__03.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": false,
+  "commons": "File:5 Pointz LIC Tower 021.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5_Pointz_LIC_Tower_021.jpg",
+  "author": "Kidfly182",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2048,
+  "srcH": 1536
+ },
+ {
+  "file": "5-pointz__04.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": false,
+  "commons": "File:5pointz wall.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A5pointz_wall.jpg",
+  "author": "P.Lindgren",
+  "license": "CC BY-SA 4.0",
+  "srcW": 4343,
+  "srcH": 3395
+ },
+ {
+  "file": "5-pointz__05.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": false,
+  "commons": "File:Hunters Point.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3AHunters_Point.JPG",
+  "author": "Patrice78500",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1972,
+  "srcH": 1409
+ },
+ {
+  "file": "5-pointz__06.jpg",
+  "id": "5-pointz",
+  "name": "5 Pointz",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.74556,
+  "lon": -73.94639,
+  "gone": "Painted over 2013, demolished 2014",
+  "current": false,
+  "commons": "File:Long Island Expwy td (2021-10-22) 084 - 5 Pointz LIC Towers.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ALong_Island_Expwy_td_%282021-10-22%29_084_-_5_Pointz_LIC_Towers.jpg",
+  "author": "Tdorante10",
+  "license": "CC BY-SA 4.0",
+  "srcW": 3648,
+  "srcH": 5472
+ },
+ {
+  "file": "polo-grounds__01.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": true,
+  "commons": "File:No Known Restrictions Polo Grounds during World Series Game, 1913 from the Bain Collection (LOC) (434431507).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANo_Known_Restrictions_Polo_Grounds_during_World_Series_Game%2C_1913_from_the_Bain_Collection_%28LOC%29_%28434431507%29.jpg",
+  "author": "David Shapinsky from Washington, D.C., United States",
+  "license": "CC BY-SA 2.0",
+  "srcW": 1496,
+  "srcH": 1032
+ },
+ {
+  "file": "polo-grounds__02.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": false,
+  "commons": "File:1954 World Series game two.jpeg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1954_World_Series_game_two.jpeg",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 1284,
+  "srcH": 1650
+ },
+ {
+  "file": "polo-grounds__03.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": false,
+  "commons": "File:Army - Navy football at Polo Grounds.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AArmy_-_Navy_football_at_Polo_Grounds.jpg",
+  "author": "Library of Congress",
+  "license": "Public domain",
+  "srcW": 990,
+  "srcH": 729
+ },
+ {
+  "file": "polo-grounds__04.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": false,
+  "commons": "File:Barclays Center western side.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_western_side.jpg",
+  "author": "AEMoreira042281",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1024,
+  "srcH": 768
+ },
+ {
+  "file": "polo-grounds__05.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "polo-grounds__06.jpg",
+  "id": "polo-grounds",
+  "name": "Polo Grounds",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.83111,
+  "lon": -73.9375,
+  "gone": "Demolished 1964",
+  "current": false,
+  "commons": "File:Climbing brush stairway jeh.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AClimbing_brush_stairway_jeh.jpg",
+  "author": "Jim.henderson",
+  "license": "CC0",
+  "srcW": 4500,
+  "srcH": 3672
+ },
+ {
+  "file": "shea-stadium__01.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": true,
+  "commons": "File:Shea 10-12-07.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AShea_10-12-07.jpg",
+  "author": "Originally uploaded at Wikipedia (English) by Metsfan84 02:39, 29 October 2008 (UTC) 3,264×1,086 (362 KB) Metsfan84 (Tak",
+  "license": "CC BY 3.0",
+  "srcW": 3264,
+  "srcH": 1086
+ },
+ {
+  "file": "shea-stadium__02.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": false,
+  "commons": "File:1964–1965 New York World's Fair New York State Pavilion-2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1964%E2%80%931965_New_York_World%27s_Fair_New_York_State_Pavilion-2.jpg",
+  "author": "CaptainKidder",
+  "license": "CC BY-SA 2.0",
+  "srcW": 956,
+  "srcH": 1002
+ },
+ {
+  "file": "shea-stadium__03.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": false,
+  "commons": "File:1986 Jeno's Pizza - 29 - O.J. Simpson.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1986_Jeno%27s_Pizza_-_29_-_O.J._Simpson.jpg",
+  "author": "Jeno's",
+  "license": "Public domain",
+  "srcW": 3900,
+  "srcH": 2700
+ },
+ {
+  "file": "shea-stadium__04.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": false,
+  "commons": "File:Aerial view Shea Stadium with Manhattan in background 1981.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AAerial_view_Shea_Stadium_with_Manhattan_in_background_1981.jpg",
+  "author": "GeorgeLouis",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1799,
+  "srcH": 1199
+ },
+ {
+  "file": "shea-stadium__05.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": false,
+  "commons": "File:Arthur ashe stadium interior.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AArthur_ashe_stadium_interior.jpg",
+  "author": "Davidwboswell at English Wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1280,
+  "srcH": 960
+ },
+ {
+  "file": "shea-stadium__06.jpg",
+  "id": "shea-stadium",
+  "name": "Shea Stadium",
+  "boro": [
+   "Queens"
+  ],
+  "lat": 40.75694,
+  "lon": -73.84583,
+  "gone": "Demolished 2009",
+  "current": false,
+  "commons": "File:Ball Games (60).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABall_Games_%2860%29.jpg",
+  "author": "User Stadium08 on en.wikipedia",
+  "license": "Public domain",
+  "srcW": 2848,
+  "srcH": 2134
+ },
+ {
+  "file": "yankee-stadium-1923__01.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": true,
+  "commons": "File:Yankee Stadium aerial from Blackhawk.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AYankee_Stadium_aerial_from_Blackhawk.jpg",
+  "author": "Severin St. Martin",
+  "license": "CC BY 2.0",
+  "srcW": 1952,
+  "srcH": 1480
+ },
+ {
+  "file": "yankee-stadium-1923__02.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": false,
+  "commons": "File:1969 Notre Dame - Army football Yankee Stadium.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A1969_Notre_Dame_-_Army_football_Yankee_Stadium.jpg",
+  "author": "Dick Leonhardt",
+  "license": "CC BY-SA 2.0",
+  "srcW": 4467,
+  "srcH": 3276
+ },
+ {
+  "file": "yankee-stadium-1923__03.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": false,
+  "commons": "File:320.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3A320.JPG",
+  "author": "User KOknockout920 on en.wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3072,
+  "srcH": 2304
+ },
+ {
+  "file": "yankee-stadium-1923__04.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": false,
+  "commons": "File:Barclays Center western side.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABarclays_Center_western_side.jpg",
+  "author": "AEMoreira042281",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1024,
+  "srcH": 768
+ },
+ {
+  "file": "yankee-stadium-1923__05.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": false,
+  "commons": "File:BleachersBP.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ABleachersBP.JPG",
+  "author": "User Silent Wind of Doom on en.wikipedia",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2580,
+  "srcH": 1932
+ },
+ {
+  "file": "yankee-stadium-1923__06.jpg",
+  "id": "yankee-stadium-1923",
+  "name": "Old Yankee Stadium",
+  "boro": [
+   "Bronx"
+  ],
+  "lat": 40.8275,
+  "lon": -73.9275,
+  "gone": "Closed 2008",
+  "current": false,
+  "commons": "File:Citi Field and Apple.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File%3ACiti_Field_and_Apple.JPG",
+  "author": "Richiek",
+  "license": "CC BY-SA 3.0",
+  "srcW": 3264,
+  "srcH": 1972
+ },
+ {
+  "file": "steeplechase-park__01.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:2010-03-21 at 11-00-57.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_11-00-57.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2200,
+  "srcH": 1465
+ },
+ {
+  "file": "steeplechase-park__02.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:ABANDONED \"GIANT SLIDE\" AT CONEY ISLAND MARKS DECLINE OF AREA'S RECREATIONAL USE - NARA - 547902.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AABANDONED_%22GIANT_SLIDE%22_AT_CONEY_ISLAND_MARKS_DECLINE_OF_AREA%27S_RECREATIONAL_USE_-_NARA_-_547902.jpg",
+  "author": "Arthur Tress",
+  "license": "Public domain",
+  "srcW": 3000,
+  "srcH": 2018
+ },
+ {
+  "file": "steeplechase-park__03.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:Coney Island beach and amusement parks (June 2016).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_beach_and_amusement_parks_%28June_2016%29.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "steeplechase-park__04.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:El Dorado 1.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AEl_Dorado_1.jpg",
+  "author": "Blue Lotus",
+  "license": "CC BY 2.0",
+  "srcW": 1445,
+  "srcH": 1131
+ },
+ {
+  "file": "steeplechase-park__05.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:Parachute Jump on Coney Island.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AParachute_Jump_on_Coney_Island.jpg",
+  "author": "Rhododendrites",
+  "license": "CC BY-SA 4.0",
+  "srcW": 2964,
+  "srcH": 4564
+ },
+ {
+  "file": "steeplechase-park__06.jpg",
+  "id": "steeplechase-park",
+  "name": "Steeplechase Park",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5747,
+  "lon": -73.9851,
+  "gone": "Closed 1964",
+  "current": false,
+  "commons": "File:Pool at Steeplechase Park LC-USZ62-105303.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3APool_at_Steeplechase_Park_LC-USZ62-105303.jpg",
+  "author": "Irving Underhill",
+  "license": "Public domain",
+  "srcW": 929,
+  "srcH": 719
+ },
+ {
+  "file": "elephantine-colossus__01.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:2010-03-21 at 11-00-57.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3A2010-03-21_at_11-00-57.jpg",
+  "author": "Sixlocal",
+  "license": "CC BY-SA 3.0",
+  "srcW": 2200,
+  "srcH": 1465
+ },
+ {
+  "file": "elephantine-colossus__02.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:Coney Island beach and amusement parks (June 2016).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AConey_Island_beach_and_amusement_parks_%28June_2016%29.jpg",
+  "author": "MusikAnimal",
+  "license": "CC BY-SA 4.0",
+  "srcW": 6000,
+  "srcH": 4000
+ },
+ {
+  "file": "elephantine-colossus__03.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:Elephant Hotel 2007.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElephant_Hotel_2007.jpg",
+  "author": "Daniel Case",
+  "license": "CC BY-SA 3.0",
+  "srcW": 1710,
+  "srcH": 2055
+ },
+ {
+  "file": "elephantine-colossus__04.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:Elephant House, Durban, 9 2 407 0065.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElephant_House%2C_Durban%2C_9_2_407_0065.jpg",
+  "author": "Mariannebritsstrodl",
+  "license": "CC BY-SA 3.0",
+  "srcW": 4512,
+  "srcH": 3000
+ },
+ {
+  "file": "elephantine-colossus__05.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:Elephant Hotel, State Route 116 Vicinity, Somers, Westchester County, NY HABS NY,60-SOM,1-5.tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElephant_Hotel%2C_State_Route_116_Vicinity%2C_Somers%2C_Westchester_County%2C_NY_HABS_NY%2C60-SOM%2C1-5.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 3604,
+  "srcH": 5000
+ },
+ {
+  "file": "elephantine-colossus__06.jpg",
+  "id": "elephantine-colossus",
+  "name": "The Elephant Hotel",
+  "boro": [
+   "Brooklyn"
+  ],
+  "lat": 40.5743,
+  "lon": -73.984,
+  "gone": "Burned down 1896",
+  "current": false,
+  "commons": "File:Elephant Hotel, State Route 116 Vicinity, Somers, Westchester County, NY HABS NY,60-SOM,1- (sheet 8 of 11).tif",
+  "page": "https://commons.wikimedia.org/wiki/File%3AElephant_Hotel%2C_State_Route_116_Vicinity%2C_Somers%2C_Westchester_County%2C_NY_HABS_NY%2C60-SOM%2C1-_%28sheet_8_of_11%29.tif",
+  "author": "",
+  "license": "Public domain",
+  "srcW": 9308,
+  "srcH": 7584
+ },
+ {
+  "file": "singer-building__01.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": true,
+  "commons": "File:SingerBuilding2.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASingerBuilding2.jpg",
+  "author": "Jack E. Boucher",
+  "license": "Public domain",
+  "srcW": 3243,
+  "srcH": 4670
+ },
+ {
+  "file": "singer-building__02.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": false,
+  "commons": "File:NYC Manhattan 1938 Franz Grasser.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANYC_Manhattan_1938_Franz_Grasser.jpg",
+  "author": "Franz Grasser",
+  "license": "Public domain",
+  "srcW": 1088,
+  "srcH": 1600
+ },
+ {
+  "file": "singer-building__03.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": false,
+  "commons": "File:New York City aerial view 1919.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ANew_York_City_aerial_view_1919.jpg",
+  "author": "Ens. Joseph A. Eaton, U.S. Navy (Image(s) part of an album assembled by Ensign Joseph Eaton documenting his service duri",
+  "license": "Public domain",
+  "srcW": 1703,
+  "srcH": 1209
+ },
+ {
+  "file": "singer-building__04.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": false,
+  "commons": "File:SingerBuilding15.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASingerBuilding15.jpg",
+  "author": "Jack E. Boucher",
+  "license": "Public domain",
+  "srcW": 3236,
+  "srcH": 4567
+ },
+ {
+  "file": "singer-building__05.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": false,
+  "commons": "File:SingerBuilding5.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASingerBuilding5.jpg",
+  "author": "Jack E. Boucher",
+  "license": "Public domain",
+  "srcW": 3313,
+  "srcH": 4717
+ },
+ {
+  "file": "singer-building__06.jpg",
+  "id": "singer-building",
+  "name": "Singer Building",
+  "boro": [
+   "Manhattan"
+  ],
+  "lat": 40.70972,
+  "lon": -74.01056,
+  "gone": "Demolished 1968",
+  "current": false,
+  "commons": "File:Singer Building Top.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File%3ASinger_Building_Top.jpg",
+  "author": "Unknown authorUnknown author",
+  "license": "Public domain",
+  "srcW": 572,
+  "srcH": 1040
+ }
+]
