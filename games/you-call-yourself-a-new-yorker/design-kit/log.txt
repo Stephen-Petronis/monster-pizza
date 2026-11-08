@@ -1,0 +1,31 @@
+OK kit
+FAILED phone page.click: Timeout 20000ms exceeded.
+Call log:
+  - waiting for locator('#hSubway')
+    - locator resolved to <input id="hSubway" type="checkbox"/>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <img alt="" id="photo" class="photo" src="http://localhost:8080/games/you-call-yourself-a-new-yorker/photos/bronx-zoo.webp"/> from <div class="" id="stage">…</div> subtree intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <img alt="" id="photo" class="photo" src="http://localhost:8080/games/you-call-yourself-a-new-yorker/photos/bronx-zoo.webp"/> from <div class="" id="stage">…</div> subtree intercepts pointer events
+    - retrying click action
+      - waiting 100ms
+    37 × waiting for element to be visible, enabled and stable
+       - element is visible, enabled and stable
+       - scrolling into view if needed
+       - done scrolling
+       - <img alt="" id="photo" class="photo" src="http://localhost:8080/games/you-call-yourself-a-new-yorker/photos/bronx-zoo.webp"/> from <div class="" id="stage">…</div> subtree intercepts pointer events
+     - retrying click action
+       - waiting 500ms
+
+    at screens (/home/runner/work/monster-pizza/monster-pizza/games/you-call-yourself-a-new-yorker/tools/capture_kit.mjs:42:11)
+    at async file:///home/runner/work/monster-pizza/monster-pizza/games/you-call-yourself-a-new-yorker/tools/capture_kit.mjs:174:9
+OK landscape
