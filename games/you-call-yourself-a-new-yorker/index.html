@@ -204,6 +204,7 @@ const CONFIG = {
   maxMapScale: 420000,      // px per degree at max zoom
   imageWidth: 1920,        // base thumbnail; sharper versions are picked per device
   boroughUrls: [
+    "nyc-boroughs.json",   // saved copy in this folder (made by tools/build_ref.py)
     "https://cdn.jsdelivr.net/gh/codeforamerica/click_that_hood@main/public/data/new-york-city-boroughs.geojson",
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/main/public/data/new-york-city-boroughs.geojson",
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/new-york-city-boroughs.geojson",
@@ -549,6 +550,9 @@ function buildRefPaths(ref){ // ref = {hwy:[[lon,lat,lon,lat...]...], road:[...]
   $("osmCredit").classList.remove("hidden");
 }
 async function loadReference(){
+  // 1) the saved copy that lives next to this page
+  try{ const r=await fetch("nyc-ref.json",{cache:"no-cache"}); if(r.ok){ const j=await r.json(); if(j&&j.hwy&&j.hwy.length){ buildRefPaths(j); return; } } }catch(e){}
+  // 2) a copy this device downloaded before, 3) straight from OpenStreetMap
   const cached=await idbGet(REF_KEY); if(cached&&cached.hwy){ buildRefPaths(cached); return; }
   const bb=`${B.south},${B.west},${B.north},${B.east}`;
   const names=CONFIG.namedStreets.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");

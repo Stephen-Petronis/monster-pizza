@@ -1,0 +1,31 @@
+name: New Yorker map data
+
+# Fetches the roads/waterways (OpenStreetMap) and borough shapes for
+# "You Call Yourself a New Yorker?" and saves them into the repo.
+# Runs when the builder script changes, or by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "games/you-call-yourself-a-new-yorker/tools/build_ref.py"
+      - ".github/workflows/new-yorker-map-data.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build map data
+        run: python3 games/you-call-yourself-a-new-yorker/tools/build_ref.py
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add games/you-call-yourself-a-new-yorker/nyc-ref.json games/you-call-yourself-a-new-yorker/nyc-boroughs.json
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "New Yorker game: refresh map data"
+          git pull --rebase origin main
+          git push origin HEAD:main
