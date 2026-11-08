@@ -1,4 +1,4 @@
-// (rerun after the mini-aperture tap fix)
+// (rerun after moving the helpers panel below the zoom buttons)
 // Captures a design kit for "You Call Yourself a New Yorker?":
 //   design-kit/screens/*.png    key screens, phone portrait + landscape
 //   design-kit/elements/*.png   every UI piece on a transparent background
