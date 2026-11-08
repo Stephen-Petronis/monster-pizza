@@ -25,7 +25,18 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
 /* map fills the screen */
 #mapBox{position:relative;flex:1;min-height:0;overflow:hidden}
 #map{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
-#zoomBtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#zoomBtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+#helpBtn.on{background:#fff;outline:3px solid var(--taxi)}
+#helpPanel{position:absolute;right:60px;top:10px;z-index:3;background:#111;color:#fff;border:3px solid #000;outline:2px solid var(--taxi);
+  border-radius:10px;padding:10px 12px;font:600 15px Helvetica,Arial,sans-serif;min-width:220px;box-shadow:4px 4px 0 rgba(0,0,0,.4)}
+#helpPanel .hpTitle{font-family:"Bungee",sans-serif;font-weight:400;color:var(--taxi);font-size:14px;margin-bottom:6px}
+#helpPanel .hpTitle span{font:400 11px Helvetica,Arial,sans-serif;color:#bbb}
+#helpPanel .hp{display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer}
+#helpPanel .hp.sub{padding-left:26px;font-size:13px;color:#ccc}
+#helpPanel .hp b{margin-left:auto;color:var(--taxi)} #helpPanel .hp i{margin-left:auto;color:#8c8;font-style:normal;font-size:12px}
+#helpPanel input{width:20px;height:20px;accent-color:#f7b500}
+#helpPanel .hpBonus{border-top:1px solid #333;margin-top:6px;padding-top:6px;font-size:13px;color:#ddd}
+#helpPanel .hpBonus b{color:var(--taxi)}
 #osmCredit{position:absolute;right:6px;bottom:2px;font:10px Helvetica,Arial,sans-serif;color:#456;opacity:.8}
 #osmCredit a{color:#456}
 #scaleBar{position:absolute;right:62px;top:14px;font:600 12px Helvetica,Arial,sans-serif;color:#111;text-shadow:0 0 3px #fff,0 0 3px #fff;pointer-events:none;text-align:right}
@@ -123,9 +134,17 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
       <button class="btn round" id="zIn" aria-label="Zoom in">+</button>
       <button class="btn round" id="zOut" aria-label="Zoom out">−</button>
       <button class="btn round" id="zHome" aria-label="All five boroughs" style="font-size:16px">◎</button>
+      <button class="btn round" id="helpBtn" aria-label="Map helpers" style="font-size:18px">🚇</button>
     </div>
     <div id="osmCredit" class="hidden">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
     <div id="scaleBar"><span id="scaleTxt"></span><i id="scaleLine"></i></div>
+    <div id="helpPanel" class="hidden">
+      <div class="hpTitle">Map helpers <span>(cuts this round's bonus)</span></div>
+      <label class="hp"><input type="checkbox" id="hSubway"> Subway lines <b id="hSubwayCost"></b></label>
+      <label class="hp sub"><input type="checkbox" id="hColor"> …in color <i>free</i></label>
+      <label class="hp"><input type="checkbox" id="hRoads"> More roads <b id="hRoadsCost"></b></label>
+      <div class="hpBonus" id="hpBonus"></div>
+    </div>
     <div id="mapHost">
       <svg id="mapRat" class="rat" viewBox="0 0 140 110"></svg>
       <div class="bubble" id="mapBubble"></div>
@@ -194,8 +213,16 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
 const CONFIG = {
   roundsPerGame: 5,
   // Score = (broad * e^(-d/broadKm) + precision * e^(-d/precisionKm)) * hintMultiplier
-  broadPoints: 7000, broadKm: 5,            // right part of town
-  precisionPoints: 3000, precisionKm: 0.25, // right block
+  // Dead-on = 1,000,000. Most of it is a steep "precision" curve that melts away within a few blocks,
+  // plus a small "right part of town" curve so a miss across the borough still earns a little.
+  precisionPoints: 900000, precisionKm: 0.30,
+  broadPoints:     100000, broadKm: 4,
+  // Map helpers — turning one on (even briefly) multiplies that round's score
+  helpers: {
+    subway: { label:"Subway lines", mult:0.75 },
+    roads:  { label:"More roads",   mult:0.85 },
+  },
+  subwayColors: false,      // start with plain grey lines; players can flip colour on for free
   apertureZooms: [3.4, 2.5, 1.8, 1.25],     // how zoomed-in the photo is at each "Bigger" step
   hintMultipliers: [1.0, 0.85, 0.7, 0.55],  // bonus left at each step
   pastChance: 0.3,          // roughly how many rounds are "gone but not forgotten" places
@@ -211,7 +238,8 @@ const CONFIG = {
   ],
   // subway-map palette: pale blue water, warm off-white land, soft shoreline
   colors:{ water:"#a6d3e8", land:"#f3efe1", border:"#cfc7ad", coast:"#7db3cc",
-           road:"#ffffff", roadEdge:"#c2b796", highway:"#ffe9a6", highwayEdge:"#c49f4e", stream:"#7dbcd8" },
+           road:"#ffffff", roadEdge:"#c2b796", highway:"#ffe9a6", highwayEdge:"#c49f4e", stream:"#7dbcd8",
+           park:"#cfe6b8", parkEdge:"#a8cf8c", road2:"#ffffff", road2Edge:"#d8cfb6", subway:"#55585c" },
   // Reference roads + waterways from OpenStreetMap (no labels). Loaded once, then kept on the device.
   overpassUrls: [
     "https://overpass-api.de/api/interpreter",
@@ -337,7 +365,10 @@ function haversineKm(lat1,lon1,lat2,lon2){
   const h=Math.sin(dLat/2)**2+Math.cos(lat1*t)*Math.cos(lat2*t)*Math.sin(dLon/2)**2;
   return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
 }
-function scoreFor(km,h){ return Math.round((CONFIG.broadPoints*Math.exp(-km/CONFIG.broadKm)+CONFIG.precisionPoints*Math.exp(-km/CONFIG.precisionKm))*CONFIG.hintMultipliers[h]); }
+function rawScore(km){ return CONFIG.precisionPoints*Math.exp(-km/CONFIG.precisionKm)+CONFIG.broadPoints*Math.exp(-km/CONFIG.broadKm); }
+function roundMult(){ let m=CONFIG.hintMultipliers[game.hint];
+  for(const k in CONFIG.helpers) if(game.used[k]) m*=CONFIG.helpers[k].mult; return m; }
+function scoreFor(km){ return Math.round(rawScore(km)*roundMult()); }
 function fmtDist(km){ const mi=km*0.621371;
   if(km<0.3) return Math.round(km*3280.84).toLocaleString()+" ft";
   return (mi<10?mi.toFixed(2):mi.toFixed(1))+" mi"; }
@@ -539,6 +570,28 @@ function addRingsToPath(p,rings){
 /* ---- reference roads + waterways (OpenStreetMap), cached in IndexedDB ---- */
 let refPaths=null;
 const REF_KEY="nyc-ref-v1";
+/* extra layers: parks (always), more roads + subway lines (helpers) */
+let parksPath=null, road2Path=null, subwayPaths=null; const layerLoading={};
+function flatLinesPath(lines,closed){ const p=new Path2D(); for(const f of lines){ let [x,y]=proj(f[1],f[0]); p.moveTo(x,y);
+  for(let i=2;i<f.length;i+=2){ [x,y]=proj(f[i+1],f[i]); p.lineTo(x,y); } if(closed) p.closePath(); } return p; }
+async function loadLayer(name){
+  if(layerLoading[name]) return layerLoading[name];
+  return layerLoading[name]=(async()=>{
+    const file={parks:"nyc-parks.json",roads:"nyc-roads2.json",subway:"nyc-subway.json"}[name];
+    try{ const r=await fetch(file); if(!r.ok) return;
+      const j=await r.json();
+      if(name==="parks") parksPath=flatLinesPath(j.parks||[],true);
+      if(name==="roads") road2Path=flatLinesPath(j.road2||[],false);
+      if(name==="subway"){ subwayPaths=new Map();
+        for(const [sym,lines] of Object.entries(j.lines||{})) subwayPaths.set(sym, flatLinesPath(lines,false)); }
+      baseKey=""; draw();
+    }catch(e){ console.warn("layer",name,e); }
+  })();
+}
+const TRUNK={ "1":"#EE352E","2":"#EE352E","3":"#EE352E","4":"#00933C","5":"#00933C","6":"#00933C","7":"#B933AD",
+  A:"#0039A6",C:"#0039A6",E:"#0039A6",B:"#FF6319",D:"#FF6319",F:"#FF6319",M:"#FF6319",G:"#6CBE45",
+  J:"#996633",Z:"#996633",L:"#A7A9AC",N:"#FCCC0A",Q:"#FCCC0A",R:"#FCCC0A",W:"#FCCC0A",S:"#808183" };
+let subwayInColor=CONFIG.subwayColors;
 function idb(){ return new Promise((res,rej)=>{ try{ const r=indexedDB.open("ycyany",1); r.onupgradeneeded=()=>r.result.createObjectStore("kv");
   r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); }
 async function idbGet(k){ try{ const db=await idb(); return await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(null); }); }catch(e){ return null; } }
@@ -628,7 +681,7 @@ let drawQueued=false;
 function draw(){ if(!drawQueued){ drawQueued=true; requestAnimationFrame(()=>{drawQueued=false;render();}); } }
 const baseCv=document.createElement("canvas"), bctx=baseCv.getContext("2d"); let baseKey="";
 function renderBase(){
-  const d=view.dpr,s=view.scale, key=[view.W,view.H,d,s,view.offX,view.offY,!!allLand,!!refPaths].join(",");
+  const d=view.dpr,s=view.scale, key=[view.W,view.H,d,s,view.offX,view.offY,!!allLand,!!refPaths,!!parksPath,!!road2Path,!!subwayPaths,!!game.show.subway,!!game.show.roads,subwayInColor].join(",");
   if(key===baseKey) return; baseKey=key;
   if(baseCv.width!==canvas.width||baseCv.height!==canvas.height){ baseCv.width=canvas.width; baseCv.height=canvas.height; }
   const c=bctx; c.setTransform(d,0,0,d,0,0);
@@ -637,9 +690,13 @@ function renderBase(){
   c.setTransform(d*s,0,0,d*s,d*view.offX,d*view.offY);
   c.fillStyle=CONFIG.colors.land; c.fill(allLand,"evenodd");
   c.lineJoin="round";
+  if(!refPaths&&parksPath){ c.save(); c.clip(allLand,"evenodd"); c.fillStyle=CONFIG.colors.park; c.fill(parksPath); c.restore(); }
   if(refPaths){ // roads + waterways, clipped to the five boroughs
     const z=clamp(Math.pow(s/minScale(),.35),1,4.5);
     c.save(); c.clip(allLand,"evenodd"); c.lineCap="round";
+    if(parksPath){ c.fillStyle=CONFIG.colors.park; c.fill(parksPath,"nonzero"); c.strokeStyle=CONFIG.colors.parkEdge; c.lineWidth=0.8/s; c.stroke(parksPath); }
+    if(game.show.roads&&road2Path){ c.strokeStyle=CONFIG.colors.road2Edge; c.lineWidth=(1.1*z+1.1)/s; c.stroke(road2Path);
+      c.strokeStyle=CONFIG.colors.road2; c.lineWidth=1.1*z/s; c.stroke(road2Path); }
     c.strokeStyle=CONFIG.colors.stream; c.lineWidth=2.4*z/s; c.stroke(refPaths.water);
     c.strokeStyle=CONFIG.colors.roadEdge; c.lineWidth=(1.6*z+1.4)/s; c.stroke(refPaths.road);
     c.strokeStyle=CONFIG.colors.highwayEdge; c.lineWidth=(2.4*z+1.6)/s; c.stroke(refPaths.hwy);
@@ -649,6 +706,11 @@ function renderBase(){
   }
   c.strokeStyle=CONFIG.colors.coast; c.lineWidth=1.6/s; c.stroke(allLand);
   c.strokeStyle=CONFIG.colors.border; c.lineWidth=1.2/s; c.setLineDash([4/s,3/s]); boroughs.forEach(b=>c.stroke(b.path)); c.setLineDash([]);
+  if(game.show.subway&&subwayPaths){ // just the lines — no stops, no names
+    const z=clamp(Math.pow(s/minScale(),.3),1,3.5); c.lineCap="round"; c.lineJoin="round";
+    c.strokeStyle="#fff"; c.lineWidth=(2.4*z+2)/s; subwayPaths.forEach(p=>c.stroke(p));
+    subwayPaths.forEach((p,sym)=>{ c.strokeStyle=subwayInColor?(TRUNK[sym]||CONFIG.colors.subway):CONFIG.colors.subway; c.lineWidth=2.4*z/s; c.stroke(p); });
+  }
 }
 function render(){
   renderBase();
@@ -761,18 +823,18 @@ async function loadPhoto(ph){ for(const u of photoCandidates(ph)){ try{ return a
 /* =====================================================================
    Game flow
    ===================================================================== */
-const game={phase:"title",deck:[],results:[],total:0,current:null,guess:null,reveal:null,hint:0};
+const game={phase:"title",deck:[],results:[],total:0,current:null,guess:null,reveal:null,hint:0,used:{},show:{}};
 let photoBank=null;
 
 async function boot(){
   ["mapRat","stageRat","titleRat"].forEach(id=>$(id).innerHTML=ratSVG());
   buildAperture(); resizeMap(); placeStage();
   window.addEventListener("resize",()=>{ resizeMap(); placeStage(); });
-  const best=store.get("ycyany_best",0); if(best) $("bestLine").textContent="Your best: "+best.toLocaleString();
+  const best=store.get("ycyany_best_m",0); if(best) $("bestLine").textContent="Your best: "+best.toLocaleString();
   say(pick(SAL.intro));
   try{
     const [,photos]=await Promise.all([loadBoroughs(), fetchPhotos(LANDMARKS)]);
-    loadReference().catch(()=>{});
+    loadReference().catch(()=>{}); loadLayer("parks"); setTimeout(()=>{loadLayer("subway");loadLayer("roads");},3000);
     photoBank=photos;
     for(const lm of LANDMARKS){ const p=photoBank.get(lm.wiki);
       if(p&&p.lat!=null&&p.lat>B.south&&p.lat<B.north&&p.lon>B.west&&p.lon<B.east){ lm.lat=p.lat; lm.lon=p.lon; } }
@@ -796,7 +858,7 @@ function startGame(){
 }
 async function nextRound(){
   if(game.results.length>=CONFIG.roundsPerGame||!game.deck.length) return endGame();
-  game.phase="loading"; game.guess=null; game.reveal=null; game.hint=0;
+  game.phase="loading"; game.guess=null; game.reveal=null; game.hint=0; game.used={}; game.show={}; $("helpPanel").classList.add("hidden"); baseKey="";
   $("resultPanel").classList.add("hidden"); $("lockBtn").classList.add("hidden"); $("credit").innerHTML="";
   $("mapHost").classList.remove("wide"); $("mapHost").style.bottom="8px";
   $("gRound").textContent=(game.results.length+1)+"/"+CONFIG.roundsPerGame;
@@ -818,11 +880,12 @@ async function nextRound(){
   say(lm.gone ? pick(SAL.lookGone) : pick(SAL.look));
 }
 function updateWiden(){
-  const b=$("widenBtn"), n=game.hint+1, cur=Math.round(CONFIG.hintMultipliers[game.hint]*100);
+  const b=$("widenBtn"), n=game.hint+1, cur=Math.round(roundMult()*100);
   $("bonusTxt").innerHTML = game.phase==="reveal" ? "" : `Bonus: <b>${cur}%</b>`;
+  updateHelpers();
   if(n>=CONFIG.apertureZooms.length){ b.disabled=true; b.textContent="Wide open"; return; }
   b.disabled=!(game.phase==="look"||game.phase==="guess");
-  b.textContent=`Bigger (${Math.round(CONFIG.hintMultipliers[n]*100)}%)`;
+  b.textContent=`Bigger (${Math.round(roundMult()/CONFIG.hintMultipliers[game.hint]*CONFIG.hintMultipliers[n]*100)}%)`;
 }
 $("widenBtn").onclick=()=>{
   if(!(game.phase==="look"||game.phase==="guess")||game.hint+1>=CONFIG.apertureZooms.length) return;
@@ -831,6 +894,29 @@ $("widenBtn").onclick=()=>{
   sndIris(); layoutPhoto(); updateWiden(); say(pick(SAL.widen));
 };
 
+const NAG={subway:["Usin' the subway map? Real New Yorkers got it memorized.","The trains? Fine. Costs ya."],
+  roads:["Need the streets spelled out? Okay, GPS.","More roads. Your call, it's your bonus."]};
+function updateHelpers(){
+  const H=CONFIG.helpers;
+  $("hSubwayCost").textContent="×"+H.subway.mult; $("hRoadsCost").textContent="×"+H.roads.mult;
+  $("hSubway").checked=!!game.show.subway; $("hRoads").checked=!!game.show.roads; $("hColor").checked=subwayInColor;
+  $("hColor").disabled=!game.show.subway;
+  const canUse=game.phase==="guess"||game.phase==="look";
+  $("hSubway").disabled=!canUse; $("hRoads").disabled=!canUse;
+  $("hpBonus").innerHTML=`This round's bonus: <b>${Math.round(roundMult()*100)}%</b>`+
+    (Object.keys(game.used).length?`<br><span style="color:#999;font-size:11px">Once used, the cut stays for the round.</span>`:"");
+  $("helpBtn").classList.toggle("on",!!(game.show.subway||game.show.roads));
+}
+function toggleHelper(k,on){
+  if(!(game.phase==="guess"||game.phase==="look")) return updateHelpers();
+  game.show[k]=on; if(on){ if(!game.used[k]) say(pick(NAG[k])); game.used[k]=true; loadLayer(k); }
+  baseKey=""; draw(); updateWiden();
+}
+$("hSubway").onchange=e=>toggleHelper("subway",e.target.checked);
+$("hRoads").onchange=e=>toggleHelper("roads",e.target.checked);
+$("hColor").onchange=e=>{ subwayInColor=e.target.checked; baseKey=""; draw(); };
+$("helpBtn").onclick=()=>{ $("helpPanel").classList.toggle("hidden"); updateHelpers(); };
+canvas.addEventListener("pointerdown",()=>$("helpPanel").classList.add("hidden"));
 function placeGuess(sx,sy){
   if(game.phase!=="guess") return;
   const [lat,lon]=toGeo(sx,sy);
@@ -840,7 +926,7 @@ function placeGuess(sx,sy){
 }
 $("lockBtn").onclick=async()=>{
   if(game.phase!=="guess"||!game.guess) return; game.phase="reveal";
-  const lm=game.current,g=game.guess, km=haversineKm(g.lat,g.lon,lm.lat,lm.lon), pts=scoreFor(km,game.hint);
+  const lm=game.current,g=game.guess, km=haversineKm(g.lat,g.lon,lm.lat,lm.lon), pts=scoreFor(km), multUsed=roundMult();
   game.total+=pts; game.results.push({name:lm.name,km,pts,gone:!!lm.gone}); game.reveal={lat:lm.lat,lon:lm.lon};
   $("lockBtn").classList.add("hidden");
   // the porthole opens all the way so you can see what it was
@@ -856,7 +942,7 @@ $("lockBtn").onclick=async()=>{
   if(lm.gone && km<1.6) line+=" Respect for rememberin'.";
   say(line); sndHorn(pts>6000);
   $("rName").innerHTML=lm.name+(lm.gone?`<span class="gone">GONE</span>`:"");
-  $("rMeta").textContent=`${realB.join(" / ")}${lm.gone?" · "+lm.gone:""} · you were ${fmtDist(km)} off${fmtBlocks(km)}`;
+  $("rMeta").textContent=`${realB.join(" / ")}${lm.gone?" · "+lm.gone:""} · you were ${fmtDist(km)} off${fmtBlocks(km)}${multUsed<0.999?" · bonus "+Math.round(multUsed*100)+"%":""}`;
   $("nextBtn").textContent=game.results.length>=CONFIG.roundsPerGame?"Final score":"Next";
   $("resultPanel").classList.remove("hidden");
   $("mapHost").classList.add("wide"); $("mapHost").style.bottom=($("resultPanel").offsetHeight+16)+"px";
@@ -876,15 +962,15 @@ function animateNumber(el,from,to,ms,fmt){ const t0=performance.now();
   requestAnimationFrame(step); }
 
 const RANKS=[
-  [42000,"Born and Raised","I'd split a slice with you. That's the highest honor I got."],
-  [32000,"Real New Yorker","Alright. You can stay."],
-  [22000,"Transplant","Ya gettin' there. Give it a few winters."],
-  [12000,"Bridge and Tunnel","You visit. I see you. It's fine."],
+  [2500000,"Born and Raised","I'd split a slice with you. That's the highest honor I got."],
+  [1200000,"Real New Yorker","Alright. You can stay."],
+  [600000,"Transplant","Ya gettin' there. Give it a few winters."],
+  [200000,"Bridge and Tunnel","You visit. I see you. It's fine."],
   [0,"Tourist","Stand to the right on the escalator, sweetheart."],
 ];
 function endGame(){
   game.phase="end"; setStage("mini");
-  const best=Math.max(store.get("ycyany_best",0),game.total); store.set("ycyany_best",best);
+  const best=Math.max(store.get("ycyany_best_m",0),game.total); store.set("ycyany_best_m",best);
   const [,title,quote]=RANKS.find(r=>game.total>=r[0]);
   $("endTitle").textContent=title; $("endQuote").textContent="Sal says: “"+quote+"”";
   $("endTotal").textContent=game.total.toLocaleString();
