@@ -1049,7 +1049,8 @@ async function reveal(){
     return {p,g,km,pts}; });
   photoState.zoom=1; photoState.focusX=.5; photoState.focusY=.5; layoutPhoto();
   const esc=t=>(t||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
-  const ph=lm.photo, by=ph.author?`${esc(ph.author)}${ph.license?", "+esc(ph.license):""}`:"Wikimedia Commons";
+  const ph=lm.photo; let au=(ph.author||"").replace(/^(.+?)\s*\1$/,"$1").trim(); if(/^unknown/i.test(au)) au="";
+  const by=au?`${esc(au)}${ph.license?", "+esc(ph.license):""}`:(ph.license?esc(ph.license)+" · Wikimedia Commons":"Wikimedia Commons");
   $("credit").innerHTML=`<a href="${ph.page||"https://commons.wikimedia.org/wiki/File:"+encodeURIComponent(ph.file||"")}" target="_blank" rel="noopener">Photo: ${by}</a> · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(lm.photo.title.replace(/ /g,"_"))}" target="_blank" rel="noopener">About it</a>`;
   const realB=lm.boro;
   function verdict(km,g){ const gb=boroughAt(g.lat,g.lon);
