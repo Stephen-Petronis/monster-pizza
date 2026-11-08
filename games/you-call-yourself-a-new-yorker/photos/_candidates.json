@@ -1,840 +1,254 @@
 {
- "empire-state-building": [
+ "soldiers-and-sailors-arch-brooklyn": [
   {
    "n": 1,
-   "file": "File:ESBandDowntown2015.jpg",
-   "w": 7020,
-   "h": 4680
-  },
-  {
-   "n": 2,
-   "file": "File:EmpireStateBuilding20205thAvenueEntrance.jpg",
-   "w": 4048,
-   "h": 3036
-  },
-  {
-   "n": 3,
-   "file": "File:EmpireStateBuilding202080thFloorSouthEastCorner.jpg",
-   "w": 4048,
-   "h": 3036
-  },
-  {
-   "n": 4,
-   "file": "File:EmpireStateBuilding202086thFloorExteriorNorthwestCorner.jpg",
-   "w": 4048,
-   "h": 3036
-  },
-  {
-   "n": 5,
-   "file": "File:EmpireStateBuilding highest point-crop.jpg",
-   "w": 2009,
-   "h": 2211
-  },
-  {
-   "n": 6,
-   "file": "File:Empire State Building 86th floor.jpg",
-   "w": 4608,
-   "h": 3456
-  },
-  {
-   "n": 7,
-   "file": "File:Empire State Building Entrance decoration (6046008895).jpg",
-   "w": 1647,
-   "h": 2350
-  },
-  {
-   "n": 8,
-   "file": "File:Empire State Building LED live election results Obama Romney Spire Close-up (8162616388).jpg",
-   "w": 1733,
-   "h": 2600
-  },
-  {
-   "n": 9,
-   "file": "File:Empire State Building New York City Skyride February 2004.jpg",
-   "w": 2048,
-   "h": 1536
-  },
-  {
-   "n": 10,
-   "file": "File:Empire State Building elevators 01.jpg",
-   "w": 11608,
-   "h": 8708
-  },
-  {
-   "n": 11,
-   "file": "File:Empire State Building in Rainbow Colors for Gay Pride 2015 (19076876770).jpg",
-   "w": 7020,
-   "h": 4680
-  },
-  {
-   "n": 12,
-   "file": "File:Empire State Building lobby 20240521.jpg",
-   "w": 1920,
-   "h": 2560
-  },
-  {
-   "n": 13,
-   "file": "File:Icarus, Empire State Building MET DP106525.jpg",
-   "w": 3519,
-   "h": 2760
-  },
-  {
-   "n": 14,
-   "file": "File:NARA Empire State Building.jpg",
-   "w": 4423,
-   "h": 5698
-  },
-  {
-   "n": 15,
-   "file": "File:Old timer structural worker2.jpg",
-   "w": 3000,
-   "h": 2401
-  },
-  {
-   "n": 16,
-   "file": "File:Skyline-New-York-City.jpg",
-   "w": 7979,
-   "h": 740
-  },
-  {
-   "n": 17,
-   "file": "File:USA-NYC-Empire State1.JPG",
-   "w": 5184,
-   "h": 3456
-  }
- ],
- "chrysler-building": [
-  {
-   "n": 1,
-   "file": "File:Chrysler Building (1).jpg",
-   "w": 3072,
-   "h": 4080
-  },
-  {
-   "n": 2,
-   "file": "File:Chrysler Building 1965 (cropped).tif",
-   "w": 2920,
-   "h": 4293
-  },
-  {
-   "n": 3,
-   "file": "File:Chrysler Building 2005 4.jpg",
-   "w": 3264,
-   "h": 2448
-  },
-  {
-   "n": 4,
-   "file": "File:Chrysler Building Lobby 2.jpg",
-   "w": 5184,
-   "h": 3456
-  },
-  {
-   "n": 5,
-   "file": "File:Chrysler Building Midtown Manhattan New York City 1932.jpg",
-   "w": 5359,
-   "h": 3779
-  },
-  {
-   "n": 6,
-   "file": "File:Chrysler Building Nov 2021.jpg",
-   "w": 2080,
-   "h": 4624
-  },
-  {
-   "n": 7,
-   "file": "File:Chrysler Building Oct 2021 03.jpg",
-   "w": 3456,
-   "h": 5184
-  },
-  {
-   "n": 8,
-   "file": "File:Chrysler Building Oct 2021 14.jpg",
-   "w": 3456,
-   "h": 5184
-  },
-  {
-   "n": 9,
-   "file": "File:Chrysler Building and Calyon Building.jpg",
-   "w": 1600,
-   "h": 2000
-  },
-  {
-   "n": 10,
-   "file": "File:Chrysler Building eagle.jpg",
-   "w": 3039,
-   "h": 3028
-  },
-  {
-   "n": 11,
-   "file": "File:Chrysler Building motifs detail.jpg",
-   "w": 1635,
-   "h": 1119
-  },
-  {
-   "n": 12,
-   "file": "File:Chrysler Building spire, Manhattan, by Carol Highsmith (LOC highsm.04444).jpg",
-   "w": 2344,
-   "h": 4284
-  },
-  {
-   "n": 13,
-   "file": "File:Chrysler Lamp.jpg",
-   "w": 3142,
-   "h": 3142
-  },
-  {
-   "n": 14,
-   "file": "File:Chrysler building detail.jpg",
-   "w": 2592,
-   "h": 1944
-  },
-  {
-   "n": 15,
-   "file": "File:Chrysler building interior 1.jpg",
-   "w": 3072,
-   "h": 2304
-  },
-  {
-   "n": 16,
-   "file": "File:Chrysler building interior 2.JPG",
-   "w": 2304,
-   "h": 3072
-  },
-  {
-   "n": 17,
-   "file": "File:HistoricPlacesNationalRegisterPlaque.JPG",
-   "w": 2498,
-   "h": 1969
-  },
-  {
-   "n": 18,
-   "file": "File:Image-Grand central Station Outside Night 2.jpg",
-   "w": 4726,
-   "h": 3805
-  }
- ],
- "one-world-trade-center": [
-  {
-   "n": 1,
-   "file": "File:174-photo pano of NYC (32756674773).jpg",
-   "w": 4777,
-   "h": 1600
-  },
-  {
-   "n": 2,
-   "file": "File:1WorldTradeCenterEntrance.jpg",
-   "w": 4681,
-   "h": 3121
-  },
-  {
-   "n": 3,
-   "file": "File:911 memorial - panoramio (1).jpg",
-   "w": 3264,
-   "h": 4912
-  },
-  {
-   "n": 4,
-   "file": "File:Festakt zur Neuer\u00f6ffnung des Milit\u00e4rhistorischen Museums der Bundeswehr - Daniel Libeskind.jpg",
-   "w": 3996,
-   "h": 2669
-  },
-  {
-   "n": 5,
-   "file": "File:Interior of the One World Observatory with visitors backlit against the windows, New York City.jpg",
-   "w": 7620,
-   "h": 5080
-  },
-  {
-   "n": 6,
-   "file": "File:Lower Manhattan from Jersey City November 2014 panorama 3 cropped.jpg",
-   "w": 3228,
-   "h": 3704
-  },
-  {
-   "n": 7,
-   "file": "File:Lower Manhattan from Jersey City September 2020 HDR panorama (cropped2).jpg",
-   "w": 7492,
-   "h": 2140
-  },
-  {
-   "n": 8,
-   "file": "File:OneWTC-Construction-Feb2009.jpg",
-   "w": 3504,
-   "h": 2336
-  },
-  {
-   "n": 9,
-   "file": "File:One WTC From W Hotel 7-28-10.JPG",
-   "w": 3648,
-   "h": 2282
-  },
-  {
-   "n": 10,
-   "file": "File:One World Trade Center, Financial District, Manhattan, New York.jpg",
-   "w": 4883,
-   "h": 7325
-  },
-  {
-   "n": 11,
-   "file": "File:One World Trade Center Building.jpg",
-   "w": 3024,
-   "h": 4032
-  },
-  {
-   "n": 12,
-   "file": "File:One World Trade Center Building (2021).jpg",
-   "w": 1972,
-   "h": 3325
-  },
-  {
-   "n": 13,
-   "file": "File:One World Trade Center and Lower Manhattan skyline from the harbor, New York.jpg",
-   "w": 4962,
-   "h": 7443
-  },
-  {
-   "n": 14,
-   "file": "File:Statue of Liberty with One World Trade Center.jpg",
-   "w": 5184,
-   "h": 3456
-  },
-  {
-   "n": 15,
-   "file": "File:Sunset in New York City at 1 WTC.jpg",
-   "w": 5490,
-   "h": 3588
-  },
-  {
-   "n": 16,
-   "file": "File:Tallest buildings 2022.png",
-   "w": 2902,
-   "h": 1247
-  },
-  {
-   "n": 17,
-   "file": "File:TheSphere-2017-11-09.jpg",
-   "w": 2736,
-   "h": 1824
-  },
-  {
-   "n": 18,
-   "file": "File:The City that never sleeps - Flickr - christianreimer.jpg",
-   "w": 5990,
-   "h": 2742
-  },
-  {
-   "n": 19,
-   "file": "File:Top of One World Trade Center Financial District New York (NY) April 2016 (27509488345).jpg",
-   "w": 2260,
-   "h": 3664
-  }
- ],
- "rockefeller-center": [
-  {
-   "n": 1,
-   "file": "File:1221 Avenue of the Americas.jpg",
-   "w": 6000,
-   "h": 4000
-  },
-  {
-   "n": 2,
-   "file": "File:1230 Avenue of the Americas.jpg",
-   "w": 5953,
-   "h": 3992
-  },
-  {
-   "n": 3,
-   "file": "File:47 50 Streets entrance 2010 vc.jpg",
-   "w": 2592,
-   "h": 1944
-  },
-  {
-   "n": 4,
-   "file": "File:75 Rockefeller Plaza.jpg",
-   "w": 2471,
-   "h": 3706
-  },
-  {
-   "n": 5,
-   "file": "File:GE Building by David Shankbone.JPG",
-   "w": 2380,
-   "h": 3204
-  },
-  {
-   "n": 6,
-   "file": "File:HistoricPlacesNationalRegisterPlaque.JPG",
-   "w": 2498,
-   "h": 1969
-  },
-  {
-   "n": 7,
-   "file": "File:Lunch atop a Skyscraper - Charles Clyde Ebbets.jpg",
-   "w": 2732,
-   "h": 2147
-  },
-  {
-   "n": 8,
-   "file": "File:Metropolitan opera 1905.jpg",
-   "w": 4627,
-   "h": 3657
-  },
-  {
-   "n": 9,
-   "file": "File:Mural. El hombre en el cruce de caminos. Diego rivera (1934).JPG",
-   "w": 4752,
-   "h": 3168
-  },
-  {
-   "n": 10,
-   "file": "File:NYC - St Patrick Cathedral - Facade and Atlas.jpg",
-   "w": 5988,
-   "h": 3996
-  },
-  {
-   "n": 11,
-   "file": "File:NYC Top of the Rock Pano.jpg",
-   "w": 4889,
-   "h": 1111
-  },
-  {
-   "n": 12,
-   "file": "File:New York 2015 - panoramio (4).jpg",
-   "w": 4160,
-   "h": 2340
-  },
-  {
-   "n": 13,
-   "file": "File:New York Christmas tree and skating-rink.jpg",
-   "w": 3008,
-   "h": 2000
-  },
-  {
-   "n": 14,
-   "file": "File:New York City (New York, USA), Rockefeller Center -- 2012 -- 6413.jpg",
-   "w": 3417,
-   "h": 5067
-  },
-  {
-   "n": 15,
-   "file": "File:ROCKFELLER CENTER NEW YORK (14606671466).jpg",
-   "w": 3648,
-   "h": 2736
-  },
-  {
-   "n": 16,
-   "file": "File:Radio City Music Hall, New York, Manhattan, USA.jpg",
-   "w": 6000,
-   "h": 4000
-  },
-  {
-   "n": 17,
-   "file": "File:RockefellerLandmark.JPG",
-   "w": 2207,
-   "h": 1841
-  },
-  {
-   "n": 18,
-   "file": "File:Rockefeller Center, December 1933.jpg",
-   "w": 3708,
-   "h": 5219
-  },
-  {
-   "n": 19,
-   "file": "File:Rockefeller Center 2 (New York) (44331718505).jpg",
-   "w": 5184,
-   "h": 2920
-  },
-  {
-   "n": 20,
-   "file": "File:Rockefeller Center Christmas 2020 Snowstorm December (50733449647).jpg",
-   "w": 6698,
-   "h": 4566
-  },
-  {
-   "n": 21,
-   "file": "File:Rockefeller Center Maison Francaise Janniot Sculpture 2021-05-13 17-27.jpg",
-   "w": 2891,
-   "h": 3108
-  },
-  {
-   "n": 22,
-   "file": "File:Rockefeller Center Rooftop Gardens 2 by David Shankbone.JPG",
-   "w": 1944,
-   "h": 2592
-  }
- ],
- "charging-bull": [
-  {
-   "n": 1,
-   "file": "File:Bowling Green NYC Feb 2020 13.jpg",
-   "w": 3264,
-   "h": 2448
-  },
-  {
-   "n": 2,
-   "file": "File:Charging Bull Covered.jpg",
-   "w": 3024,
-   "h": 4032
-  }
- ],
- "wonder-wheel": [
-  {
-   "n": 1,
-   "file": "File:2010-03-21 at 11-00-57.jpg",
-   "w": 2200,
-   "h": 1465
-  },
-  {
-   "n": 2,
-   "file": "File:Coney Island beach and amusement parks (June 2016).jpg",
-   "w": 6000,
-   "h": 4000
-  },
-  {
-   "n": 3,
-   "file": "File:Newyork15.jpg",
-   "w": 5312,
-   "h": 2988
-  },
-  {
-   "n": 4,
-   "file": "File:South wall New York Aquarium.JPG",
-   "w": 2816,
-   "h": 2112
-  },
-  {
-   "n": 5,
-   "file": "File:Wonder Wheel, Coney Island at night (June 2016) 2.jpg",
-   "w": 4000,
-   "h": 6000
-  },
-  {
-   "n": 6,
-   "file": "File:Wonder Wheel off-season 1.jpg",
-   "w": 3384,
-   "h": 2438
-  },
-  {
-   "n": 7,
-   "file": "File:Wonder Wheel sign (84111p).jpg",
-   "w": 5352,
-   "h": 7285
-  }
- ],
- "citi-field": [
-  {
-   "n": 1,
-   "file": "File:5.9.14CitiFieldControlRoomByLuigiNovi5.jpg",
-   "w": 3264,
-   "h": 2184
-  },
-  {
-   "n": 2,
-   "file": "File:Citi Field (48613685207).jpg",
-   "w": 4516,
-   "h": 2540
-  },
-  {
-   "n": 3,
-   "file": "File:Citi Field Day.jpg",
-   "w": 3872,
-   "h": 2592
-  },
-  {
-   "n": 4,
-   "file": "File:Citi Field and Apple.JPG",
-   "w": 3264,
-   "h": 1972
-  },
-  {
-   "n": 5,
-   "file": "File:Citi Field and Arthur Ashe Stadium.jpg",
-   "w": 1512,
-   "h": 2412
-  },
-  {
-   "n": 6,
-   "file": "File:Citi Field baseball stadium - July 2024.jpg",
-   "w": 4032,
-   "h": 3024
-  },
-  {
-   "n": 7,
-   "file": "File:David Cone 19-K game jersey.jpg",
-   "w": 3456,
-   "h": 2592
-  },
-  {
-   "n": 8,
-   "file": "File:Entrance Plaza, Queens Botanical Garden.jpg",
-   "w": 6016,
-   "h": 4000
-  },
-  {
-   "n": 9,
-   "file": "File:Etihad Park April 2026.jpg",
-   "w": 5712,
-   "h": 4284
-  },
-  {
-   "n": 10,
-   "file": "File:Flushing Meadows Carousel 06.JPG",
-   "w": 5184,
-   "h": 3456
-  },
-  {
-   "n": 11,
-   "file": "File:Flushing Meadows Natatorium-1.jpg",
-   "w": 7349,
-   "h": 4905
-  },
-  {
-   "n": 12,
-   "file": "File:Jackie Robinson Memorial.JPG",
-   "w": 3072,
-   "h": 2304
-  },
-  {
-   "n": 13,
-   "file": "File:Jackie Robinson Rotunda.jpg",
-   "w": 3008,
-   "h": 2000
-  },
-  {
-   "n": 14,
-   "file": "File:Jonathan Lethem Occupy Wall Street 2011 Shankbone.JPG",
-   "w": 2994,
-   "h": 2427
-  },
-  {
-   "n": 15,
-   "file": "File:MTA and USTA Encourage Taking Mass Transit as US Open Fan Week Begins (52306396510).jpg",
-   "w": 5298,
-   "h": 3712
-  },
-  {
-   "n": 16,
-   "file": "File:Madison Square Garden, 2005.jpg",
-   "w": 1600,
-   "h": 1200
-  },
-  {
-   "n": 17,
-   "file": "File:Main entrance to the New York Hall of Science.JPG",
-   "w": 4608,
-   "h": 3456
-  }
- ],
- "st-george-terminal": [
-  {
-   "n": 1,
-   "file": "File:Ferry Terminal, St. George, Staten Island, N.Y. (buildings with trains and r.r. tracks) (NYPL b15279351-104684).tiff",
-   "w": 2488,
-   "h": 1682
-  },
-  {
-   "n": 2,
-   "file": "File:Introducing New USB-Wi-Fi Buses (27077866825).jpg",
-   "w": 1680,
-   "h": 1118
-  },
-  {
-   "n": 3,
-   "file": "File:MTA Bus New Flyer C40LF 207.JPG",
-   "w": 2744,
-   "h": 1724
-  },
-  {
-   "n": 4,
-   "file": "File:MTA New York City Transit 2015 Novabus LFS.jpg",
-   "w": 2377,
-   "h": 1762
-  },
-  {
-   "n": 5,
-   "file": "File:St. George Terminal Main Concourse.jpg",
-   "w": 4032,
-   "h": 3024
-  },
-  {
-   "n": 6,
-   "file": "File:St. George Terminal td (2022-07-04) 009 - Arch.jpg",
-   "w": 5472,
-   "h": 3648
-  },
-  {
-   "n": 7,
-   "file": "File:Staten Island Ferry - St George Terminal (9739253316).jpg",
-   "w": 4608,
-   "h": 3456
-  },
-  {
-   "n": 8,
-   "file": "File:Staten Island Railway R44 Car.jpg",
-   "w": 4032,
-   "h": 2268
-  }
- ],
- "snug-harbor-cultural-center": [
-  {
-   "n": 1,
-   "file": "File:Church, Music Hall and Fountain, Sailors' Snug Harbor, Staten Island (NYPL b15279351-105046).tiff",
-   "w": 2488,
-   "h": 1682
-  },
-  {
-   "n": 2,
-   "file": "File:Greek Revival - Staten Island, NY - Sailors' Snug Harbor (Building \"C\") (1).jpg",
-   "w": 3824,
-   "h": 5728
-  },
-  {
-   "n": 3,
-   "file": "File:Harper's weekly (1867) (14596664047).jpg",
-   "w": 3104,
-   "h": 2154
-  },
-  {
-   "n": 4,
-   "file": "File:Noble Maritime Collection entrance jeh.jpg",
-   "w": 4608,
-   "h": 3072
-  },
-  {
-   "n": 5,
-   "file": "File:SH 1000B front jeh.jpg",
-   "w": 3999,
-   "h": 3502
-  },
-  {
-   "n": 6,
-   "file": "File:SH 1000C NE jeh.jpg",
-   "w": 4399,
-   "h": 3200
-  },
-  {
-   "n": 7,
-   "file": "File:SH 1000E north jeh.jpg",
-   "w": 3401,
-   "h": 2800
-  },
-  {
-   "n": 8,
-   "file": "File:SH Music Hall shaded jeh.jpg",
-   "w": 4287,
-   "h": 3326
-  },
-  {
-   "n": 9,
-   "file": "File:Sa Snug Harbor sta SIRT jeh.JPG",
-   "w": 4137,
-   "h": 3076
-  },
-  {
-   "n": 10,
-   "file": "File:Sailors' Snug Harbor, Chapel, Richmond Terrace, New Brighton, Richmond County, NY HABS NY,43-NEWBR,1K-2.tif",
-   "w": 4966,
-   "h": 3938
-  },
-  {
-   "n": 11,
-   "file": "File:Snug Harbor Aug 2026 01.jpg",
-   "w": 4080,
-   "h": 3060
-  },
-  {
-   "n": 12,
-   "file": "File:Snug Harbor Aug 2026 25.jpg",
-   "w": 4080,
-   "h": 3060
-  },
-  {
-   "n": 13,
-   "file": "File:Snug Harbor Aug 2026 29.jpg",
-   "w": 4080,
-   "h": 3060
-  },
-  {
-   "n": 14,
-   "file": "File:Snug Harbor Aug 2026 68.jpg",
-   "w": 3060,
-   "h": 4080
-  },
-  {
-   "n": 15,
-   "file": "File:Snug Harbor gazebo West jeh.jpg",
-   "w": 4002,
-   "h": 3672
-  },
-  {
-   "n": 16,
-   "file": "File:Snug Harbor greenhouse jeh.jpg",
-   "w": 4502,
-   "h": 3672
-  },
-  {
-   "n": 17,
-   "file": "File:Snug Harbor old main gate jeh.jpg",
+   "file": "File:Grand Army Plaza Brooklyn New York August 2013.jpg",
    "w": 3000,
    "h": 2400
   },
   {
-   "n": 18,
-   "file": "File:Snug Harbor secret castle from road jeh.jpg",
-   "w": 3997,
-   "h": 3672
+   "n": 2,
+   "file": "File:Soldiers and Sailors Arch 002.jpg",
+   "w": 3264,
+   "h": 2448
   },
   {
-   "n": 19,
-   "file": "File:Veteran's Memorial Hall (9991141584).jpg",
-   "w": 3456,
-   "h": 4608
+   "n": 3,
+   "file": "File:Soldiers' and Sailors' Arch.jpg",
+   "w": 1998,
+   "h": 2477
+  },
+  {
+   "n": 4,
+   "file": "File:Soldiers and Sailors Arch.jpg",
+   "w": 3264,
+   "h": 2448
+  },
+  {
+   "n": 5,
+   "file": "File:The Soldiers and Sailors Memorial Arch at Grand Army Plaza.jpg",
+   "w": 1919,
+   "h": 2265
+  },
+  {
+   "n": 6,
+   "file": "File:Soldiers' and Sailors' Arch, Brooklyn.jpg",
+   "w": 3948,
+   "h": 3461
+  },
+  {
+   "n": 7,
+   "file": "File:Soliders and Sailors Arch 001.jpg",
+   "w": 3264,
+   "h": 2448
+  },
+  {
+   "n": 8,
+   "file": "File:Brooklyn Grand Army Plaza Arch 02.JPG",
+   "w": 3648,
+   "h": 2736
+  },
+  {
+   "n": 9,
+   "file": "File:Soldiers and Sailors Memorial Arch December 2006.jpg",
+   "w": 2816,
+   "h": 2112
+  },
+  {
+   "n": 10,
+   "file": "File:Soldiers' and Sailors' Arch at night - panoramio.jpg",
+   "w": 4224,
+   "h": 3168
+  },
+  {
+   "n": 11,
+   "file": "File:Soldiers and Sailors Memorial Arch, right side detail.JPG",
+   "w": 4608,
+   "h": 3072
+  },
+  {
+   "n": 12,
+   "file": "File:Brooklyn Grand Army Plaza Arch.JPG",
+   "w": 2736,
+   "h": 2915
+  },
+  {
+   "n": 13,
+   "file": "File:Brooklyn Grand Army Plaza Arch Quadriga.JPG",
+   "w": 3648,
+   "h": 2736
+  },
+  {
+   "n": 14,
+   "file": "File:Grand Army Plaza Arch Jan 2010.jpg",
+   "w": 2736,
+   "h": 3648
+  },
+  {
+   "n": 15,
+   "file": "File:Brooklyn Grand Army Plaza Arch Quadriga 02.JPG",
+   "w": 3110,
+   "h": 2313
+  },
+  {
+   "n": 16,
+   "file": "File:Soldiers' and Sailors' Arch - Grand Army Plaza (55268471678).jpg",
+   "w": 5080,
+   "h": 5080
+  },
+  {
+   "n": 17,
+   "file": "File:Brooklyn Mirador.JPG",
+   "w": 1583,
+   "h": 1278
+  },
+  {
+   "n": 18,
+   "file": "File:Soldiers' and Sailors' Arch internal decorations.jpg",
+   "w": 1600,
+   "h": 1200
   }
  ],
  "historic-richmond-town": [
   {
    "n": 1,
-   "file": "File:Diner Film Set.jpg",
-   "w": 4032,
-   "h": 3024
-  }
- ],
- "singer-building": [
-  {
-   "n": 1,
-   "file": "File:King's Color-graphs of New York City9.jpg",
-   "w": 2109,
-   "h": 2769
+   "file": "File:Stephen's General Store (reconstructed by Staten Island Historical Society, int. of typical general store (NYPL b15279351-105166).tiff",
+   "w": 2496,
+   "h": 1711
   },
   {
    "n": 2,
-   "file": "File:New York City aerial view 1919.jpg",
-   "w": 1703,
-   "h": 1209
+   "file": "File:Stillwell-Perine House, Oldest Section Erected 1679, Property of Staten Island Historical Society (site of Alice Austen's and Gertrude Tate's Box Tree Tea Room) (NYPL b15279351-104569).tiff",
+   "w": 2448,
+   "h": 1701
   },
   {
    "n": 3,
-   "file": "File:SingerBuilding15.jpg",
-   "w": 3236,
-   "h": 4567
+   "file": "File:Richmond Co. Jail, Richmond, Staten Island (NYPL b15279351-104819).tiff",
+   "w": 2440,
+   "h": 1618
+  }
+ ],
+ "conference-house": [
+  {
+   "n": 1,
+   "file": "File:The Conference House (erected 1668) Tottenville, Staten Island, N.Y (NYPL b15279351-104555).tiff",
+   "w": 2464,
+   "h": 1731
+  },
+  {
+   "n": 2,
+   "file": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (2).jpg",
+   "w": 4592,
+   "h": 2576
+  },
+  {
+   "n": 3,
+   "file": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (8).jpg",
+   "w": 4592,
+   "h": 2576
   },
   {
    "n": 4,
-   "file": "File:SingerBuilding2.jpg",
-   "w": 3243,
-   "h": 4670
+   "file": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (6).jpg",
+   "w": 4592,
+   "h": 2576
   },
   {
    "n": 5,
-   "file": "File:SingerBuilding5.jpg",
-   "w": 3313,
-   "h": 4717
+   "file": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (9).jpg",
+   "w": 4592,
+   "h": 2576
   },
   {
    "n": 6,
-   "file": "File:Singer City Investing Hudson Terminal 1909 crop.jpg",
-   "w": 3475,
-   "h": 2607
+   "file": "File:Easter Egg Hunt at Conference House in TottenVille Staten Island, NYC - panoramio (4).jpg",
+   "w": 4592,
+   "h": 2576
+  },
+  {
+   "n": 7,
+   "file": "File:Billop(sic) House, Conference Room, (1668) Staten ISland, N.Y. by Ottilie Johnson (NYPL b15279351-104553).tiff",
+   "w": 2488,
+   "h": 1692
+  },
+  {
+   "n": 8,
+   "file": "File:Easter Egg Hunt at Conference House in Staten Island 2012 - panoramio.jpg",
+   "w": 9097,
+   "h": 1856
+  },
+  {
+   "n": 9,
+   "file": "File:Conference House - Fancy Bedroom.jpg",
+   "w": 2448,
+   "h": 3264
+  },
+  {
+   "n": 10,
+   "file": "File:Conference House - Rustic Kitchen.jpg",
+   "w": 3264,
+   "h": 2448
+  },
+  {
+   "n": 11,
+   "file": "File:Conference House (NYPL b15279351-104560).tiff",
+   "w": 2488,
+   "h": 1672
+  },
+  {
+   "n": 12,
+   "file": "File:Conference House (NYPL b15279351-104566).tiff",
+   "w": 2376,
+   "h": 1652
+  },
+  {
+   "n": 13,
+   "file": "File:Conference House (NYPL b15279351-104557).tiff",
+   "w": 1682,
+   "h": 2464
+  },
+  {
+   "n": 14,
+   "file": "File:Huge Tree in Tottenville Staten Island - panoramio.jpg",
+   "w": 4592,
+   "h": 3056
+  },
+  {
+   "n": 15,
+   "file": "File:Billop House, Hylan Boulevard, Tottenville, Richmond County, NY HABS NY,43-TOTVI,1-1.tif",
+   "w": 5000,
+   "h": 3550
+  },
+  {
+   "n": 16,
+   "file": "File:Billop House, Hylan Boulevard, Tottenville, Richmond County, NY HABS NY,43-TOTVI,1-2.tif",
+   "w": 5000,
+   "h": 3564
+  },
+  {
+   "n": 17,
+   "file": "File:Billop House, Hylan Boulevard, Tottenville, Richmond County, NY HABS NY,43-TOTVI,1-3.tif",
+   "w": 5000,
+   "h": 3571
+  },
+  {
+   "n": 18,
+   "file": "File:Old buildings of New York City, with some notes regarding their origin and occupants (1907) (14783496385).jpg",
+   "w": 2272,
+   "h": 1576
+  },
+  {
+   "n": 19,
+   "file": "File:Yankovskyi Igor, conference \"House of innovation\".jpg",
+   "w": 5616,
+   "h": 3744
+  },
+  {
+   "n": 20,
+   "file": "File:N\u00e9rac - Maison des Conf\u00e9rences.jpg",
+   "w": 3497,
+   "h": 6218
   }
  ]
 }
