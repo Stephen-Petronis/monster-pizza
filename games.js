@@ -183,5 +183,13 @@ window.MONSTER_PIZZA = {
       screen: "games/stand-clear/screen.gif",         // no drawn cabinet yet: uses the built-in one
       color: "#ee352e",
     },
+    {
+      id: "ships-come-in",
+      title: "Your Ship's Come In, Buddy",
+      blurb: "Federation provisioner school. Peel, chop, flip and plate your way to 3 stars, and learn to really cook.",
+      url: "games/ships-come-in/index.html",          // lives inside this repo
+      screen: "games/ships-come-in/screen.gif",       // no drawn cabinet yet: uses the built-in one
+      color: "#e2552f",
+    },
   ],
 };
