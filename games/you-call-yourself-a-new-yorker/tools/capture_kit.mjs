@@ -1,3 +1,4 @@
+// (rerun after the mini-aperture tap fix)
 // Captures a design kit for "You Call Yourself a New Yorker?":
 //   design-kit/screens/*.png    key screens, phone portrait + landscape
 //   design-kit/elements/*.png   every UI piece on a transparent background

@@ -1,0 +1,39 @@
+name: New Yorker photo options
+
+# Gathers several photo options per location and publishes them as one zip on a GitHub Release
+# (too big to keep in the site). Runs when the script changes, or by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "games/you-call-yourself-a-new-yorker/tools/fetch_candidates.py"
+      - ".github/workflows/new-yorker-candidates.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  options:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pillow
+      - name: Gather photo options
+        run: python3 games/you-call-yourself-a-new-yorker/tools/fetch_candidates.py
+      - name: Publish zip as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete new-yorker-photos -y --cleanup-tag || true
+          gh release create new-yorker-photos build/new-yorker-photos.zip \
+            --title "New Yorker photo options" \
+            --notes "Photo options for art-directing You Call Yourself a New Yorker? (see README.txt inside)."
+      - name: Commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add games/you-call-yourself-a-new-yorker/tools/photo-candidates.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "New Yorker game: photo options manifest"
+          git pull --rebase origin main
+          git push origin HEAD:main
