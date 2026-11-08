@@ -63,6 +63,10 @@ def article_photos(wiki, limit=40):
     names = [i["title"] for i in j["query"]["pages"][0].get("images", [])]
     return [n for n in names if re.search(r"\.(jpe?g|png|webp|tiff?)$", n, re.I) and not re.search(r"(logo|icon|map|seal|flag|symbol|commons-|wikimedia|location|diagram)", n, re.I)]
 
+def commons_search(q, limit=30):
+    j = api(CAPI, action="query", list="search", srnamespace=6, srlimit=limit, srsearch=q + " filetype:bitmap")
+    return [r["title"] for r in j["query"]["search"]]
+
 def load_image(url):
     im = Image.open(io.BytesIO(get(url)))
     im = ImageOps.exif_transpose(im)
@@ -102,7 +106,8 @@ def main():
         try:
             if lm.get("review"):
                 opts = []
-                for n in article_photos(lm["wiki"], 60)[:24]:
+                names = commons_search(lm["search"]) if lm.get("search") else article_photos(lm["wiki"], 60)
+                for n in names[:24]:
                     try:
                         fi = file_info(n, 640)
                         if not fi or fi["w"] < 1500: continue
