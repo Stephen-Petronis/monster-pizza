@@ -1,0 +1,36 @@
+name: New Yorker design kit
+
+# Takes screenshots of the game and renders every UI piece (sprite sheet + transparent PNGs)
+# for skinning / mood boards. Runs when the capture script changes, or by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "games/you-call-yourself-a-new-yorker/tools/capture_kit.mjs"
+      - ".github/workflows/new-yorker-design-kit.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium
+      - name: Serve repo + capture
+        run: |
+          python3 -m http.server 8080 >/dev/null 2>&1 &
+          sleep 2
+          node games/you-call-yourself-a-new-yorker/tools/capture_kit.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A games/you-call-yourself-a-new-yorker/design-kit
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "New Yorker game: refresh design kit"
+          git pull --rebase origin main
+          git push origin HEAD:main
