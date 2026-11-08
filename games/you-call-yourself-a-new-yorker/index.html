@@ -26,6 +26,8 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
 #mapBox{position:relative;flex:1;min-height:0;overflow:hidden}
 #map{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
 #zoomBtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#osmCredit{position:absolute;right:6px;bottom:2px;font:10px Helvetica,Arial,sans-serif;color:#456;opacity:.8}
+#osmCredit a{color:#456}
 #scaleBar{position:absolute;right:62px;top:14px;font:600 12px Helvetica,Arial,sans-serif;color:#111;text-shadow:0 0 3px #fff,0 0 3px #fff;pointer-events:none;text-align:right}
 #scaleBar i{display:block;height:6px;border:2px solid #111;border-top:none;margin-top:2px;margin-left:auto}
 #lockBtn{position:absolute;right:12px;bottom:14px;font-size:16px;padding:12px 20px}
@@ -122,6 +124,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
       <button class="btn round" id="zOut" aria-label="Zoom out">−</button>
       <button class="btn round" id="zHome" aria-label="All five boroughs" style="font-size:16px">◎</button>
     </div>
+    <div id="osmCredit" class="hidden">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
     <div id="scaleBar"><span id="scaleTxt"></span><i id="scaleLine"></i></div>
     <div id="mapHost">
       <svg id="mapRat" class="rat" viewBox="0 0 140 110"></svg>
@@ -199,14 +202,28 @@ const CONFIG = {
   mapAngle: -29,            // degrees — turns the city so Manhattan stands straight up, like the subway map
   bounds: { west:-74.285, east:-73.680, south:40.485, north:40.930 },
   maxMapScale: 420000,      // px per degree at max zoom
-  imageWidth: 1600,
+  imageWidth: 1920,        // base thumbnail; sharper versions are picked per device
   boroughUrls: [
     "https://cdn.jsdelivr.net/gh/codeforamerica/click_that_hood@main/public/data/new-york-city-boroughs.geojson",
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/main/public/data/new-york-city-boroughs.geojson",
     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/new-york-city-boroughs.geojson",
   ],
   // subway-map palette: pale blue water, warm off-white land, soft shoreline
-  colors:{ water:"#a6d3e8", land:"#f3efe1", border:"#cfc7ad", coast:"#7db3cc" },
+  colors:{ water:"#a6d3e8", land:"#f3efe1", border:"#cfc7ad", coast:"#7db3cc",
+           road:"#ffffff", roadEdge:"#c2b796", highway:"#ffe9a6", highwayEdge:"#c49f4e", stream:"#7dbcd8" },
+  // Reference roads + waterways from OpenStreetMap (no labels). Loaded once, then kept on the device.
+  overpassUrls: [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  ],
+  // the big famous streets, drawn even when OSM calls them a smaller road
+  namedStreets: ["Broadway","Atlantic Avenue","Flatbush Avenue","Queens Boulevard","Grand Concourse","Northern Boulevard",
+    "Ocean Parkway","Eastern Parkway","Fordham Road","East Fordham Road","West Fordham Road","Canal Street","Houston Street","East Houston Street","West Houston Street",
+    "West 42nd Street","East 42nd Street","West 125th Street","East 125th Street","Fifth Avenue","Park Avenue","Delancey Street",
+    "Hylan Boulevard","Richmond Avenue","Victory Boulevard","Linden Boulevard","Kings Highway","Bedford Avenue","Fourth Avenue",
+    "Roosevelt Avenue","Woodhaven Boulevard","Cross Bay Boulevard","Pelham Parkway","Bruckner Boulevard","Southern Boulevard",
+    "Jamaica Avenue","Hillside Avenue","Myrtle Avenue","Coney Island Avenue","Nostrand Avenue","Utica Avenue","Church Avenue","Lexington Avenue","Amsterdam Avenue","Seventh Avenue","Eighth Avenue"],
 };
 const KX = Math.cos(40.70*Math.PI/180); // squish longitude so the city isn't stretched
 
@@ -518,6 +535,47 @@ function addRingsToPath(p,rings){
   for(const r of rings){ if(r.length<3) continue; let [x,y]=proj(r[0][1],r[0][0]); p.moveTo(x,y);
     for(let i=1;i<r.length;i++){ [x,y]=proj(r[i][1],r[i][0]); p.lineTo(x,y); } p.closePath(); }
 }
+/* ---- reference roads + waterways (OpenStreetMap), cached in IndexedDB ---- */
+let refPaths=null;
+const REF_KEY="nyc-ref-v1";
+function idb(){ return new Promise((res,rej)=>{ try{ const r=indexedDB.open("ycyany",1); r.onupgradeneeded=()=>r.result.createObjectStore("kv");
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); }
+async function idbGet(k){ try{ const db=await idb(); return await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(null); }); }catch(e){ return null; } }
+async function idbSet(k,v){ try{ const db=await idb(); db.transaction("kv","readwrite").objectStore("kv").put(v,k); }catch(e){} }
+function buildRefPaths(ref){ // ref = {hwy:[[lon,lat,lon,lat...]...], road:[...], water:[...]}
+  const mk=lines=>{ const p=new Path2D(); for(const f of lines){ let [x,y]=proj(f[1],f[0]); p.moveTo(x,y);
+    for(let i=2;i<f.length;i+=2){ [x,y]=proj(f[i+1],f[i]); p.lineTo(x,y); } } return p; };
+  refPaths={hwy:mk(ref.hwy), road:mk(ref.road), water:mk(ref.water)}; draw();
+  $("osmCredit").classList.remove("hidden");
+}
+async function loadReference(){
+  const cached=await idbGet(REF_KEY); if(cached&&cached.hwy){ buildRefPaths(cached); return; }
+  const bb=`${B.south},${B.west},${B.north},${B.east}`;
+  const names=CONFIG.namedStreets.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");
+  const q=`[out:json][timeout:90];(
+    way["highway"~"^(motorway|trunk|primary)$"](${bb});
+    way["highway"~"^(secondary|tertiary|primary|trunk)$"]["name"~"^(${names})$"](${bb});
+    way["waterway"~"^(river|canal|tidal_channel)$"](${bb});
+  );out geom qt;`;
+  for(const url of CONFIG.overpassUrls){
+    try{
+      const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),60000);
+      const r=await fetch(url,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ctl.signal});
+      clearTimeout(t); if(!r.ok) continue;
+      const j=await r.json(), ref={hwy:[],road:[],water:[]};
+      for(const el of j.elements||[]){
+        if(el.type!=="way"||!el.geometry||el.geometry.length<2) continue;
+        const tg=el.tags||{}, flat=[];
+        for(const g of el.geometry){ flat.push(+g.lon.toFixed(5), +g.lat.toFixed(5)); }
+        if(tg.waterway) ref.water.push(flat);
+        else if(/^(motorway|trunk)$/.test(tg.highway)) ref.hwy.push(flat);
+        else ref.road.push(flat);
+      }
+      if(ref.hwy.length+ref.road.length===0) continue;
+      buildRefPaths(ref); idbSet(REF_KEY,ref); return;
+    }catch(e){ console.warn("overpass failed",url,e); }
+  }
+}
 async function loadBoroughs(){
   let gj=null,lastErr;
   for(const url of CONFIG.boroughUrls){ try{ const r=await fetch(url); if(!r.ok) throw new Error(r.status); gj=await r.json(); break; }catch(e){ lastErr=e; } }
@@ -573,6 +631,14 @@ function render(){
     ctx.lineJoin="round";
     ctx.strokeStyle=CONFIG.colors.coast; ctx.lineWidth=1.6/s; ctx.stroke(allLand);
     ctx.strokeStyle=CONFIG.colors.border; ctx.lineWidth=1.2/s; ctx.setLineDash([4/s,3/s]); boroughs.forEach(b=>ctx.stroke(b.path)); ctx.setLineDash([]);
+    if(refPaths){
+      const z=clamp(Math.pow(s/minScale(),.35),1,4.5); ctx.lineCap="round";
+      ctx.strokeStyle=CONFIG.colors.stream; ctx.lineWidth=2.4*z/s; ctx.stroke(refPaths.water);
+      ctx.strokeStyle=CONFIG.colors.roadEdge; ctx.lineWidth=(1.6*z+1.4)/s; ctx.stroke(refPaths.road);
+      ctx.strokeStyle=CONFIG.colors.highwayEdge; ctx.lineWidth=(2.4*z+1.6)/s; ctx.stroke(refPaths.hwy);
+      ctx.strokeStyle=CONFIG.colors.road; ctx.lineWidth=1.6*z/s; ctx.stroke(refPaths.road);
+      ctx.strokeStyle=CONFIG.colors.highway; ctx.lineWidth=2.4*z/s; ctx.stroke(refPaths.hwy);
+    }
     ctx.setTransform(d,0,0,d,0,0);
   }
   if(game.reveal){
@@ -646,7 +712,7 @@ async function fetchPhotos(list){
   for(let i=0;i<list.length;i+=20){
     const batch=list.slice(i,i+20);
     const url="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1"+
-      "&prop=pageimages|coordinates&piprop=thumbnail|name&pilicense=free&pithumbsize="+CONFIG.imageWidth+
+      "&prop=pageimages|coordinates&piprop=thumbnail|original|name&pilicense=free&pithumbsize="+CONFIG.imageWidth+
       "&titles="+encodeURIComponent(batch.map(b=>b.wiki).join("|"));
     try{
       const j=await (await fetch(url)).json(), alias=new Map();
@@ -656,6 +722,7 @@ async function fetchPhotos(list){
         if(!p.thumbnail) continue;
         const c=p.coordinates&&p.coordinates[0];
         out.set(alias.get(p.title)||p.title,{src:p.thumbnail.source,file:p.pageimage,title:p.title,
+          orig:p.original?p.original.source:null, origW:p.original?p.original.width:0,
           lat:c?c.lat:null, lon:c?c.lon:null});
       }
     }catch(e){ console.warn("photo batch failed",e); }
@@ -663,6 +730,19 @@ async function fetchPhotos(list){
   return out;
 }
 const preload=src=>new Promise((res,rej)=>{const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=src;});
+// Pick the sharpest sensible photo for this screen: the porthole zooms in up to ~3.4x,
+// so a phone with a retina screen needs a big image to stay crisp.
+function photoCandidates(ph){
+  const dpr=Math.min(window.devicePixelRatio||1,3), big=Math.min(innerWidth,innerHeight)*dpr;
+  const want = big*2.4 > 1920 ? 3840 : 1920;
+  const list=[];
+  if(ph.orig && ph.origW && ph.origW <= want*1.15 && !/\.(svg|tiff?)$/i.test(ph.orig)) list.push(ph.orig);
+  else if(want>1920 && /\/\d+px-/.test(ph.src)) list.push(ph.src.replace(/\/\d+px-/,"/"+want+"px-"));
+  if(ph.orig && ph.origW && ph.origW<=6000 && /\.(jpe?g|png|webp)$/i.test(ph.orig)) list.push(ph.orig);
+  list.push(ph.src);
+  return [...new Set(list)];
+}
+async function loadPhoto(ph){ for(const u of photoCandidates(ph)){ try{ return await preload(u); }catch(e){} } throw new Error("no photo"); }
 
 
 /* =====================================================================
@@ -679,6 +759,7 @@ async function boot(){
   say(pick(SAL.intro));
   try{
     const [,photos]=await Promise.all([loadBoroughs(), fetchPhotos(LANDMARKS)]);
+    loadReference().catch(()=>{});
     photoBank=photos;
     for(const lm of LANDMARKS){ const p=photoBank.get(lm.wiki);
       if(p&&p.lat!=null&&p.lat>B.south&&p.lat<B.north&&p.lon>B.west&&p.lon<B.east){ lm.lat=p.lat; lm.lon=p.lon; } }
@@ -711,7 +792,7 @@ async function nextRound(){
   setStage("full","start"); $("widenBtn").disabled=true; $("readyBtn").disabled=true;
   flyHome(600); draw();
   const lm=game.deck.shift(), ph=photoBank.get(lm.wiki);
-  let im; try{ im=await preload(ph.src); }catch(e){ return nextRound(); }
+  let im; try{ im=await loadPhoto(ph); }catch(e){ return nextRound(); }
   game.current={...lm,photo:ph};
   const img=$("photo"); img.src=im.src; if(img.decode) await img.decode().catch(()=>{});
   const ang=rand(0,Math.PI*2), r=rand(.08,.2);
