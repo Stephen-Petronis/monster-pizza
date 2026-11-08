@@ -293,7 +293,8 @@ const KX = Math.cos(40.70*Math.PI/180); // squish longitude so the city isn't st
 /* Landmarks. wiki = English Wikipedia article (its lead photo + coordinates are used).
    lat/lon are backups if Wikipedia has no coordinates. boro = borough(s) it's in.
    gone = it's not there anymore. */
-const LANDMARKS = [
+// Backup list — the real list lives in landmarks.json next to this page (edit that one).
+let LANDMARKS = [
   // ---- Manhattan
   {name:"Empire State Building", wiki:"Empire State Building", boro:["Manhattan"], lat:40.74844, lon:-73.98566},
   {name:"Statue of Liberty", wiki:"Statue of Liberty", boro:["Manhattan"], lat:40.68925, lon:-74.04450},
@@ -519,9 +520,19 @@ function animateIris(to,ms=700){ return new Promise(res=>{ cancelAnimationFrame(
 
 /* Photo framing in % of the porthole, so it stays right while the porthole grows and shrinks */
 const photoState={focusX:.5,focusY:.5,zoom:1};
+// Never blow a photo up past ~2.2 screen pixels per photo pixel (keeps old/low-res photos from going mushy).
+// Low-res photos still get the "Bigger" steps, just squeezed into the zoom range they can handle.
+function effZoom(z){
+  const img=$("photo"); if(!img.naturalWidth) return z;
+  const boxPx=Math.min(innerWidth,innerHeight)*0.83*Math.min(window.devicePixelRatio||1,3);
+  const cover=Math.max(1/img.naturalWidth,1/img.naturalHeight);
+  const cap=2.2/(cover*boxPx), maxZ=CONFIG.apertureZooms[0];
+  if(cap>=maxZ) return z;
+  return 1+(z-1)*Math.max(0,(cap-1)/(maxZ-1));
+}
 function layoutPhoto(){
   const img=$("photo"); if(!img.naturalWidth) return;
-  const cover=Math.max(1/img.naturalWidth,1/img.naturalHeight)*photoState.zoom;
+  const cover=Math.max(1/img.naturalWidth,1/img.naturalHeight)*effZoom(photoState.zoom);
   const dw=img.naturalWidth*cover, dh=img.naturalHeight*cover;
   const x=clamp(.5-photoState.focusX*dw,1-dw,0), y=clamp(.5-photoState.focusY*dh,1-dh,0);
   Object.assign(img.style,{width:dw*100+"%",height:dh*100+"%",left:x*100+"%",top:y*100+"%"});
@@ -854,7 +865,8 @@ function photoCandidates(ph){
   list.push(ph.src);
   return [...new Set(list)];
 }
-async function loadPhoto(ph){ for(const u of photoCandidates(ph)){ try{ return await preload(u); }catch(e){} } throw new Error("no photo"); }
+async function loadPhoto(ph){ if(ph.local){ try{ return await preload(ph.src); }catch(e){} }
+  for(const u of photoCandidates(ph)){ try{ return await preload(u); }catch(e){} } throw new Error("no photo"); }
 
 
 /* =====================================================================
@@ -872,9 +884,16 @@ async function boot(){
   const best=store.get("ycyany_best_m",0); if(best) $("bestLine").textContent="Your best: "+best.toLocaleString();
   say(pick(SAL.intro));
   try{
-    const [,photos]=await Promise.all([loadBoroughs(), fetchPhotos(LANDMARKS)]);
+    // landmark list + our own optimized photos (made by tools/fetch_photos.py)
+    try{ const r=await fetch("landmarks.json",{cache:"no-cache"}); if(r.ok){ const j=await r.json(); if(Array.isArray(j)&&j.length) LANDMARKS=j; } }catch(e){}
+    let local={}; try{ const r=await fetch("photos.json",{cache:"no-cache"}); if(r.ok) local=await r.json(); }catch(e){}
+    const missing=LANDMARKS.filter(l=>!(l.id&&local[l.id]));
+    const [,photos]=await Promise.all([loadBoroughs(), missing.length?fetchPhotos(missing):Promise.resolve(new Map())]);
     loadReference().catch(()=>{}); loadLayer("parks"); setTimeout(()=>{loadLayer("subway");loadLayer("roads");},3000);
     photoBank=photos;
+    for(const lm of LANDMARKS){ const m=lm.id&&local[lm.id]; if(!m) continue;
+      photoBank.set(lm.wiki,{local:true,src:m.src,file:(m.file||"").replace(/^File:/,""),page:m.page,author:m.author,license:m.license,
+        title:lm.wiki,lat:m.lat,lon:m.lon}); }
     for(const lm of LANDMARKS){ const p=photoBank.get(lm.wiki);
       if(p&&p.lat!=null&&p.lat>B.south&&p.lat<B.north&&p.lon>B.west&&p.lon<B.east){ lm.lat=p.lat; lm.lon=p.lon; } }
     const usable=LANDMARKS.filter(l=>photoBank.has(l.wiki));
@@ -933,7 +952,7 @@ async function nextRound(){
   game.current={...lm,photo:ph};
   const img=$("photo"); img.src=im.src; if(img.decode) await img.decode().catch(()=>{});
   const ang=rand(0,Math.PI*2), r=rand(.08,.2);
-  game.focus=[clamp(.5+Math.cos(ang)*r,.2,.8), clamp(.45+Math.sin(ang)*r,.2,.75)];
+  game.focus = (lm.fx!=null&&lm.fy!=null) ? [lm.fx,lm.fy] : [clamp(.5+Math.cos(ang)*r,.2,.8), clamp(.45+Math.sin(ang)*r,.2,.75)];
   startTurn();
 }
 function resetTurn(){
@@ -1029,7 +1048,9 @@ async function reveal(){
     const pts=Math.round(rawScore(km)*g.mult); p.total+=pts; p.rounds.push({name:lm.name,km,pts,gone:!!lm.gone,mult:g.mult});
     return {p,g,km,pts}; });
   photoState.zoom=1; photoState.focusX=.5; photoState.focusY=.5; layoutPhoto();
-  $("credit").innerHTML=`<a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(lm.photo.file||"")}" target="_blank" rel="noopener">Photo: Wikimedia Commons</a> · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(lm.photo.title.replace(/ /g,"_"))}" target="_blank" rel="noopener">About it</a>`;
+  const esc=t=>(t||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+  const ph=lm.photo, by=ph.author?`${esc(ph.author)}${ph.license?", "+esc(ph.license):""}`:"Wikimedia Commons";
+  $("credit").innerHTML=`<a href="${ph.page||"https://commons.wikimedia.org/wiki/File:"+encodeURIComponent(ph.file||"")}" target="_blank" rel="noopener">Photo: ${by}</a> · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(lm.photo.title.replace(/ /g,"_"))}" target="_blank" rel="noopener">About it</a>`;
   const realB=lm.boro;
   function verdict(km,g){ const gb=boroughAt(g.lat,g.lon);
     if(km<0.08) return pick(SAL.dead); if(km<0.5) return pick(SAL.great); if(km<1.6) return pick(SAL.good);

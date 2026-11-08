@@ -100,6 +100,16 @@ def main():
     for lm in L:
         lid = lm["id"]; print("•", lid)
         try:
+            if lm.get("review"):
+                opts = []
+                for n in article_photos(lm["wiki"], 60)[:24]:
+                    try:
+                        fi = file_info(n, 640)
+                        if not fi or fi["w"] < 1500: continue
+                        opts.append((load_image(fi["url"]), "%d) %s\n%dx%d" % (len(opts)+1, fi["title"][5:40], fi["w"], fi["h"])))
+                        cands.setdefault(lid, []).append({"n": len(opts), "file": fi["title"], "w": fi["w"], "h": fi["h"]})
+                    except Exception as e: print("   cand fail", n, e)
+                if opts: sheet(opts, os.path.join(PHOTOS, "_candidates-%s.jpg" % lid), cols=4)
             title, coords = lead_file(lm["wiki"])
             if lm.get("file"): title = lm["file"]
             if not title: print("   no photo"); continue
@@ -113,22 +123,16 @@ def main():
                              "lat": coords[0] if coords else None, "lon": coords[1] if coords else None}
             flag = " LOW-RES" if info["w"] < 2000 and info["h"] < 2000 else ""
             contact.append((im, "%s%s\n%dx%d %s" % (lm["name"], flag, info["w"], info["h"], info["title"][5:40])))
-            if lm.get("review"):
-                opts = []
-                for n in article_photos(lm["wiki"])[:18]:
-                    try:
-                        fi = file_info(n, 640)
-                        if not fi or fi["w"] < 1200: continue
-                        opts.append((load_image(fi["url"]), "%s\n%dx%d" % (fi["title"][5:44], fi["w"], fi["h"])))
-                        cands.setdefault(lid, []).append({"file": fi["title"], "w": fi["w"], "h": fi["h"]})
-                    except Exception as e: print("   cand fail", n, e)
-                if opts: sheet(opts, os.path.join(PHOTOS, "_candidates-%s.jpg" % lid), cols=4)
             time.sleep(0.5)
         except Exception as e:
             print("   FAILED", e, file=sys.stderr)
     json.dump(manifest, open(os.path.join(GAME, "photos.json"), "w"), indent=1, ensure_ascii=False)
     if contact: sheet(contact, os.path.join(PHOTOS, "_contact.jpg"))
     json.dump(cands, open(os.path.join(PHOTOS, "_candidates.json"), "w"), indent=1)
+    # drop old candidate sheets for landmarks no longer under review
+    for f in os.listdir(PHOTOS):
+        m = re.match(r"_candidates-(.+)\.jpg$", f)
+        if m and m.group(1) not in cands: os.remove(os.path.join(PHOTOS, f))
     print("photos:", len(manifest), "of", len(L))
 
 if __name__ == "__main__":
