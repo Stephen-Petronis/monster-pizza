@@ -546,7 +546,7 @@ async function idbSet(k,v){ try{ const db=await idb(); db.transaction("kv","read
 function buildRefPaths(ref){ // ref = {hwy:[[lon,lat,lon,lat...]...], road:[...], water:[...]}
   const mk=lines=>{ const p=new Path2D(); for(const f of lines){ let [x,y]=proj(f[1],f[0]); p.moveTo(x,y);
     for(let i=2;i<f.length;i+=2){ [x,y]=proj(f[i+1],f[i]); p.lineTo(x,y); } } return p; };
-  refPaths={hwy:mk(ref.hwy), road:mk(ref.road), water:mk(ref.water)}; draw();
+  refPaths={hwy:mk(ref.hwy), road:mk(ref.road), water:mk(ref.water)}; baseKey=""; draw();
   $("osmCredit").classList.remove("hidden");
 }
 async function loadReference(){
@@ -626,25 +626,34 @@ function zoomAt(f,sx,sy){ const ns=clamp(view.scale*f,minScale(),CONFIG.maxMapSc
 
 let drawQueued=false;
 function draw(){ if(!drawQueued){ drawQueued=true; requestAnimationFrame(()=>{drawQueued=false;render();}); } }
-function render(){
-  const d=view.dpr,s=view.scale; ctx.setTransform(d,0,0,d,0,0);
-  ctx.fillStyle=CONFIG.colors.water; ctx.fillRect(0,0,view.W,view.H);
-  if(allLand){
-    ctx.setTransform(d*s,0,0,d*s,d*view.offX,d*view.offY);
-    ctx.fillStyle=CONFIG.colors.land; ctx.fill(allLand,"evenodd");
-    ctx.lineJoin="round";
-    ctx.strokeStyle=CONFIG.colors.coast; ctx.lineWidth=1.6/s; ctx.stroke(allLand);
-    ctx.strokeStyle=CONFIG.colors.border; ctx.lineWidth=1.2/s; ctx.setLineDash([4/s,3/s]); boroughs.forEach(b=>ctx.stroke(b.path)); ctx.setLineDash([]);
-    if(refPaths){
-      const z=clamp(Math.pow(s/minScale(),.35),1,4.5); ctx.lineCap="round";
-      ctx.strokeStyle=CONFIG.colors.stream; ctx.lineWidth=2.4*z/s; ctx.stroke(refPaths.water);
-      ctx.strokeStyle=CONFIG.colors.roadEdge; ctx.lineWidth=(1.6*z+1.4)/s; ctx.stroke(refPaths.road);
-      ctx.strokeStyle=CONFIG.colors.highwayEdge; ctx.lineWidth=(2.4*z+1.6)/s; ctx.stroke(refPaths.hwy);
-      ctx.strokeStyle=CONFIG.colors.road; ctx.lineWidth=1.6*z/s; ctx.stroke(refPaths.road);
-      ctx.strokeStyle=CONFIG.colors.highway; ctx.lineWidth=2.4*z/s; ctx.stroke(refPaths.hwy);
-    }
-    ctx.setTransform(d,0,0,d,0,0);
+const baseCv=document.createElement("canvas"), bctx=baseCv.getContext("2d"); let baseKey="";
+function renderBase(){
+  const d=view.dpr,s=view.scale, key=[view.W,view.H,d,s,view.offX,view.offY,!!allLand,!!refPaths].join(",");
+  if(key===baseKey) return; baseKey=key;
+  if(baseCv.width!==canvas.width||baseCv.height!==canvas.height){ baseCv.width=canvas.width; baseCv.height=canvas.height; }
+  const c=bctx; c.setTransform(d,0,0,d,0,0);
+  c.fillStyle=CONFIG.colors.water; c.fillRect(0,0,view.W,view.H);
+  if(!allLand) return;
+  c.setTransform(d*s,0,0,d*s,d*view.offX,d*view.offY);
+  c.fillStyle=CONFIG.colors.land; c.fill(allLand,"evenodd");
+  c.lineJoin="round";
+  if(refPaths){ // roads + waterways, clipped to the five boroughs
+    const z=clamp(Math.pow(s/minScale(),.35),1,4.5);
+    c.save(); c.clip(allLand,"evenodd"); c.lineCap="round";
+    c.strokeStyle=CONFIG.colors.stream; c.lineWidth=2.4*z/s; c.stroke(refPaths.water);
+    c.strokeStyle=CONFIG.colors.roadEdge; c.lineWidth=(1.6*z+1.4)/s; c.stroke(refPaths.road);
+    c.strokeStyle=CONFIG.colors.highwayEdge; c.lineWidth=(2.4*z+1.6)/s; c.stroke(refPaths.hwy);
+    c.strokeStyle=CONFIG.colors.road; c.lineWidth=1.6*z/s; c.stroke(refPaths.road);
+    c.strokeStyle=CONFIG.colors.highway; c.lineWidth=2.4*z/s; c.stroke(refPaths.hwy);
+    c.restore();
   }
+  c.strokeStyle=CONFIG.colors.coast; c.lineWidth=1.6/s; c.stroke(allLand);
+  c.strokeStyle=CONFIG.colors.border; c.lineWidth=1.2/s; c.setLineDash([4/s,3/s]); boroughs.forEach(b=>c.stroke(b.path)); c.setLineDash([]);
+}
+function render(){
+  renderBase();
+  ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(baseCv,0,0);
+  ctx.setTransform(view.dpr,0,0,view.dpr,0,0);
   if(game.reveal){
     const [ax,ay]=toScreen(game.reveal.lat,game.reveal.lon);
     if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon);
