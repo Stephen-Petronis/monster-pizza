@@ -977,6 +977,7 @@ async function nextRound(){
   let im; try{ im=await loadPhoto(ph); }catch(e){ return nextRound(); }
   game.current={...lm,photo:ph};
   const img=$("photo"); img.src=im.src; if(img.decode) await img.decode().catch(()=>{});
+  img.style.filter = lm.art ? "none" : "";   // art-directed photos are shown exactly as edited
   const ang=rand(0,Math.PI*2), r=rand(.08,.2);
   game.focus = (lm.fx!=null&&lm.fy!=null) ? [lm.fx,lm.fy] : [clamp(.5+Math.cos(ang)*r,.2,.8), clamp(.45+Math.sin(ang)*r,.2,.75)];
   startTurn();
