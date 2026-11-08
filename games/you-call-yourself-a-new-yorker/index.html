@@ -109,6 +109,23 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
 .checker{background-image:linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%),linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%);
   background-size:12px 12px;background-position:0 0,6px 6px;height:12px}
 #titleRat{width:170px;height:130px}
+.players{margin:10px 0 4px}
+.pcount{display:flex;gap:8px;justify-content:center;margin:6px 0}
+.pcount button{font-family:"Bungee",sans-serif;font-size:18px;width:48px;height:44px;border-radius:8px;border:3px solid #000;background:#fff;cursor:pointer;box-shadow:2px 2px 0 #000}
+.pcount button.on{background:var(--taxi)}
+#pnames{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:340px;margin:6px auto 0}
+#pnames label{display:flex;align-items:center;gap:6px}
+#pnames i{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid #000}
+#pnames input{width:100%;font:16px "Oswald",sans-serif;padding:4px 6px;border:2px solid #000;border-radius:6px;background:#fff}
+.passDot{width:44px;height:44px;border-radius:50%;margin:4px auto;border:4px solid #000}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 14px Helvetica,Arial,sans-serif;background:#111;color:#fff;padding:4px 10px;border-radius:14px;border:2px solid var(--taxi)}
+.chip i{width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+#mapChip{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:2;pointer-events:none}
+#stageChip{align-self:center}
+.prow{display:flex;align-items:center;gap:8px;font-size:15px;padding:2px 0}
+.prow i{width:12px;height:12px;border-radius:50%;border:2px solid #000;flex:none}
+.prow .pp{margin-left:auto;font-family:"Bungee",sans-serif;color:var(--brick);font-size:15px}
+#resultPanel .plist{flex-basis:100%;order:3}
 #resultPanel{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;
   padding:8px 12px;border-radius:10px;color:var(--ink);background:var(--cream);border:3px solid #000;box-shadow:4px 4px 0 #000}
 #resultPanel .nm{font-family:"Bungee",sans-serif;font-size:15px}
@@ -125,7 +142,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     <h1>You Call Yourself a New Yorker?</h1>
     <div class="gauges">
       <div class="gauge">ROUND<b id="gRound">–</b></div>
-      <div class="gauge">SCORE<b id="gScore">0</b></div>
+      <div class="gauge"><span id="gName">SCORE</span><b id="gScore">0</b></div>
     </div>
   </div>
   <div id="mapBox">
@@ -138,6 +155,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     </div>
     <div id="osmCredit" class="hidden">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
     <div id="scaleBar"><span id="scaleTxt"></span><i id="scaleLine"></i></div>
+    <div class="chip hidden" id="mapChip"><i></i><span></span></div>
     <div id="helpPanel" class="hidden">
       <div class="hpTitle">Map helpers <span>(cuts this round's bonus)</span></div>
       <label class="hp"><input type="checkbox" id="hSubway"> Subway lines <b id="hSubwayCost"></b></label>
@@ -156,6 +174,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
         <div class="meta" id="rMeta"></div>
         <div id="credit"></div>
       </div>
+      <div class="plist" id="plist"></div>
       <div class="pts" id="rPts"></div>
       <button class="btn" id="nextBtn">Next</button>
     </div>
@@ -171,6 +190,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     <div id="miniTag">TAP TO LOOK</div>
   </div>
   <div id="stageCtl">
+    <div class="chip hidden" id="stageChip"><i></i><span></span></div>
     <div id="stageHost">
       <svg id="stageRat" class="rat" viewBox="0 0 140 110"></svg>
       <div class="bubble" id="stageBubble"></div>
@@ -189,9 +209,23 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     <h2>You Call Yourself<br>a New Yorker?</h2>
     <p>Sal the Rat's been under these streets his whole life. He's gonna show you a little piece of somewhere in the five boroughs — and some places that ain't even there no more.</p>
     <p class="sub">Pin it on the map. Closer is better. Dead-on is a big payday.</p>
+    <div class="players">
+      <div class="sub">How many players? <span style="opacity:.7">(pass the phone)</span></div>
+      <div class="pcount" id="pcount"><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button></div>
+      <div id="pnames"></div>
+    </div>
     <p class="sub" id="bestLine"></p>
     <div class="row"><button class="btn" id="startBtn" disabled>Loading the city…</button></div>
     <p class="sub" id="loadErr" style="color:#9b3b2a"></p>
+  </div><div class="checker"></div></div>
+</div>
+
+<div class="overlay hidden" id="passScreen">
+  <div class="card"><div class="checker"></div><div class="in">
+    <div class="passDot" id="passDot"></div>
+    <h2 id="passTitle">Pass it to Player 2</h2>
+    <p id="passSub">Everybody else — no peekin'.</p>
+    <div class="row"><button class="btn" id="passBtn">I'm ready</button></div>
   </div><div class="checker"></div></div>
 </div>
 
@@ -718,18 +752,18 @@ function render(){
   ctx.setTransform(view.dpr,0,0,view.dpr,0,0);
   if(game.reveal){
     const [ax,ay]=toScreen(game.reveal.lat,game.reveal.lon);
-    if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon);
+    game.guesses.forEach((g,i)=>{ if(!g) return; const [gx,gy]=toScreen(g.lat,g.lon);
       ctx.save(); ctx.setLineDash([7,6]); ctx.lineWidth=3.5; ctx.strokeStyle="#fff"; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(ax,ay); ctx.stroke();
-      ctx.lineWidth=1.8; ctx.strokeStyle="#111"; ctx.stroke(); ctx.restore(); }
+      ctx.lineWidth=1.8; ctx.strokeStyle=game.players[i].color; ctx.stroke(); ctx.restore(); });
     drawTarget(ax,ay);
-  }
-  if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon); drawPin(gx,gy); }
+    game.guesses.forEach((g,i)=>{ if(!g) return; const [gx,gy]=toScreen(g.lat,g.lon); drawPin(gx,gy,game.players[i].color); });
+  } else if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon); drawPin(gx,gy,curPlayer().color); }
   updateScaleBar();
 }
-function drawPin(x,y){
+function drawPin(x,y,col="#111"){
   ctx.save(); ctx.fillStyle="rgba(0,0,0,.3)"; ctx.beginPath(); ctx.ellipse(x+3,y+1,6,2.5,0,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-22); ctx.stroke();
-  ctx.fillStyle="#111"; ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y-25,7.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=col; ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y-25,7.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
   ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(x,y,1.6,0,Math.PI*2); ctx.fill(); ctx.restore();
 }
 function drawTarget(x,y){
@@ -823,7 +857,8 @@ async function loadPhoto(ph){ for(const u of photoCandidates(ph)){ try{ return a
 /* =====================================================================
    Game flow
    ===================================================================== */
-const game={phase:"title",deck:[],results:[],total:0,current:null,guess:null,reveal:null,hint:0,used:{},show:{}};
+const game={phase:"title",deck:[],round:0,players:[],turn:0,guesses:[],current:null,guess:null,reveal:null,hint:0,used:{},show:{},focus:null};
+const curPlayer=()=>game.players[game.turn]||{name:"",color:"#111",total:0};
 let photoBank=null;
 
 async function boot(){
@@ -852,32 +887,79 @@ function buildDeck(){
   for(let i=0;i<CONFIG.roundsPerGame+4;i++){ const usePast=past.length&&(Math.random()<CONFIG.pastChance||!now.length); deck.push(usePast?past.pop():now.pop()); }
   return deck.filter(Boolean);
 }
+/* ---- players (pass-and-play on one device; state kept simple so it can go online later) ---- */
+const PCOLORS=["#111111","#e0337a","#1f6fd1","#2a9d3f"];
+let playerCount=Math.min(4,Math.max(1,store.get("ycyany_pcount",1)));
+let savedNames=store.get("ycyany_names",["Player 1","Player 2","Player 3","Player 4"]);
+function renderPlayerPicker(){
+  [...$("pcount").children].forEach(b=>b.classList.toggle("on",+b.dataset.n===playerCount));
+  $("pnames").innerHTML = playerCount<2 ? "" : Array.from({length:playerCount},(_,i)=>
+    `<label><i style="background:${PCOLORS[i]}"></i><input maxlength="12" data-i="${i}" value="${(savedNames[i]||"Player "+(i+1)).replace(/"/g,"&quot;")}"></label>`).join("");
+  [...$("pnames").querySelectorAll("input")].forEach(inp=>inp.oninput=()=>{ savedNames[+inp.dataset.i]=inp.value; store.set("ycyany_names",savedNames); });
+}
+$("pcount").onclick=e=>{ const n=+e.target.dataset.n; if(!n) return; playerCount=n; store.set("ycyany_pcount",n); renderPlayerPicker(); };
+renderPlayerPicker();
+function setChips(){
+  const p=curPlayer(), multi=game.players.length>1;
+  for(const id of ["stageChip","mapChip"]){ const c=$(id); c.classList.toggle("hidden",!multi||game.phase==="reveal");
+    c.querySelector("i").style.background=p.color; c.querySelector("span").textContent=p.name+"'s turn"; }
+  $("gName").textContent = multi ? (game.phase==="reveal"?"SCORE":p.name.toUpperCase().slice(0,10)) : "SCORE";
+  $("gScore").textContent = (multi&&game.phase==="reveal") ? "—" : p.total.toLocaleString();
+}
+
 function startGame(){
-  audio(); game.deck=buildDeck(); game.results=[]; game.total=0; $("gScore").textContent="0";
+  audio(); game.deck=buildDeck(); game.round=0;
+  game.players=Array.from({length:playerCount},(_,i)=>({
+    name: playerCount>1 ? ((savedNames[i]||"").trim()||"Player "+(i+1)) : "You",
+    color: PCOLORS[i], total:0, rounds:[] }));
   $("titleScreen").classList.add("hidden"); $("endScreen").classList.add("hidden"); nextRound();
 }
 async function nextRound(){
-  if(game.results.length>=CONFIG.roundsPerGame||!game.deck.length) return endGame();
-  game.phase="loading"; game.guess=null; game.reveal=null; game.hint=0; game.used={}; game.show={}; $("helpPanel").classList.add("hidden"); baseKey="";
-  $("resultPanel").classList.add("hidden"); $("lockBtn").classList.add("hidden"); $("credit").innerHTML="";
+  if(game.round>=CONFIG.roundsPerGame||!game.deck.length) return endGame();
+  game.phase="loading"; game.reveal=null; game.guesses=[]; game.turn=0; resetTurn();
+  $("resultPanel").classList.add("hidden"); $("credit").innerHTML="";
   $("mapHost").classList.remove("wide"); $("mapHost").style.bottom="8px";
-  $("gRound").textContent=(game.results.length+1)+"/"+CONFIG.roundsPerGame;
-  // close the iris and bring the porthole centre stage
+  $("gRound").textContent=(game.round+1)+"/"+CONFIG.roundsPerGame;
   await animateIris(0,350);
-  setStage("full","start"); $("widenBtn").disabled=true; $("readyBtn").disabled=true;
+  setStage("full","start"); $("widenBtn").disabled=true; $("readyBtn").disabled=true; setChips();
   flyHome(600); draw();
   const lm=game.deck.shift(), ph=photoBank.get(lm.wiki);
   let im; try{ im=await loadPhoto(ph); }catch(e){ return nextRound(); }
   game.current={...lm,photo:ph};
   const img=$("photo"); img.src=im.src; if(img.decode) await img.decode().catch(()=>{});
   const ang=rand(0,Math.PI*2), r=rand(.08,.2);
-  photoState.focusX=clamp(.5+Math.cos(ang)*r,.2,.8); photoState.focusY=clamp(.45+Math.sin(ang)*r,.2,.75);
-  photoState.zoom=CONFIG.apertureZooms[0];
-  img.style.transition="none"; layoutPhoto(); void img.offsetWidth; img.style.transition="";
-  await new Promise(r=>setTimeout(r,250));
+  game.focus=[clamp(.5+Math.cos(ang)*r,.2,.8), clamp(.45+Math.sin(ang)*r,.2,.75)];
+  startTurn();
+}
+function resetTurn(){
+  game.guess=null; game.hint=0; game.used={}; game.show={}; baseKey="";
+  $("helpPanel").classList.add("hidden"); $("lockBtn").classList.add("hidden");
+}
+// each player gets the same tiny peek to start
+async function startTurn(){
+  resetTurn(); game.phase="loading"; setChips();
+  if(stageMode!=="full") setStage("full","start");
+  $("widenBtn").disabled=true; $("readyBtn").disabled=true;
+  await animateIris(0,300);
+  [photoState.focusX,photoState.focusY]=game.focus; photoState.zoom=CONFIG.apertureZooms[0];
+  const img=$("photo"); img.style.transition="none"; layoutPhoto(); void img.offsetWidth; img.style.transition="";
+  draw();
+  if(game.players.length>1){ await passTo(curPlayer()); }
+  await new Promise(r=>setTimeout(r,200));
   sndIris(); await animateIris(1,900);
-  game.phase="look"; $("readyBtn").disabled=false; updateWiden();
-  say(lm.gone ? pick(SAL.lookGone) : pick(SAL.look));
+  game.phase="look"; $("readyBtn").disabled=false; updateWiden(); setChips();
+  const p=curPlayer(), lm=game.current;
+  say((game.players.length>1?p.name+"! ":"")+(lm.gone ? pick(SAL.lookGone) : pick(SAL.look)));
+}
+function passTo(p){
+  return new Promise(res=>{
+    $("passDot").style.background=p.color;
+    $("passTitle").textContent = game.turn===0 && game.round===0 ? p.name+" goes first" : "Pass it to "+p.name;
+    $("passSub").textContent = game.turn===0 ? "Everybody else — look away. No peekin'." : "Everybody else — no peekin'.";
+    $("passBtn").textContent = "I'm "+p.name+" — go";
+    $("passScreen").classList.remove("hidden");
+    $("passBtn").onclick=()=>{ $("passScreen").classList.add("hidden"); audio(); res(); };
+  });
 }
 function updateWiden(){
   const b=$("widenBtn"), n=game.hint+1, cur=Math.round(roundMult()*100);
@@ -925,37 +1007,62 @@ function placeGuess(sx,sy){
   if(first) say(pick(SAL.pinned)); draw();
 }
 $("lockBtn").onclick=async()=>{
-  if(game.phase!=="guess"||!game.guess) return; game.phase="reveal";
-  const lm=game.current,g=game.guess, km=haversineKm(g.lat,g.lon,lm.lat,lm.lon), pts=scoreFor(km), multUsed=roundMult();
-  game.total+=pts; game.results.push({name:lm.name,km,pts,gone:!!lm.gone}); game.reveal={lat:lm.lat,lon:lm.lon};
+  if(game.phase!=="guess"||!game.guess) return;
+  game.guesses[game.turn]={...game.guess, mult:roundMult()};
   $("lockBtn").classList.add("hidden");
-  // the porthole opens all the way so you can see what it was
+  if(game.turn<game.players.length-1){
+    game.phase="loading"; game.guess=null; sndPin();
+    say(pick(["Locked. Next!","Got it. Who's next?","Okay, I seen it. Pass it on."]));
+    await flyHome(500);
+    game.turn++; startTurn(); return;
+  }
+  reveal();
+};
+async function reveal(){
+  game.phase="reveal";
+  const lm=game.current; game.reveal={lat:lm.lat,lon:lm.lon}; game.round++;
+  const res=game.players.map((p,i)=>{ const g=game.guesses[i], km=haversineKm(g.lat,g.lon,lm.lat,lm.lon);
+    const pts=Math.round(rawScore(km)*g.mult); p.total+=pts; p.rounds.push({name:lm.name,km,pts,gone:!!lm.gone,mult:g.mult});
+    return {p,g,km,pts}; });
   photoState.zoom=1; photoState.focusX=.5; photoState.focusY=.5; layoutPhoto();
   $("credit").innerHTML=`<a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(lm.photo.file||"")}" target="_blank" rel="noopener">Photo: Wikimedia Commons</a> · <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(lm.photo.title.replace(/ /g,"_"))}" target="_blank" rel="noopener">About it</a>`;
-  const gb=boroughAt(g.lat,g.lon), realB=lm.boro; let line;
-  if(km<0.08) line=pick(SAL.dead);
-  else if(km<0.5) line=pick(SAL.great);
-  else if(km<1.6) line=pick(SAL.good);
-  else if(!gb) line=pick(SAL.water);
-  else if(realB.includes(gb)) line=pick(SAL.sameBoro);
-  else line=pick(SAL.wrongBoro).replace("{guess}",gb==="Bronx"?"The Bronx":gb).replace("{real}",realB[0]==="Bronx"?"the Bronx":realB.join("/"));
-  if(lm.gone && km<1.6) line+=" Respect for rememberin'.";
-  say(line); sndHorn(pts>6000);
+  const realB=lm.boro;
+  function verdict(km,g){ const gb=boroughAt(g.lat,g.lon);
+    if(km<0.08) return pick(SAL.dead); if(km<0.5) return pick(SAL.great); if(km<1.6) return pick(SAL.good);
+    if(!gb) return pick(SAL.water); if(realB.includes(gb)) return pick(SAL.sameBoro);
+    return pick(SAL.wrongBoro).replace("{guess}",gb==="Bronx"?"The Bronx":gb).replace("{real}",realB[0]==="Bronx"?"the Bronx":realB.join("/")); }
+  const sorted=[...res].sort((a,b)=>b.pts-a.pts);
+  let line;
+  if(res.length===1){ line=verdict(res[0].km,res[0].g); if(lm.gone&&res[0].km<1.6) line+=" Respect for rememberin'."; }
+  else { const best=sorted[0], worst=sorted[sorted.length-1];
+    line=`${best.p.name} takes it! `+(best.km<0.5?pick(SAL.great):"");
+    if(worst.km>3) line+=` ${worst.p.name}… `+verdict(worst.km,worst.g); }
+  say(line); sndHorn(sorted[0].pts>300000);
   $("rName").innerHTML=lm.name+(lm.gone?`<span class="gone">GONE</span>`:"");
-  $("rMeta").textContent=`${realB.join(" / ")}${lm.gone?" · "+lm.gone:""} · you were ${fmtDist(km)} off${fmtBlocks(km)}${multUsed<0.999?" · bonus "+Math.round(multUsed*100)+"%":""}`;
-  $("nextBtn").textContent=game.results.length>=CONFIG.roundsPerGame?"Final score":"Next";
-  $("resultPanel").classList.remove("hidden");
+  const multi=res.length>1, r0=res[0];
+  $("rMeta").textContent = `${realB.join(" / ")}${lm.gone?" · "+lm.gone:""}` +
+    (multi ? "" : ` · you were ${fmtDist(r0.km)} off${fmtBlocks(r0.km)}${r0.g.mult<0.999?" · bonus "+Math.round(r0.g.mult*100)+"%":""}`);
+  $("rPts").classList.toggle("hidden",multi);
+  $("plist").innerHTML = multi ? sorted.map(r=>`<div class="prow"><i style="background:${r.p.color}"></i><b>${r.p.name}</b>
+     <span>${fmtDist(r.km)}${r.g.mult<0.999?" · "+Math.round(r.g.mult*100)+"%":""}</span><span class="pp">+${r.pts.toLocaleString()}</span></div>`).join("") : "";
+  $("nextBtn").textContent=game.round>=CONFIG.roundsPerGame?"Final score":"Next";
+  $("resultPanel").classList.remove("hidden"); setChips();
+  if(multi) $("gScore").textContent=sorted[0].p.name.slice(0,10);
+  if(multi) $("gName").textContent="LEADER";
+  if(multi){ const lead=[...game.players].sort((a,b)=>b.total-a.total)[0]; $("gScore").textContent=lead.name.slice(0,10); }
   $("mapHost").classList.add("wide"); $("mapHost").style.bottom=($("resultPanel").offsetHeight+16)+"px";
-  // frame both pins, leaving room for the result card
-  const [gx,gy]=proj(g.lat,g.lon), [tx,ty]=proj(lm.lat,lm.lon);
-  const dX=Math.abs(gx-tx)+1e-7, dY=Math.abs(gy-ty)+1e-7;
-  let sc=Math.min(view.W*.6/dX, view.H*.4/dY); sc=Math.min(sc, view.W/(Math.max(km,0.12)*6/111.32));
-  const [mla,mlo]=unproj((gx+tx)/2,(gy+ty)/2);
-  animateNumber($("rPts"),0,pts,900,v=>"+"+v.toLocaleString());
-  animateNumber($("gScore"),game.total-pts,game.total,900,v=>v.toLocaleString());
+  // frame every pin plus the answer
+  const P=[proj(lm.lat,lm.lon),...res.map(r=>proj(r.g.lat,r.g.lon))];
+  const xs=P.map(p=>p[0]), ys=P.map(p=>p[1]);
+  const dX=Math.max(...xs)-Math.min(...xs)+1e-7, dY=Math.max(...ys)-Math.min(...ys)+1e-7;
+  const maxKm=Math.max(...res.map(r=>r.km));
+  let sc=Math.min(view.W*.6/dX, view.H*.35/dY); sc=Math.min(sc, view.W/(Math.max(maxKm,0.12)*6/111.32));
+  const [mla,mlo]=unproj((Math.max(...xs)+Math.min(...xs))/2,(Math.max(...ys)+Math.min(...ys))/2);
+  if(!multi){ animateNumber($("rPts"),0,r0.pts,900,v=>"+"+v.toLocaleString());
+    animateNumber($("gScore"),r0.p.total-r0.pts,r0.p.total,900,v=>v.toLocaleString()); }
   await flyTo(mla,mlo,sc,1100);
   draw();
-};
+}
 $("nextBtn").onclick=()=>nextRound();
 function animateNumber(el,from,to,ms,fmt){ const t0=performance.now();
   const step=t=>{const k=clamp((t-t0)/ms,0,1),e=1-Math.pow(1-k,3); el.textContent=fmt(Math.round(from+(to-from)*e)); if(k<1) requestAnimationFrame(step);};
@@ -970,16 +1077,24 @@ const RANKS=[
 ];
 function endGame(){
   game.phase="end"; setStage("mini");
-  const best=Math.max(store.get("ycyany_best_m",0),game.total); store.set("ycyany_best_m",best);
-  const [,title,quote]=RANKS.find(r=>game.total>=r[0]);
-  $("endTitle").textContent=title; $("endQuote").textContent="Sal says: “"+quote+"”";
-  $("endTotal").textContent=game.total.toLocaleString();
-  $("endBest").textContent=`out of ${(CONFIG.roundsPerGame*(CONFIG.broadPoints+CONFIG.precisionPoints)).toLocaleString()} · your best ${best.toLocaleString()}`;
-  $("endTable").innerHTML=game.results.map(r=>`<tr><td>${r.name}${r.gone?" ✝":""}</td><td>${fmtDist(r.km)}</td><td>${r.pts.toLocaleString()}</td></tr>`).join("");
-  $("bestLine").textContent="Your best: "+best.toLocaleString();
+  const standings=[...game.players].sort((a,b)=>b.total-a.total), top=standings[0];
+  const best=Math.max(store.get("ycyany_best_m",0),top.total); store.set("ycyany_best_m",best);
+  const [,title,quote]=RANKS.find(r=>top.total>=r[0]);
+  const max=(CONFIG.roundsPerGame*(CONFIG.broadPoints+CONFIG.precisionPoints)).toLocaleString();
+  if(game.players.length===1){
+    $("endTitle").textContent=title; $("endTotal").textContent=top.total.toLocaleString();
+    $("endBest").textContent=`out of ${max} · your best ${best.toLocaleString()}`;
+    $("endTable").innerHTML=top.rounds.map(r=>`<tr><td>${r.name}${r.gone?" ✝":""}</td><td>${fmtDist(r.km)}</td><td>${r.pts.toLocaleString()}</td></tr>`).join("");
+  } else {
+    $("endTitle").textContent=`${top.name} wins!`; $("endTotal").textContent=top.total.toLocaleString();
+    $("endBest").textContent=`${top.name} is a “${title}” · out of ${max}`;
+    $("endTable").innerHTML=standings.map((p,i)=>`<tr><td><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${p.color};border:2px solid #000;margin-right:6px"></span>${i+1}. ${p.name}</td><td>${RANKS.find(r=>p.total>=r[0])[1]}</td><td>${p.total.toLocaleString()}</td></tr>`).join("");
+  }
+  $("endQuote").textContent="Sal says: “"+quote+"”";
+  $("bestLine").textContent="Best ever: "+best.toLocaleString();
   $("endScreen").classList.remove("hidden"); say(quote);
 }
-$("startBtn").onclick=startGame; $("againBtn").onclick=startGame;
+$("startBtn").onclick=startGame; $("againBtn").onclick=()=>{ $("endScreen").classList.add("hidden"); $("titleScreen").classList.remove("hidden"); renderPlayerPicker(); };
 boot();
 </script>
 </body>
