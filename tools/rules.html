@@ -24,7 +24,7 @@ textarea{width:100%;height:140px;font:11px ui-monospace,monospace;border-radius:
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{board}/{doc} {
-      allow read: if board.matches(&#x27;ss_g[0-3]&#x27;) || board == &#x27;wag&#x27; || board == &#x27;mi_hockey&#x27; || board == &#x27;mi_zomboni&#x27; || board == &#x27;cc_level&#x27; || board == &#x27;cc_endless&#x27;;
+      allow read: if board.matches(&#x27;ss_g[0-3]&#x27;) || board == &#x27;wag&#x27; || board == &#x27;mi_hockey&#x27; || board == &#x27;mi_zomboni&#x27; || board == &#x27;cc_level&#x27; || board == &#x27;cc_endless&#x27; || board == &#x27;yc_nyer&#x27;;
 
       allow create: if
         // Super Sullivan: one collection per minigame (ss_g0 .. ss_g3)
@@ -58,6 +58,15 @@ service cloud.firestore {
           &amp;&amp; request.resource.data.keys().hasAll([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
           &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.matches(&#x27;[A-Z]{3}&#x27;)
           &amp;&amp; request.resource.data.k is number &amp;&amp; request.resource.data.k &gt;= 0 &amp;&amp; request.resource.data.k &lt;= 9999999
+          &amp;&amp; request.resource.data.d is string &amp;&amp; request.resource.data.d.size() &lt;= 16
+          &amp;&amp; request.resource.data.t is timestamp)
+        ||
+        // You Call Yourself a New Yorker?: initials, total score (max 5,000,000), &quot;SOLO&quot; or &quot;3P GAME&quot;, time
+        (board == &#x27;yc_nyer&#x27;
+          &amp;&amp; request.resource.data.keys().hasOnly([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.keys().hasAll([&#x27;n&#x27;, &#x27;k&#x27;, &#x27;d&#x27;, &#x27;t&#x27;])
+          &amp;&amp; request.resource.data.n is string &amp;&amp; request.resource.data.n.matches(&#x27;[A-Z]{3}&#x27;)
+          &amp;&amp; request.resource.data.k is number &amp;&amp; request.resource.data.k &gt; 0 &amp;&amp; request.resource.data.k &lt;= 5000000
           &amp;&amp; request.resource.data.d is string &amp;&amp; request.resource.data.d.size() &lt;= 16
           &amp;&amp; request.resource.data.t is timestamp);
 

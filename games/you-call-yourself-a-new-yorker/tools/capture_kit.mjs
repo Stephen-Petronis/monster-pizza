@@ -15,6 +15,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function boot(browser, w, h, dpr) {
   const p = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: dpr });
   p.on("pageerror", e => console.log("PAGEERR", e.message));
+  p.setDefaultTimeout(20000);
   await p.addInitScript(() => { try { localStorage.clear(); } catch (e) {} Math.random = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })(); });
   await p.goto(URL, { waitUntil: "networkidle" });
   await p.waitForFunction(() => !document.getElementById("startBtn").disabled, null, { timeout: 60000 });
@@ -25,6 +26,7 @@ async function mapTap(p, fx, fy) { const b = await p.locator("#map").boundingBox
 
 async function screens(browser, w, h, dpr, tag) {
   const shot = async (p, name) => { await p.screenshot({ path: `${OUT}/screens/${tag}-${name}.png` }); console.log("shot", tag, name); };
+
   // ---- single player
   let p = await boot(browser, w, h, dpr);
   await shot(p, "01-title");
@@ -165,8 +167,11 @@ async function kit(browser) {
   await p.close();
 }
 
+const LOG = [];
+const log = (...a) => { console.log(...a); LOG.push(a.join(" ")); };
 const browser = await chromium.launch();
-await kit(browser);
-await screens(browser, 390, 844, 3, "phone");
-await screens(browser, 1180, 820, 2, "landscape");
+for (const [name, fn] of [["kit", () => kit(browser)], ["phone", () => screens(browser, 390, 844, 3, "phone")], ["landscape", () => screens(browser, 1180, 820, 2, "landscape")]]) {
+  try { await fn(); log("OK", name); } catch (e) { log("FAILED", name, e && e.stack || e); }
+}
 await browser.close();
+fs.writeFileSync(OUT + "/log.txt", LOG.join("\n") + "\n");

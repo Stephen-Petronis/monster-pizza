@@ -109,6 +109,17 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
 .checker{background-image:linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%),linear-gradient(45deg,#000 25%,transparent 25%,transparent 75%,#000 75%);
   background-size:12px 12px;background-position:0 0,6px 6px;height:12px}
 #titleRat{width:170px;height:130px}
+table.hs{margin:8px auto;border-collapse:collapse;font-size:16px;min-width:260px}
+table.hs td{padding:4px 8px;border-bottom:1px dashed #bbb}
+table.hs td:first-child{font-family:"Bungee",sans-serif;color:#888;width:28px;text-align:right}
+table.hs td.ini{font-family:"Bungee",sans-serif;letter-spacing:2px}
+table.hs td.sc{text-align:right;font-family:"Bungee",sans-serif;color:var(--brick)}
+table.hs td.dt{font-size:13px;color:#666}
+table.hs tr.me td{background:#ffe9a6}
+.hsTitle{font-family:"Bungee",sans-serif;margin-top:14px;font-size:18px}
+#saveRows .sr{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0;font-size:16px}
+#saveRows .sr i{width:14px;height:14px;border-radius:50%;border:2px solid #000;flex:none}
+#saveRows input{width:86px;font:22px "Bungee",sans-serif;text-transform:uppercase;letter-spacing:4px;text-align:center;padding:4px;border:3px solid #000;border-radius:8px}
 .players{margin:10px 0 4px}
 .pcount{display:flex;gap:8px;justify-content:center;margin:6px 0}
 .pcount button{font-family:"Bungee",sans-serif;font-size:18px;width:48px;height:44px;border-radius:8px;border:3px solid #000;background:#fff;cursor:pointer;box-shadow:2px 2px 0 #000}
@@ -215,7 +226,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
       <div id="pnames"></div>
     </div>
     <p class="sub" id="bestLine"></p>
-    <div class="row"><button class="btn" id="startBtn" disabled>Loading the city…</button></div>
+    <div class="row"><button class="btn" id="startBtn" disabled>Loading the city…</button><button class="btn alt" id="scoresBtn">🏆 High scores</button></div>
     <p class="sub" id="loadErr" style="color:#9b3b2a"></p>
   </div><div class="checker"></div></div>
 </div>
@@ -229,6 +240,15 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
   </div><div class="checker"></div></div>
 </div>
 
+<div class="overlay hidden" id="scoresScreen">
+  <div class="card"><div class="checker"></div><div class="in">
+    <h2>High Scores</h2>
+    <div class="sub" id="scoresNote">Loading…</div>
+    <table class="hs" id="scoresTable"></table>
+    <div class="row"><button class="btn" id="scoresClose">Back</button></div>
+  </div><div class="checker"></div></div>
+</div>
+
 <div class="overlay hidden" id="endScreen">
   <div class="card"><div class="checker"></div><div class="in">
     <h2 id="endTitle">Real New Yorker</h2>
@@ -236,6 +256,12 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     <div class="sub" id="endBest"></div>
     <p id="endQuote"></p>
     <table id="endTable"></table>
+    <div id="saveBox" class="hidden">
+      <div class="sub" style="margin-top:8px">Made the high scores! Put your initials up:</div>
+      <div id="saveRows"></div>
+      <div class="row"><button class="btn" id="saveBtn">Save</button></div>
+    </div>
+    <div id="endBoardWrap" class="hidden"><div class="hsTitle">🏆 High scores</div><table class="hs" id="endBoard"></table><div class="sub" id="endBoardNote"></div></div>
     <div class="row"><button class="btn" id="againBtn">Run it back</button></div>
   </div><div class="checker"></div></div>
 </div>
@@ -1099,6 +1125,72 @@ const RANKS=[
   [200000,"Bridge and Tunnel","You visit. I see you. It's fine."],
   [0,"Tourist","Stand to the right on the escalator, sweetheart."],
 ];
+/* =====================================================================
+   High scores — shared Monster Pizza Firebase board ("yc_nyer"), plus a top 10 kept on this device
+   ===================================================================== */
+const HS = { key:"AIzaSyBSJJ7azwFpZoPEjVgFvU4kvTmGFTWFlpA", project:"monster-pizza-9bc93", board:"yc_nyer", size:10 };
+const HS_BASE="https://firestore.googleapis.com/v1/projects/"+HS.project+"/databases/(default)/documents";
+let hsOnline=null, hsSource="local";
+let hsLocal=store.get("ycyany_board",[]); if(!Array.isArray(hsLocal)) hsLocal=[];
+let hsMine=store.get("ycyany_posts",[]); if(!Array.isArray(hsMine)) hsMine=[];
+async function hsFetch(){
+  const body={structuredQuery:{from:[{collectionId:HS.board}],orderBy:[{field:{fieldPath:"k"},direction:"DESCENDING"}],limit:HS.size}};
+  const r=await fetch(HS_BASE+":runQuery?key="+HS.key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("hs "+r.status);
+  const rows=await r.json();
+  hsOnline=rows.filter(x=>x.document).map(x=>{ const f=x.document.fields||{};
+    return {id:x.document.name, ini:String((f.n&&f.n.stringValue)||"???").replace(/[^A-Z]/g,"").slice(0,3)||"???",
+      score:Math.round(Number(f.k&&(f.k.doubleValue??f.k.integerValue))||0), detail:String((f.d&&f.d.stringValue)||"").slice(0,16)}; });
+  hsSource="online"; return hsOnline;
+}
+function hsList(){ return hsSource==="online"&&hsOnline ? hsOnline : hsLocal; }
+function hsQualifies(sc){ const L=hsList(); return sc>0 && (L.length<HS.size || sc>L[L.length-1].score); }
+async function hsPost(ini,sc,detail){
+  const id="l"+Date.now()+Math.random().toString(36).slice(2,6);
+  hsLocal.push({id,ini,score:sc,detail}); hsLocal.sort((a,b)=>b.score-a.score); hsLocal=hsLocal.slice(0,HS.size); store.set("ycyany_board",hsLocal);
+  let mine=id;
+  try{
+    const r=await fetch(HS_BASE+"/"+HS.board+"?key="+HS.key,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fields:{n:{stringValue:ini},k:{doubleValue:sc},d:{stringValue:detail},t:{timestampValue:new Date().toISOString()}}})});
+    if(!r.ok) throw new Error("post "+r.status);
+    const doc=await r.json(); if(doc&&doc.name) mine=doc.name;
+  }catch(e){ console.warn("high score saved on this device only",e); }
+  hsMine.push(mine); hsMine=hsMine.slice(-60); store.set("ycyany_posts",hsMine);
+  return mine;
+}
+function hsRows(L){ return L.length ? L.map((r,i)=>`<tr class="${hsMine.includes(r.id)?"me":""}"><td>${i+1}</td><td class="ini">${r.ini}</td><td class="dt">${r.detail}</td><td class="sc">${r.score.toLocaleString()}</td></tr>`).join("")
+  : `<tr><td></td><td colspan="3" class="dt">No scores yet — be the first!</td></tr>`; }
+function hsNote(){ return hsSource==="online" ? "Everybody's best, worldwide" : "Scores on this phone (online board not reachable)"; }
+async function showScores(){
+  $("scoresScreen").classList.remove("hidden"); $("scoresNote").textContent="Loading…"; $("scoresTable").innerHTML="";
+  try{ await hsFetch(); }catch(e){ hsSource="local"; }
+  $("scoresTable").innerHTML=hsRows(hsList()); $("scoresNote").textContent=hsNote();
+}
+$("scoresBtn").onclick=showScores;
+$("scoresClose").onclick=()=>$("scoresScreen").classList.add("hidden");
+const toIni=n=>(n||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3);
+async function offerHighScores(){
+  $("saveBox").classList.add("hidden"); $("endBoardWrap").classList.add("hidden");
+  try{ await hsFetch(); }catch(e){ hsSource="local"; }
+  const multi=game.players.length>1, detail=multi?game.players.length+"P GAME":"SOLO";
+  const lastIni=store.get("ycyany_ini","");
+  const quals=game.players.filter(p=>hsQualifies(p.total));
+  const showBoard=()=>{ $("endBoard").innerHTML=hsRows(hsList()); $("endBoardNote").textContent=hsNote(); $("endBoardWrap").classList.remove("hidden"); };
+  if(!quals.length){ showBoard(); return; }
+  $("saveRows").innerHTML=quals.map(p=>`<div class="sr"><i style="background:${p.color}"></i><span>${multi?p.name:"You"} · ${p.total.toLocaleString()}</span>
+     <input maxlength="3" data-p="${game.players.indexOf(p)}" value="${multi?toIni(p.name):(lastIni||"")}" placeholder="AAA" autocapitalize="characters" autocomplete="off"></div>`).join("");
+  $("saveRows").querySelectorAll("input").forEach(inp=>inp.oninput=()=>{ inp.value=toIni(inp.value); });
+  $("saveBox").classList.remove("hidden"); $("saveBtn").disabled=false; $("saveBtn").textContent="Save";
+  $("saveBtn").onclick=async()=>{
+    const inputs=[...$("saveRows").querySelectorAll("input")];
+    if(inputs.some(i=>toIni(i.value).length<1)){ inputs.find(i=>!toIni(i.value)).focus(); return; }
+    $("saveBtn").disabled=true; $("saveBtn").textContent="Saving…";
+    for(const i of inputs){ const p=game.players[+i.dataset.p]; const ini=(toIni(i.value)+"AAA").slice(0,3);
+      if(!multi) store.set("ycyany_ini",ini); await hsPost(ini,p.total,detail); }
+    try{ await hsFetch(); }catch(e){ hsSource="local"; }
+    $("saveBox").classList.add("hidden"); showBoard(); say("Up on the board. Look at you.");
+  };
+}
 function endGame(){
   game.phase="end"; setStage("mini");
   const standings=[...game.players].sort((a,b)=>b.total-a.total), top=standings[0];
@@ -1117,6 +1209,7 @@ function endGame(){
   $("endQuote").textContent="Sal says: “"+quote+"”";
   $("bestLine").textContent="Best ever: "+best.toLocaleString();
   $("endScreen").classList.remove("hidden"); say(quote);
+  offerHighScores();
 }
 $("startBtn").onclick=startGame; $("againBtn").onclick=()=>{ $("endScreen").classList.add("hidden"); $("titleScreen").classList.remove("hidden"); renderPlayerPicker(); };
 boot();
