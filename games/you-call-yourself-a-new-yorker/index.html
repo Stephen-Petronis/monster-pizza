@@ -210,7 +210,7 @@ html,body{margin:0;height:100%;overflow:hidden;color:var(--cream);font-family:"O
     <p>Sal the Rat's been under these streets his whole life. He's gonna show you a little piece of somewhere in the five boroughs — and some places that ain't even there no more.</p>
     <p class="sub">Pin it on the map. Closer is better. Dead-on is a big payday.</p>
     <div class="players">
-      <div class="sub">How many players? <span style="opacity:.7">(pass the phone)</span></div>
+      <div class="sub">How many players? <span style="opacity:.7">(take turns on one phone)</span></div>
       <div class="pcount" id="pcount"><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button></div>
       <div id="pnames"></div>
     </div>
@@ -566,7 +566,7 @@ $("apWrap").addEventListener("click",()=>{
 $("readyBtn").onclick=()=>{
   if(stageMode!=="full") return;
   sndWhoosh(); setStage("mini");
-  if(game.phase==="look"){ game.phase="guess"; say(pick(SAL.map)); }
+  if(game.phase==="look"){ game.phase="guess"; setChips(); say(game.players.length>1 ? curPlayer().name+" picks first. "+pick(SAL.map) : pick(SAL.map)); }
 };
 
 /* =====================================================================
@@ -757,7 +757,10 @@ function render(){
       ctx.lineWidth=1.8; ctx.strokeStyle=game.players[i].color; ctx.stroke(); ctx.restore(); });
     drawTarget(ax,ay);
     game.guesses.forEach((g,i)=>{ if(!g) return; const [gx,gy]=toScreen(g.lat,g.lon); drawPin(gx,gy,game.players[i].color); });
-  } else if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon); drawPin(gx,gy,curPlayer().color); }
+  } else if(game.phase==="guess"||game.phase==="look") {
+    game.guesses.forEach((g,i)=>{ if(!g) return; const [gx,gy]=toScreen(g.lat,g.lon); drawPin(gx,gy,game.players[i].color); });
+    if(game.guess){ const [gx,gy]=toScreen(game.guess.lat,game.guess.lon); drawPin(gx,gy,curPlayer().color); }
+  }
   updateScaleBar();
 }
 function drawPin(x,y,col="#111"){
@@ -858,7 +861,8 @@ async function loadPhoto(ph){ for(const u of photoCandidates(ph)){ try{ return a
    Game flow
    ===================================================================== */
 const game={phase:"title",deck:[],round:0,players:[],turn:0,guesses:[],current:null,guess:null,reveal:null,hint:0,used:{},show:{},focus:null};
-const curPlayer=()=>game.players[game.turn]||{name:"",color:"#111",total:0};
+const curIdx=()=>game.order?game.order[game.turn]:0;
+const curPlayer=()=>game.players[curIdx()]||{name:"",color:"#111",total:0};
 let photoBank=null;
 
 async function boot(){
@@ -902,9 +906,9 @@ renderPlayerPicker();
 function setChips(){
   const p=curPlayer(), multi=game.players.length>1;
   for(const id of ["stageChip","mapChip"]){ const c=$(id); c.classList.toggle("hidden",!multi||game.phase==="reveal");
-    c.querySelector("i").style.background=p.color; c.querySelector("span").textContent=p.name+"'s turn"; }
-  $("gName").textContent = multi ? (game.phase==="reveal"?"SCORE":p.name.toUpperCase().slice(0,10)) : "SCORE";
-  $("gScore").textContent = (multi&&game.phase==="reveal") ? "—" : p.total.toLocaleString();
+    c.querySelector("i").style.background=p.color; c.querySelector("i").style.display=game.phase==="look"?"none":""; c.querySelector("span").textContent=(game.phase==="look"?"Everybody look!":p.name+"'s pin"); }
+  if(multi){ const lead=[...game.players].sort((a,b)=>b.total-a.total)[0]; $("gName").textContent="LEADER"; $("gScore").textContent=lead.total?lead.name.slice(0,10):"—"; }
+  else { $("gName").textContent="SCORE"; $("gScore").textContent=p.total.toLocaleString(); }
 }
 
 function startGame(){
@@ -917,6 +921,7 @@ function startGame(){
 async function nextRound(){
   if(game.round>=CONFIG.roundsPerGame||!game.deck.length) return endGame();
   game.phase="loading"; game.reveal=null; game.guesses=[]; game.turn=0; resetTurn();
+  const n=game.players.length; game.order=Array.from({length:n},(_,i)=>(i+game.round)%n);
   $("resultPanel").classList.add("hidden"); $("credit").innerHTML="";
   $("mapHost").classList.remove("wide"); $("mapHost").style.bottom="8px";
   $("gRound").textContent=(game.round+1)+"/"+CONFIG.roundsPerGame;
@@ -944,12 +949,11 @@ async function startTurn(){
   [photoState.focusX,photoState.focusY]=game.focus; photoState.zoom=CONFIG.apertureZooms[0];
   const img=$("photo"); img.style.transition="none"; layoutPhoto(); void img.offsetWidth; img.style.transition="";
   draw();
-  if(game.players.length>1){ await passTo(curPlayer()); }
   await new Promise(r=>setTimeout(r,200));
   sndIris(); await animateIris(1,900);
   game.phase="look"; $("readyBtn").disabled=false; updateWiden(); setChips();
   const p=curPlayer(), lm=game.current;
-  say((game.players.length>1?p.name+"! ":"")+(lm.gone ? pick(SAL.lookGone) : pick(SAL.look)));
+  say((game.players.length>1?"Everybody look! ":"")+(lm.gone ? pick(SAL.lookGone) : pick(SAL.look)));
 }
 function passTo(p){
   return new Promise(res=>{
@@ -1001,6 +1005,7 @@ $("helpBtn").onclick=()=>{ $("helpPanel").classList.toggle("hidden"); updateHelp
 canvas.addEventListener("pointerdown",()=>$("helpPanel").classList.add("hidden"));
 function placeGuess(sx,sy){
   if(game.phase!=="guess") return;
+  $("lockBtn").textContent = game.players.length>1 ? "Lock in "+curPlayer().name : "Lock it in";
   const [lat,lon]=toGeo(sx,sy);
   const first=!game.guess; game.guess={lat,lon}; sndPin();
   $("lockBtn").classList.remove("hidden");
@@ -1008,13 +1013,12 @@ function placeGuess(sx,sy){
 }
 $("lockBtn").onclick=async()=>{
   if(game.phase!=="guess"||!game.guess) return;
-  game.guesses[game.turn]={...game.guess, mult:roundMult()};
+  game.guesses[curIdx()]={...game.guess, mult:roundMult()};
   $("lockBtn").classList.add("hidden");
   if(game.turn<game.players.length-1){
-    game.phase="loading"; game.guess=null; sndPin();
-    say(pick(["Locked. Next!","Got it. Who's next?","Okay, I seen it. Pass it on."]));
-    await flyHome(500);
-    game.turn++; startTurn(); return;
+    game.guess=null; sndPin(); game.turn++; setChips(); draw();
+    say(curPlayer().name+", "+pick(["you're up. Where's it at?","your turn. Ya see their pins — you agree?","whaddaya think?"]));
+    return;
   }
   reveal();
 };
@@ -1047,9 +1051,7 @@ async function reveal(){
      <span>${fmtDist(r.km)}${r.g.mult<0.999?" · "+Math.round(r.g.mult*100)+"%":""}</span><span class="pp">+${r.pts.toLocaleString()}</span></div>`).join("") : "";
   $("nextBtn").textContent=game.round>=CONFIG.roundsPerGame?"Final score":"Next";
   $("resultPanel").classList.remove("hidden"); setChips();
-  if(multi) $("gScore").textContent=sorted[0].p.name.slice(0,10);
-  if(multi) $("gName").textContent="LEADER";
-  if(multi){ const lead=[...game.players].sort((a,b)=>b.total-a.total)[0]; $("gScore").textContent=lead.name.slice(0,10); }
+
   $("mapHost").classList.add("wide"); $("mapHost").style.bottom=($("resultPanel").offsetHeight+16)+"px";
   // frame every pin plus the answer
   const P=[proj(lm.lat,lm.lon),...res.map(r=>proj(r.g.lat,r.g.lon))];
