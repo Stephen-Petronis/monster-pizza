@@ -1048,6 +1048,8 @@ $("playerShare").addEventListener("click", async () => {
   setTimeout(() => { btn.textContent = "Share"; }, 2200);
 });
 function closePlayer() { endPlay(); player.hidden = true; frameEl.src = "about:blank"; hall.focus({ preventScroll: true }); }
+// a game can ask to go back to the arcade (e.g. NEO NYC's age gate "NO")
+addEventListener("message", e => { if (e.data === "mp-back" && !player.hidden) closePlayer(); });
 // Two taps to leave a game, so a stray tap while scrolling inside the game doesn't kick you out.
 let leaveArmed = null;
 $("closePlayer").addEventListener("click", () => {

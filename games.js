@@ -191,5 +191,13 @@ window.MONSTER_PIZZA = {
       screen: "games/ships-come-in/screen.gif",       // no drawn cabinet yet: uses the built-in one
       color: "#e2552f",
     },
+    {
+      id: "neo-nyc",
+      title: "NEO NYC (17+)",
+      blurb: "Grown-ups only. Top-down neon biker gang war: RED vs BLUE vs the Military. Find the pill, become S.T.Eve. Controller + 2-player.",
+      url: "games/neo-nyc/index.html",                // lives inside this repo (age gate inside)
+      screen: "games/neo-nyc/screen.gif",             // no drawn cabinet yet: uses the built-in one
+      color: "#ff3ad4",
+    },
   ],
 };
