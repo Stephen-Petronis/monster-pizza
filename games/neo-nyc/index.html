@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#05030e">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>NEO NYC — Gang War (v0.57)</title>
+<title>NEO NYC — Gang War (v0.58)</title>
 <style>
   html,body{margin:0;height:100%;background:#03060f;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,Consolas,monospace}
   canvas{display:block;position:fixed;left:0;top:0}
@@ -128,7 +128,7 @@ document.getElementById('agNo').onclick=function(){try{if(window.parent!==window
 <audio id="music" src="music.mp3" loop preload="auto"></audio>
 <div id="msg"></div>
 <div id="dev"><b id="devT">DEV ▾</b><div id="devB"></div></div>
-<div class="ms" id="mFire"><i></i><span id="mFireT">FIRE</span></div><div class="ms" id="mGas">GAS</div><div class="ms" id="mHit"><i></i>HIT</div><div class="ms" id="mThrow"><i></i><span id="mAltT">ALT</span></div><div class="ms" id="mJump">JUMP</div><div class="ms" id="mBrake">BRAKE</div><div class="ms" id="mRide">RIDE</div><div id="wbar"></div><div id="fsBtn">⛶ FULL SCREEN</div><div id="drvBtn">DRIVE: PEDALS ▸</div>
+<div class="ms" id="mFire"><i></i><span id="mFireT">FIRE</span></div><div class="ms" id="mGas">GAS</div><div class="ms" id="mHit"><i></i>HIT</div><div class="ms" id="mThrow"><i></i><span id="mAltT">ALT</span></div><div class="ms" id="mJump">JUMP<small style="position:absolute;bottom:7px;font-size:7px;opacity:.7">HOLD RUN</small></div><div class="ms" id="mBrake">BRAKE</div><div class="ms" id="mRide">RIDE</div><div id="wbar"></div><div id="fsBtn">⛶ FULL SCREEN</div><div id="drvBtn">DRIVE: PEDALS ▸</div>
 <div id="fsHelp"><div class="bx"><h3>HIDE THE ADDRESS BAR</h3>iPhone Safari won't let a web page go full screen, so install it like an app (one time, free):<br><br>
 <b>1.</b> Tap <b>Share</b> (the square with the ↑ arrow).<br><b>2.</b> Tap <b>Add to Home Screen</b>. If you see <b>Open as Web App</b>, leave it on.<br><b>3.</b> Open <b>NEO NYC</b> from your home screen: no bars, all screen.<br><button id="fsHelpX">GOT IT</button></div></div>
 <div class="tc" id="tr2">RIDE</div><div class="tc" id="tt">THROW</div><div class="tc" id="ts">FIRE</div><div class="tc" id="ta">HIT</div>
@@ -236,7 +236,9 @@ const CONFIG = {
   touchAssist: { on: true, follow: 10, full: .6, dead: .05, ease: 12, turnGas: .3 },
   // phone driving schemes (top-of-screen DRIVE button): pedal = GAS+BRAKE buttons, gun = FIRE is the gas and drag shoots, stick = up/down throttle + sideways wheel, point = classic
   // BRAKE in the new schemes: pressed above `ebrake` speed it's the e-brake (slide), otherwise brake then reverse; the slide hands over to braking below `ebEnd`
-  touchDrive: { def: 'pedal', ebrake: 230, ebEnd: 70, relock: .26, backArc: 2.2 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
+  touchDrive: { def: 'pedal', ebrake: 230, ebEnd: 70, relock: .26, backArc: 2.2,
+    // phone road assist: when you're not steering hard, gently line the bike up with the street and ease it off the curbs (skipped in intersections)
+    lane: { on: true, snap: .45, k: 2.2, max: .35, free: .25, edge: 36, tilt: .14, minSpd: 80 }, tapJump: 200 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
   art: 1,   // Stephen's art sheet: roofs, signs, road tiles
   vhs: 1,   // scanlines + hit glitch
   turf: { dmg: .1, armor: .07, regen: .4 },
@@ -885,7 +887,12 @@ const curDrive = () => (RP2 && PXCUR && PXCUR.remote) ? (DRV_NAME[PXCUR.drive] ?
   const db = document.getElementById('drvBtn'), order = ['pedal', 'gun', 'stick', 'point']; db.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); setDrive(order[(order.indexOf(DRIVE) + 1) % order.length], true); });
   for (const b of document.querySelectorAll('#drvSeg button')) b.onclick = () => setDrive(b.dataset.dm, false); setDrive(DRIVE, false); }
 mkStick('mFire', 'fire'); mkStick('mHit', 'hit'); mkStick('mThrow', 'throw'); mkStick('mBrake', 'brake');
-for (const [id, fn] of [['mJump', () => { jumpReq = true; }], ['mRide', () => { rideReq = true; }]]) { const el = document.getElementById(id); el.addEventListener('pointerdown', e => { e.preventDefault(); startAudio(); fn(); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 140); }); }
+{ const el = document.getElementById('mJump'); let t0 = 0, hold = null;
+  const up = () => { if (!t0) return; clearTimeout(hold); if (!document.body.classList.contains('onveh') && performance.now() - t0 < CONFIG.touchDrive.tapJump) jumpReq = true; t0 = 0; tbtn.r = 0; el.classList.remove('on'); };
+  el.addEventListener('pointerdown', e => { e.preventDefault(); startAudio(); touchMode = true; t0 = performance.now(); el.classList.add('on'); try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    if (document.body.classList.contains('onveh')) { jumpReq = true; return; } hold = setTimeout(() => { if (t0) tbtn.r = 1; }, CONFIG.touchDrive.tapJump); });
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up); }
+for (const [id, fn] of [['mRide', () => { rideReq = true; }]]) { const el = document.getElementById(id); el.addEventListener('pointerdown', e => { e.preventDefault(); startAudio(); fn(); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 140); }); }
 const wbar = document.getElementById('wbar');
 { const fb = document.getElementById('fsBtn'), de = document.documentElement, req = de.requestFullscreen || de.webkitRequestFullscreen, help = document.getElementById('fsHelp');
   let inApp = !!navigator.standalone || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches; try { inApp = inApp || !!top.navigator.standalone || top.matchMedia('(display-mode: standalone)').matches; } catch (_) {}
@@ -939,6 +946,15 @@ function renderAll() {
   const FW = W, vw = Math.floor(FW / 2);
   for (const i of [0, 1]) { const V = VIEWS[i]; renderView(V, vw, H, V.c, V.x, i === 1); MAINCTX.save(); MAINCTX.setTransform(1, 0, 0, 1, 0, 0); MAINCTX.drawImage(V.c, i * vw * DPR, 0); MAINCTX.restore(); }
   MAINCTX.fillStyle = '#ff3ad4'; MAINCTX.fillRect(vw - 1.5, 0, 3, H); }
+function laneAssist(v, st) {   // returns the steering with a little road-keeping mixed in
+  const L = CONFIG.touchDrive.lane; if (!L.on || v.L || VK[v.kind].fly || Math.abs(st) > L.free) return st;
+  const fwd = v.vx * Math.cos(v.a) + v.vy * Math.sin(v.a); if (Math.abs(fwd) < L.minSpd) return st;
+  const i = Math.round((v.x - 70) / P), j = Math.round((v.y - 70) / P), vx = node(clamp(i, 0, N)), hy = node(clamp(j, 0, N)), dv = Math.abs(v.x - vx), dh = Math.abs(v.y - hy), half = CONFIG.roadWidth / 2;
+  if (dv < half + 6 && dh < half + 6) return st;   // intersection: free to turn
+  let axis, off; if (dv < half) { axis = Math.PI / 2; off = v.x - vx; } else if (dh < half) { axis = 0; off = v.y - hy; } else return st;
+  const h = Math.abs(wrapA(v.a - axis)) < Math.PI / 2 ? axis : axis + Math.PI; const d0 = wrapA(h - v.a); if (Math.abs(d0) > L.snap) return st;
+  const side = axis === 0 ? (Math.cos(h) > 0 ? 1 : -1) : (Math.sin(h) > 0 ? -1 : 1), tilt = Math.abs(off) > L.edge ? -Math.sign(off) * side * L.tilt * Math.min(1, (Math.abs(off) - L.edge) / 24) : 0;
+  const d = wrapA(h + tilt - v.a); return st + clamp(d * L.k, -L.max, L.max) * (fwd < 0 ? -1 : 1) * (1 - Math.abs(st) / L.free); }
 function touchDrive(u, k, D, STK, TSK, TBN, sm) {   // phone driving: pedals / gas-gun / split stick, with the smart BRAKE
   const v = u.veh, TD = CONFIG.touchDrive, TA = CONFIG.touchAssist, now = performance.now(), dt = Math.min(.05, (now - (u.taT || now)) / 1000); u.taT = now;
   const fwd = v.vx * Math.cos(v.a) + v.vy * Math.sin(v.a), brake = !!TSK.brake;
@@ -958,7 +974,7 @@ function touchDrive(u, k, D, STK, TSK, TBN, sm) {   // phone driving: pedals / g
   if (!brake) { u.taBr = false; u.taEB = false; }
   if (u.taEB && Math.abs(fwd) < TD.ebEnd) { u.taEB = false; v.slT = 0; }   // slid to a crawl: keep holding = brake, then reverse
   const eb = !!u.taEB; if (eb) brk = 0;
-  u.taS = (u.taS || 0) + (st - (u.taS || 0)) * Math.min(1, dt * TA.ease); k.st = u.taS; k.lf = k.st < -.05; k.rt = k.st > .05;
+  st = laneAssist(v, st); u.taS = (u.taS || 0) + (st - (u.taS || 0)) * Math.min(1, dt * TA.ease); k.st = u.taS; k.lf = k.st < -.05; k.rt = k.st > .05;
   k.dn = brk > 0; k.brk = k.dn ? .4 + .6 * brk : null; k.up = thr > 0 && !k.dn; k.gas = k.up ? .35 + .65 * thr : null; }
 function altLabel(u) { if (!u) return 'ALT'; if (u.steve) return String(u.powerSel || 'explode').toUpperCase(); const vk = u.veh && u.veh.kind;
   const V = { tank: 'STRIKE', milbike: 'SPIKES', sky: 'BOMBS', jeep: 'GRENADE', heli: 'MISSILE' }; if (V[vk]) return V[vk]; return u.throwSel && u.thr[u.throwSel] > 0 ? String(u.throwSel).toUpperCase() : 'ALT'; }
@@ -980,7 +996,7 @@ function readPlayer() {
     if (STK.id !== null && TA.on && sm > .2) {   // ride assist: smoothed heading, steering that leans in instead of snapping
       const raw = Math.atan2(sy_, sx_); u.taA = u.taA == null || !u.taOn ? raw : u.taA + wrapA(raw - u.taA) * Math.min(1, dtA * TA.follow); u.taOn = true;
       const diff = wrapA(u.taA - u.veh.a), ad = Math.abs(diff), back = ad >= 2.4;
-      const want = back ? 0 : Math.sign(diff) * Math.min(1, Math.max(0, ad - TA.dead) / (TA.full - TA.dead)) ** .85;
+      const want = back ? 0 : laneAssist(u.veh, Math.sign(diff) * Math.min(1, Math.max(0, ad - TA.dead) / (TA.full - TA.dead)) ** .85);
       u.taS = (u.taS || 0) + (want - (u.taS || 0)) * Math.min(1, dtA * TA.ease); k.st = u.taS; k.lf = k.st < -.05; k.rt = k.st > .05;
       k.up = !back; k.dn = back; k.gas = 1 - TA.turnGas * clamp((ad - 1) / 1.2, 0, 1) * sm; }
     else if ((STK.id !== null || (pad.on && pad.lm > .2)) && sm > .2) { u.taOn = false; const want = Math.atan2(sy_, sx_), diff = wrapA(want - u.veh.a); k.lf = diff < -.12; k.rt = diff > .12; k.up = Math.abs(diff) < 2.4; k.dn = Math.abs(diff) >= 2.4; }
@@ -1001,12 +1017,14 @@ function readPlayer() {
   else if (MS.on && !TBN.f && !TBN.t && inputMode !== 'pad') { k.aim = Math.atan2(MS.wy - p.y, MS.wx - p.x); k.tx = MS.wx; k.ty = MS.wy; }
   else { const t = nearestHostile(u, 520); k.aim = t ? Math.atan2(pos(t).y - p.y, pos(t).x - p.x) : (u.veh ? u.veh.a : u.a); k.tx = t ? pos(t).x : p.x + Math.cos(k.aim) * 260; k.ty = t ? pos(t).y : p.y + Math.sin(k.aim) * 260; }
   k.fire = MS.down || !!TBN.f || (pad.on && (pDown(5) || (!padDrive && (pad.b[7] || 0) > .3))) || !!(TSK.fire && (TSK.fire.drag || (performance.now() - TSK.fire.t0 > 220 && !(u.veh && touchMode && curDrive() === 'gun'))));
-  k.swing = u.steve ? (KB.KeyE ? 1 : 0) : 0; k.swingAim = null; const smartB = u.veh && touchMode && !pad.on && curDrive() !== 'point'; k.slide = !u.steve && !!(KB.ShiftLeft || KB.ShiftRight || (TSK.brake && !smartB) || (smartB && u.taEB) || (pad.on && pDown(3))); if (pad.on) { if (pEdge(0)) jumpReq = true; if (pEdge(1)) rideReq = true; if (pEdge(14)) cycle(u, 1); if (pEdge(12)) cycle(u, 2); if (pEdge(15)) cycle(u, 3); } k.run = k.slide; k.jump = !u.steve && jumpReq; jumpReq = false; const padAim = pad.on && pad.rm > .35;
+  k.swing = u.steve ? (KB.KeyE ? 1 : 0) : 0; k.swingAim = null; const smartB = u.veh && touchMode && !pad.on && curDrive() !== 'point'; k.slide = !u.steve && !!(KB.ShiftLeft || KB.ShiftRight || (TSK.brake && !smartB) || (smartB && u.taEB) || (pad.on && pDown(3))); if (pad.on) { if (pEdge(0)) jumpReq = true; if (pEdge(1)) rideReq = true; if (pEdge(14)) cycle(u, 1); if (pEdge(12)) cycle(u, 2); if (pEdge(15)) cycle(u, 3); } k.run = k.slide || (!u.veh && !!TBN.r); k.jump = !u.steve && jumpReq; jumpReq = false; const padAim = pad.on && pad.rm > .35;
   if (!k.swing && (KB.Space || (TSK.hit && TSK.hit.drag) || (pad.on && pDown(2) && padAim))) { // SPACE (or drag the HIT stick): swing toward the aim, left or right of where you're heading
     if (u.steve) k.swing = -1; else { const mv = Math.hypot(u.fvx || 0, u.fvy || 0), h = u.veh ? u.veh.a : mv > 30 ? Math.atan2(u.fvy, u.fvx) : null, df = h == null ? 0 : wrapA(k.aim - h);
       k.swing = Math.abs(df) < .12 ? (u.lastSide = -(u.lastSide || 1)) : df < 0 ? -1 : 1; k.swingAim = k.aim; } }
   if (!k.swing && !u.steve && pad.on && pDown(2) && !padAim) { // controller melee: go for the nearest target (right stick overrides)
     const t = nearestHostile(u, 200), a = t ? Math.atan2(pos(t).y - p.y, pos(t).x - p.x) : k.aim, mv = Math.hypot(u.fvx || 0, u.fvy || 0), h = u.veh ? u.veh.a : mv > 30 ? Math.atan2(u.fvy, u.fvx) : null, df = h == null ? 0 : wrapA(a - h);
+    k.swing = Math.abs(df) < .12 ? (u.lastSide = -(u.lastSide || 1)) : df < 0 ? -1 : 1; k.swingAim = a; }
+  if (!k.swing && !u.steve && (TBN.a || (TSK.hit && !TSK.hit.drag))) { const t = nearestHostile(u, 200), a = t ? Math.atan2(pos(t).y - p.y, pos(t).x - p.x) : k.aim, mv = Math.hypot(u.fvx || 0, u.fvy || 0), h = u.veh ? u.veh.a : mv > 30 ? Math.atan2(u.fvy, u.fvx) : null, df = h == null ? 0 : wrapA(a - h);   // phone HIT tap: nearest enemy
     k.swing = Math.abs(df) < .12 ? (u.lastSide = -(u.lastSide || 1)) : df < 0 ? -1 : 1; k.swingAim = a; }
   if (!k.swing && (TBN.a || (TSK.hit && !TSK.hit.drag) || (pad.on && pDown(2) && !padAim))) { const t = nearestHostile(u, 120); k.swing = t ? sideOf(u, pos(t)) : 1; }
   k.hold = MS.rdown || !!TBN.t || !!TSK.throw || (pad.on && (pDown(4) || (!padDrive && (pad.b[6] || 0) > .3))); if (throwRel && --throwRel.n <= 0) throwRel = null;
@@ -2850,7 +2868,7 @@ function applyIn(e, m) {
   const K = {}; for (const c of m.k || []) K[c] = 1; e.keys = K; const M = m.m || [0, 0, 0, 0, 0]; Object.assign(e.mouse, { x: M[0], y: M[1], down: !!M[2], rdown: !!M[3], on: !!M[4] });
   const S = m.s; if (S) Object.assign(e.stick, { id: 1, ox: S[0], oy: S[1], x: S[2], y: S[3] }); else e.stick.id = null;
   const now = performance.now(), ts = m.ts || {}; for (const n of ['fire', 'hit', 'throw', 'brake']) { const t = ts[n]; if (t) { const o = e.tsticks[n] || (e.tsticks[n] = {}); Object.assign(o, { ox: t[0], oy: t[1], x: t[2], y: t[3], drag: !!t[4], t0: now - t[5] }); } else delete e.tsticks[n]; }
-  const B = m.tb || [0, 0, 0]; e.tbtn.a = B[0]; e.tbtn.f = B[1]; e.tbtn.t = B[2]; e.tbtn.g = B[3] || 0; e.drive = m.dm;
+  const B = m.tb || [0, 0, 0]; e.tbtn.a = B[0]; e.tbtn.f = B[1]; e.tbtn.t = B[2]; e.tbtn.g = B[3] || 0; e.tbtn.r = B[4] || 0; e.drive = m.dm;
   const P = e.pad, Q = m.p; if (Q) { P.on = true; P.lx = Q[0]; P.ly = Q[1]; P.rx = Q[2]; P.ry = Q[3]; P.nb = Q[4] || []; P.lm = Math.min(1, Math.hypot(P.lx, P.ly)); P.rm = Math.min(1, Math.hypot(P.rx, P.ry)); } else { P.on = false; P.nb = []; P.lx = P.ly = P.rx = P.ry = P.lm = P.rm = 0; }
   e.inputMode = m.im === 'pad' || m.im === 'touch' ? m.im : 'kbm'; e.touchMode = !!m.tm; }
 function hostMsg(e, m) { e.rx = performance.now();
@@ -2935,7 +2953,7 @@ function guestMsg(m) {
 function gIn() { const k = []; for (const c in keys) if (keys[c]) k.push(c); const now = performance.now(), ts = {};
   for (const n in tsticks) { const s0 = tsticks[n]; ts[n] = [s0.ox | 0, s0.oy | 0, s0.x | 0, s0.y | 0, s0.drag ? 1 : 0, (now - s0.t0) | 0]; }
   const r2 = v => Math.round(v * 100) / 100;
-  return { t: 'in', k, m: [mouse.x | 0, mouse.y | 0, mouse.down ? 1 : 0, mouse.rdown ? 1 : 0, mouse.on ? 1 : 0], s: stick.id !== null ? [stick.ox | 0, stick.oy | 0, stick.x | 0, stick.y | 0] : 0, ts, tb: [tbtn.a, tbtn.f, tbtn.t, tbtn.g ? 1 : 0], dm: DRIVE,
+  return { t: 'in', k, m: [mouse.x | 0, mouse.y | 0, mouse.down ? 1 : 0, mouse.rdown ? 1 : 0, mouse.on ? 1 : 0], s: stick.id !== null ? [stick.ox | 0, stick.oy | 0, stick.x | 0, stick.y | 0] : 0, ts, tb: [tbtn.a, tbtn.f, tbtn.t, tbtn.g ? 1 : 0, tbtn.r ? 1 : 0], dm: DRIVE,
     p: pad.on ? [r2(pad.lx), r2(pad.ly), r2(pad.rx), r2(pad.ry), pad.b.map(r2)] : 0, im: inputMode, tm: touchMode ? 1 : 0 }; }
 function guestFrame(t) { const dt = Math.min(.05, (t - lastT) / 1000); lastT = t; pollPad();
   if (msgT > 0) { msgT -= dt; if (msgT <= 0) msgEl.style.opacity = 0; }
