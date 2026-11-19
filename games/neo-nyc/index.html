@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#05030e">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>NEO NYC — Gang War (v0.56)</title>
+<title>NEO NYC — Gang War (v0.57)</title>
 <style>
   html,body{margin:0;height:100%;background:#03060f;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,Consolas,monospace}
   canvas{display:block;position:fixed;left:0;top:0}
@@ -24,12 +24,12 @@
   body.touch.playing.drv-pedal.onveh #mGas{display:flex!important;right:110px;bottom:16px;width:66px;height:66px}
   body.drv-pedal.onveh #mFire{width:84px;height:84px;right:16px;bottom:16px}
   body.drv-pedal.onveh #mBrake{right:184px;bottom:16px;width:66px;height:66px;font-size:10px}
-  body.drv-pedal.onveh #mHit{right:112px;bottom:92px;width:58px;height:58px}
-  body.drv-pedal.onveh #mThrow{right:22px;bottom:110px;width:58px;height:58px}
-  body.drv-pedal.onveh #mJump{right:182px;bottom:94px;width:48px;height:48px}
-  body.drv-pedal.onveh #mRide{right:240px;bottom:86px;width:46px;height:46px}
+  body.drv-pedal.onveh #mHit{right:29px;bottom:108px;width:58px;height:58px}
+  body.drv-pedal.onveh #mThrow{right:31px;bottom:174px;width:54px;height:54px}
+  body.drv-pedal.onveh #mJump{right:119px;bottom:92px;width:48px;height:48px}
+  body.drv-pedal.onveh #mRide{right:193px;bottom:92px;width:46px;height:46px}
   body.drv-gun.onveh #mFire{border-color:#39ff88;color:#b8ffd6;background:radial-gradient(#39ff8833,#39ff880a);box-shadow:0 0 18px #39ff8855}
-  body.drv-gun.onveh #mBrake,body.drv-stick.onveh #mBrake{width:66px;height:66px;font-size:10px}
+  body.drv-gun.onveh #mBrake,body.drv-stick.onveh #mBrake{width:66px;height:66px;font-size:10px;bottom:16px}
   #fsHelp{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(3,2,10,.88);color:#e8ecff;font:600 13px/1.55 ui-monospace,Menlo,monospace;text-align:left;padding:14px}
   #fsHelp.on{display:flex} #fsHelp .bx{max-width:460px;border:2px solid #05d9e8;background:#0b0614;padding:16px 18px;box-shadow:0 0 24px #05d9e855}
   #fsHelp b{color:#ffe696} #fsHelp h3{margin:0 0 8px;color:#5cf2ff;font:italic 900 18px ui-monospace,Menlo,monospace;letter-spacing:.08em}
@@ -45,11 +45,11 @@
   .ms.on i{opacity:.7}
   .ms.on{filter:brightness(1.6)}
   #mFire{right:18px;bottom:18px;width:96px;height:96px;border:3px solid #ff3ad4;background:radial-gradient(#ff3ad433,#ff3ad40a);color:#ff9ae2;box-shadow:0 0 18px #ff3ad455}
-  #mHit{right:138px;bottom:24px;width:82px;height:82px;border:3px solid #ffb800;background:radial-gradient(#ffb80033,#ffb8000a);color:#ffe696}
-  #mThrow{right:34px;bottom:142px;width:64px;height:64px;border:2px solid #39ff88;background:#39ff8814;color:#b8ffd6;font-size:9px}
-  #mJump{right:126px;bottom:122px;width:54px;height:54px;border:2px solid #05d9e8;background:#05d9e814;color:#bff7ff;font-size:9px}
-  #mBrake{right:232px;bottom:30px;width:58px;height:58px;border:2px solid #ff6b1a;background:#ff6b1a14;color:#ffc9a0;font-size:9px}
-  #mRide{right:198px;bottom:118px;width:52px;height:52px;border:2px solid #c8c8e8;background:#ffffff10;color:#e8e8ff;font-size:9px}
+  #mHit{right:34px;bottom:124px;width:64px;height:64px;border:3px solid #ffb800;background:radial-gradient(#ffb80033,#ffb8000a);color:#ffe696}
+  #mThrow{right:38px;bottom:198px;width:56px;height:56px;border:2px solid #39ff88;background:#39ff8814;color:#b8ffd6;font-size:9px}
+  #mJump{right:132px;bottom:96px;width:52px;height:52px;border:2px solid #05d9e8;background:#05d9e814;color:#bff7ff;font-size:9px}
+  #mBrake{right:128px;bottom:22px;width:60px;height:60px;border:2px solid #ff6b1a;background:#ff6b1a14;color:#ffc9a0;font-size:9px}
+  #mRide{right:198px;bottom:40px;width:52px;height:52px;border:2px solid #c8c8e8;background:#ffffff10;color:#e8e8ff;font-size:9px}
   #wbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:none;gap:6px;z-index:4;touch-action:none}
   body.touch.playing #wbar{display:flex}
   #wbar div{width:76px;height:44px;border-radius:8px;border:1px solid #ffffff33;background:rgba(5,3,14,.72);display:flex;align-items:center;gap:4px;padding:2px 6px;color:#c8ccec;font:800 9px ui-monospace,Menlo,monospace;line-height:1.1;overflow:hidden}
@@ -191,7 +191,7 @@ document.getElementById('agNo').onclick=function(){try{if(window.parent!==window
     <div class="seg"><b>GANG</b><button id="onRed" class="on">RED</button><button id="onBlue">BLUE</button></div>
     <div class="menu" style="width:auto"><button id="onJoin">JOIN</button></div><p class="tips" id="onMsg"></p>
     <button class="back">◂ BACK</button></div>
-  <div id="pOpt" class="panel hidden"><h3>OPTIONS</h3><div class="seg" id="drvSeg"><b>PHONE DRIVE</b><button data-dm="pedal">PEDALS</button><button data-dm="gun">GAS GUN</button><button data-dm="stick">SPLIT STICK</button><button data-dm="point">POINT</button></div><div id="optBox"></div><button class="back">◂ BACK</button></div>
+  <div id="pOpt" class="panel hidden"><h3>OPTIONS</h3><div class="seg" id="drvSeg"><b>PHONE DRIVE</b><button data-dm="pedal">PEDALS</button><button data-dm="gun">GAS GUN</button><button data-dm="stick">RELATIVE</button><button data-dm="point">POINT</button></div><div id="optBox"></div><button class="back">◂ BACK</button></div>
 
 </div></div>
 <div class="ov hidden" id="tutEnd"><div class="card"><div class="hm" style="font-size:40px"><span>Y</span><span>O</span><span>U</span><span>'</span><span>R</span><span>E</span><span> </span><span>R</span><span>E</span><span>A</span><span>D</span><span>Y</span></div>
@@ -236,7 +236,7 @@ const CONFIG = {
   touchAssist: { on: true, follow: 10, full: .6, dead: .05, ease: 12, turnGas: .3 },
   // phone driving schemes (top-of-screen DRIVE button): pedal = GAS+BRAKE buttons, gun = FIRE is the gas and drag shoots, stick = up/down throttle + sideways wheel, point = classic
   // BRAKE in the new schemes: pressed above `ebrake` speed it's the e-brake (slide), otherwise brake then reverse; the slide hands over to braking below `ebEnd`
-  touchDrive: { def: 'pedal', ebrake: 230, ebEnd: 70 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
+  touchDrive: { def: 'pedal', ebrake: 230, ebEnd: 70, relock: .26, backArc: 2.2 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
   art: 1,   // Stephen's art sheet: roofs, signs, road tiles
   vhs: 1,   // scanlines + hit glitch
   turf: { dmg: .1, armor: .07, regen: .4 },
@@ -877,7 +877,7 @@ function mkStick(id, name) { const el = document.getElementById(id), knob = el.q
   el.addEventListener('pointermove', e => { const s0 = tsticks[name]; if (!s0) return; s0.x = e.clientX; s0.y = e.clientY; const dx = s0.x - s0.ox, dy = s0.y - s0.oy, d = Math.hypot(dx, dy); if (d > 14) s0.drag = true; if (knob && d > 0) { const m = Math.min(d, 38); knob.style.transform = `translate(${dx / d * m}px,${dy / d * m}px)`; } });
   const up = () => { const s0 = tsticks[name]; if (!s0) return; if (name === 'throw') throwRel = { s: s0, n: 2 }; delete tsticks[name]; el.classList.remove('on'); if (knob) knob.style.transform = ''; };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up); }
-const DRV_NAME = { pedal: 'PEDALS', gun: 'GAS GUN', stick: 'SPLIT STICK', point: 'POINT' }, DRV_HOW = { pedal: 'GAS + BRAKE · LEFT THUMB STEERS', gun: 'HOLD FIRE = GAS · DRAG IT = SHOOT', stick: 'LEFT THUMB: UP GAS · DOWN REVERSE · SIDE TURN', point: 'POINT WHERE YOU WANT TO RIDE' };
+const DRV_NAME = { pedal: 'PEDALS', gun: 'GAS GUN', stick: 'RELATIVE', point: 'POINT' }, DRV_HOW = { pedal: 'GAS + BRAKE · LEFT THUMB STEERS', gun: 'HOLD FIRE = GAS · DRAG IT = SHOOT', stick: 'PUSH = GAS · TILT = TURN FROM WHERE YOU FACE · PULL BACK = REVERSE', point: 'POINT WHERE YOU WANT TO RIDE' };
 let DRIVE = 'pedal'; try { DRIVE = localStorage.getItem('neoDrive') || CONFIG.touchDrive.def; } catch (_) { DRIVE = CONFIG.touchDrive.def; } if (!DRV_NAME[DRIVE]) DRIVE = 'pedal';
 const curDrive = () => (RP2 && PXCUR && PXCUR.remote) ? (DRV_NAME[PXCUR.drive] ? PXCUR.drive : 'pedal') : DRIVE;
 { const g = document.getElementById('mGas'), on = e => { e.preventDefault(); startAudio(); touchMode = true; tbtn.g = 1; g.classList.add('on'); try { g.setPointerCapture(e.pointerId); } catch (_) {} }, off = () => { tbtn.g = 0; g.classList.remove('on'); };
@@ -943,9 +943,12 @@ function touchDrive(u, k, D, STK, TSK, TBN, sm) {   // phone driving: pedals / g
   const v = u.veh, TD = CONFIG.touchDrive, TA = CONFIG.touchAssist, now = performance.now(), dt = Math.min(.05, (now - (u.taT || now)) / 1000); u.taT = now;
   const fwd = v.vx * Math.cos(v.a) + v.vy * Math.sin(v.a), brake = !!TSK.brake;
   let thr = D === 'pedal' ? (TBN.g ? 1 : 0) : D === 'gun' ? (TSK.fire ? 1 : 0) : 0, brk = brake ? 1 : 0, st = 0;
-  if (D === 'stick') { if (STK.id !== null) { const x = clamp((STK.x - STK.ox) / 50, -1, 1), y = clamp(-(STK.y - STK.oy) / 50, -1, 1), ax = Math.abs(x);
-      if (y > .18) thr = Math.max(thr, Math.min(1, (y - .18) / .55)); if (y < -.3) brk = Math.max(brk, Math.min(1, (-y - .3) / .45));
-      st = ax < .12 ? 0 : Math.sign(x) * Math.min(1, (ax - .12) / .7) ** 1.15; } u.taOn = false; }
+  if (D === 'stick') { u.taOn = false;
+    if (STK.id !== null && sm > .2) { const dx = STK.x - STK.ox, dy = STK.y - STK.oy, ang = Math.atan2(dx, -dy), aa = Math.abs(ang);   // ang 0 = thumb straight up = "keep going this way"
+      if (aa > TD.backArc) { brk = Math.max(brk, sm); st = clamp(dx / 50, -1, 1) * .8; u.taRef = null; }   // pulled back: brake, then reverse (sideways steers the tail like a car)
+      else { thr = Math.max(thr, sm); if (u.taRef == null || aa < TD.relock) u.taRef = v.a;   // near straight: small corrections follow the bike
+        const diff = wrapA(u.taRef + ang - v.a), ad = Math.abs(diff); st = Math.sign(diff) * Math.min(1, Math.max(0, ad - TA.dead) / (TA.full - TA.dead)) ** .85; } }   // tilted: turn that far from where you were facing, then straighten
+    else u.taRef = null; }
   else if (STK.id !== null && sm > .2) {   // point the left thumb where to go (backing up: where the tail should go)
     const raw = Math.atan2(STK.y - STK.oy, STK.x - STK.ox); u.taA = u.taA == null || !u.taOn ? raw : u.taA + wrapA(raw - u.taA) * Math.min(1, dt * TA.follow); u.taOn = true;
     const rev = fwd < -12, diff = wrapA((rev ? u.taA + Math.PI : u.taA) - v.a), ad = Math.abs(diff);
@@ -1077,7 +1080,7 @@ function menuNav() { if (state === 'play') return; pollPad(); if (!pad.on) retur
   if (!btns.includes(document.activeElement)) btns[0].focus(); if (pEdge(0)) document.activeElement.click(); if (pEdge(1)) { const back = ovs[0].querySelector('.panel:not(.hidden) .back'); if (back) back.click(); } }
 document.getElementById('again').onclick = () => { startAudio(); begin(); };
 let tut = null; const carsBak = [];
-const KEY = (a) => ({ ride: { kbm: 'W A S D', touch: { pedal: 'GAS, BRAKE and your LEFT THUMB to steer', gun: 'FIRE (it is your gas on a bike) and your LEFT THUMB to steer', stick: 'your LEFT THUMB (up = gas)', point: 'your LEFT THUMB' }[DRIVE], pad: 'R2 (gas), L2 (brake) and the LEFT STICK' }, gas: { kbm: 'W', touch: { pedal: 'GAS', gun: 'the FIRE button', stick: 'the LEFT THUMB pushed up', point: 'the thumb' }[DRIVE], pad: 'R2' }, brake: { kbm: 'SHIFT', touch: 'BRAKE', pad: '△' }, jump: { kbm: 'F', touch: 'JUMP', pad: '✕' }, hit: { kbm: 'SPACE', touch: 'HIT', pad: '□' }, mount: { kbm: 'E', touch: 'RIDE', pad: '○' }, aim: { kbm: 'the MOUSE', touch: 'drag FIRE', pad: 'the RIGHT STICK' }, fire: { kbm: 'LEFT CLICK', touch: 'FIRE', pad: 'R1 or R2' }, throw: { kbm: 'hold RIGHT CLICK, aim, release', touch: 'drag the ALT button (it names what it throws), release', pad: 'hold L1, aim with the right stick, release' } })[a][inputMode] || '';
+const KEY = (a) => ({ ride: { kbm: 'W A S D', touch: { pedal: 'GAS, BRAKE and your LEFT THUMB to steer', gun: 'FIRE (it is your gas on a bike) and your LEFT THUMB to steer', stick: 'your LEFT THUMB (push to go, tilt to turn, pull back to reverse)', point: 'your LEFT THUMB' }[DRIVE], pad: 'R2 (gas), L2 (brake) and the LEFT STICK' }, gas: { kbm: 'W', touch: { pedal: 'GAS', gun: 'the FIRE button', stick: 'the LEFT THUMB pushed forward', point: 'the thumb' }[DRIVE], pad: 'R2' }, brake: { kbm: 'SHIFT', touch: 'BRAKE', pad: '△' }, jump: { kbm: 'F', touch: 'JUMP', pad: '✕' }, hit: { kbm: 'SPACE', touch: 'HIT', pad: '□' }, mount: { kbm: 'E', touch: 'RIDE', pad: '○' }, aim: { kbm: 'the MOUSE', touch: 'drag FIRE', pad: 'the RIGHT STICK' }, fire: { kbm: 'LEFT CLICK', touch: 'FIRE', pad: 'R1 or R2' }, throw: { kbm: 'hold RIGHT CLICK, aim, release', touch: 'drag the ALT button (it names what it throws), release', pad: 'hold L1, aim with the right stick, release' } })[a][inputMode] || '';
 const TUT_STEPS = [
   { t: 'RIDE', d: () => `Ride east to the marker. Steer with ${KEY('ride')}.` },
   { t: 'POWER-SLIDE', d: () => `Hold ${KEY('brake')} while you turn to slide the back out.` },
@@ -2658,13 +2661,13 @@ function bar(x, y, w, h, frac, col, bg) { ctx.fillStyle = bg || 'rgba(255,255,25
 function hud() {
   const TUI = touchMode, MS = TUI ? (mapBig ? Math.min(320, H * .72) : 92) : MM, MSs = TUI ? 92 : MM; for (const k0 in hudHit) delete hudHit[k0];
   const cw = Math.min(560, W - 40), x0 = W / 2 - cw / 2, y0 = 12, sS = TUI && !scoreBig ? .5 : 1;
-  ctx.save(); if (TUI && !scoreBig) { ctx.translate(W - 8 - (x0 + cw) * sS, 8 + MSs + 6 - y0 * sS); ctx.scale(sS, sS); hudHit.score = [W - 8 - cw * sS, 8 + MSs + 6, cw * sS, 40 * sS]; } else if (TUI) hudHit.score = [x0, y0, cw, 40];
-  ctx.fillStyle = 'rgba(5,3,14,.72)'; ctx.fillRect(x0, y0, cw, 40); ctx.font = '800 15px ui-monospace,Menlo,monospace';
+  const CMP = TUI && !scoreBig; ctx.save(); if (CMP) ctx.translate(0, 34); else if (TUI) hudHit.score = [x0, y0, cw, 40];
+  if (!CMP) { ctx.fillStyle = 'rgba(5,3,14,.72)'; ctx.fillRect(x0, y0, cw, 40); ctx.font = '800 15px ui-monospace,Menlo,monospace';
   ctx.textAlign = 'left'; ctx.fillStyle = TEAMS[0].color; ctx.fillText(`RED ♥${livesLeft(0)}`, x0 + 10, y0 + 18);
   ctx.textAlign = 'right'; ctx.fillStyle = TEAMS[1].color; ctx.fillText(`♥${livesLeft(1)} BLUE`, x0 + cw - 10, y0 + 18);
-  const full = CONFIG.teamSize * CONFIG.lives, bw = cw / 2 - 70; bar(x0 + 10, y0 + 27, bw, 4, livesLeft(0) / full, TEAMS[0].color); ctx.save(); ctx.translate(x0 + cw - 10, 0); ctx.scale(-1, 1); bar(0, y0 + 27, bw, 4, livesLeft(1) / full, TEAMS[1].color); ctx.restore();
+  const full = CONFIG.teamSize * CONFIG.lives, bw = cw / 2 - 70; bar(x0 + 10, y0 + 27, bw, 4, livesLeft(0) / full, TEAMS[0].color); ctx.save(); ctx.translate(x0 + cw - 10, 0); ctx.scale(-1, 1); bar(0, y0 + 27, bw, 4, livesLeft(1) / full, TEAMS[1].color); ctx.restore(); }
   ctx.textAlign = 'center';
-  if (phase === 'war') { const mil = units.filter(u => u.alive && u.team === 2).length; ctx.fillStyle = TEAMS[2].color; ctx.font = '800 12px ui-monospace,Menlo,monospace'; ctx.fillText(`MILITARY ${mil}${milQueue ? ' +' + milQueue : ''}`, W / 2, y0 + 15);
+  if (phase === 'war' && !CMP) { const mil = units.filter(u => u.alive && u.team === 2).length; ctx.fillStyle = TEAMS[2].color; ctx.font = '800 12px ui-monospace,Menlo,monospace'; ctx.fillText(`MILITARY ${mil}${milQueue ? ' +' + milQueue : ''}`, W / 2, y0 + 15);
     zones.forEach((z, i) => { const X = W / 2 + (i - (zones.length - 1) / 2) * 24, Y = y0 + 29, col = z.owner >= 0 ? TEAMS[z.owner].color : '#8a8fb8'; ctx.fillStyle = z.owner >= 0 ? col + '66' : 'rgba(255,255,255,.06)'; ctx.beginPath(); ctx.arc(X, Y, 8, 0, 7); ctx.fill(); ctx.font = '800 10px ui-monospace,Menlo,monospace'; ctx.fillStyle = z.owner >= 0 ? '#fff' : col; ctx.fillText(z.name, X, Y + 3.5); }); }
   else if (phase === 'awakening') { ctx.fillStyle = TEAMS[3].color; ctx.font = '800 12px ui-monospace,Menlo,monospace'; ctx.globalAlpha = .7 + .3 * Math.sin(T * 5); ctx.fillText('THE PILL HAS DROPPED', W / 2, y0 + 16); ctx.globalAlpha = 1; ctx.font = '600 10px ui-monospace,Menlo,monospace'; ctx.fillText('find it on the map', W / 2, y0 + 31); }
   if (endgame) { ctx.textAlign = 'center'; ctx.font = '900 11px ui-monospace,Menlo,monospace'; ctx.fillStyle = ((T * 2) | 0) % 2 ? '#ff3a3a' : '#ff8a8a'; ctx.fillText('ENDGAME', W / 2 - 140, y0 + 58); }
@@ -2673,10 +2676,14 @@ function hud() {
   if (phase === 'war') {} else if (phase === 'awakening') {} else if (steveUnit) { ctx.fillStyle = TEAMS[3].color; ctx.font = '800 12px ui-monospace,Menlo,monospace'; ctx.fillText(megaT > 0 ? 'MEGA BLAST' : endgame ? (megaUnlocked(steveUnit) ? 'MEGA BLAST CHARGED' : `MEGA CHARGE ${megaCharge}/${CONFIG.steve.megaKills} · ${megaClock > 0 ? 'RING CLOSING' : 'RING LOCKED'}`) : megaUnlocked(steveUnit) ? 'S.T.EVE · MEGA BLAST READY' : `S.T.EVE POWER ${steveUnit.power}/${CONFIG.steve.maxPower}`, W / 2, y0 + 16); bar(W / 2 - 60, y0 + 25, 120, 5, steveUnit.hp / steveUnit.maxHp, TEAMS[3].color); }
   ctx.restore();
   // player panel
-  const u = player, px = 14, py = TUI ? 20 : 62; ctx.textAlign = 'left'; ctx.save(); if (TUI) ctx.scale(.72, .72);
-  ctx.fillStyle = 'rgba(5,3,14,.66)'; ctx.fillRect(px - 6, py - 6, u.steve ? 340 : 250, u.veh ? 106 : 92);
+  const u = player, px = 14, py = TUI ? 44 : 62; ctx.textAlign = 'left'; ctx.save(); if (TUI) ctx.scale(.72, .72);
+  ctx.fillStyle = 'rgba(5,3,14,.66)'; ctx.fillRect(px - 6, py - 6, u.steve ? 340 : 272, u.veh ? 106 : 92);
+  if (TUI) { ctx.fillRect(px - 6, py - 34, u.steve ? 340 : 272, 26); ctx.font = '900 16px ui-monospace,Menlo,monospace'; let tx = px;   // team lives as plain numbers (tap for the full bar)
+    const seg = (t, c) => { ctx.fillStyle = c; ctx.fillText(t, tx, py - 15); tx += ctx.measureText(t).width + 16; };
+    seg(`RED ${livesLeft(0)}`, TEAMS[0].color); seg(`BLUE ${livesLeft(1)}`, TEAMS[1].color); const mil = units.filter(q => q.alive && q.team === 2).length; if (phase === 'war' || mil) seg(`MIL ${mil}${milQueue ? '+' + milQueue : ''}`, TEAMS[2].color);
+    hudHit.score = [(px - 6) * .72, (py - 34) * .72, 272 * .72, 26 * .72]; }
   ctx.font = '700 10px ui-monospace,Menlo,monospace'; ctx.fillStyle = '#ffd0d8'; ctx.fillText(u.steve ? 'S.T.EVE' : u.team === 2 ? 'MIL' : (u.wes ? 'W.E.S.' : '♥'.repeat(u.lives) + '♡'.repeat(Math.max(0, CONFIG.lives - u.lives))) + ` L${lvl(u)}`, px, py + 7);
-  bar(px + 68, py, 168, 8, u.hp / u.maxHp, u.hp < 35 ? '#ff2a3c' : TEAMS[u.team].body);
+  bar(px + 68, py, 168, 8, u.hp / u.maxHp, u.hp < 35 ? '#ff2a3c' : TEAMS[u.team].body); if (TUI) { ctx.font = '900 12px ui-monospace,Menlo,monospace'; ctx.fillStyle = u.hp < 35 ? '#ff6a7a' : '#fff'; ctx.fillText(String(Math.ceil(u.hp)), px + 242, py + 8); ctx.font = '700 10px ui-monospace,Menlo,monospace'; }
   ctx.fillStyle = '#9fc4ff'; ctx.fillText('ARMOR', px, py + 21); bar(px + 68, py + 15, 168, 6, u.armor / armorCap(u), '#6ab0ff');
   let yy = py + 35;
   if (!u.steve && u.team < 2 && turfOf(u.team)) { const n = turfOf(u.team); ctx.fillStyle = TEAMS[u.team].color; ctx.fillText(`TURF ×${n}  +${Math.round(CONFIG.turf.dmg * n * 100)}% DMG · -${Math.round(CONFIG.turf.armor * n * 100)}% HURT · +${(CONFIG.turf.regen * n).toFixed(1)} HP/s`, px, yy); yy += 14; }
@@ -2718,7 +2725,7 @@ function hud() {
   if (ping) { const a = ping.t / 1.2; ctx.strokeStyle = `rgba(224,92,255,${a})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(mx + ping.x * k, my + ping.y * k, 3 + (1 - a) * 14, 0, 7); ctx.stroke(); ctx.fillStyle = `rgba(224,92,255,${a})`; ctx.fillRect(mx + ping.x * k - 1.5, my + ping.y * k - 1.5, 3, 3); }
   if (player.wanted) { const p = pos(player); ctx.strokeStyle = '#ffd23a'; ctx.beginPath(); ctx.arc(mx + p.x * k, my + p.y * k, 6 + (T * 8 % 5), 0, 7); ctx.stroke(); }
   if (player.alive) { const p = pos(player); ctx.fillStyle = '#fff'; ctx.save(); ctx.translate(mx + p.x * k, my + p.y * k); ctx.rotate(player.veh ? player.veh.a : player.a); ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-4, -4); ctx.lineTo(-4, 4); ctx.closePath(); ctx.fill(); ctx.restore(); }
-  ctx.font = TUI ? '600 9px ui-monospace,Menlo,monospace' : '600 12px ui-monospace,Menlo,monospace'; ctx.textAlign = 'right'; (TUI ? feed.slice(0, 3) : feed).forEach((f, i) => { ctx.globalAlpha = Math.min(1, f.t); drawFeed(f.s, W - (TUI ? 10 : 16), my + MSs + (TUI ? 40 : 22) + i * (TUI ? 13 : 18)); }); ctx.globalAlpha = 1;
+  ctx.font = TUI ? '600 9px ui-monospace,Menlo,monospace' : '600 12px ui-monospace,Menlo,monospace'; ctx.textAlign = 'right'; (TUI ? feed.slice(0, 3) : feed).forEach((f, i) => { ctx.globalAlpha = Math.min(1, f.t); drawFeed(f.s, W - (TUI ? 108 : 16), my + MSs + (TUI ? 22 : 22) + i * (TUI ? 13 : 18)); }); ctx.globalAlpha = 1;
   if (pill && !endgame && state === 'play' && player.alive && !player.steve) { const pp = pos(player), dx = pill.x - pp.x, dy = pill.y - pp.y, d = Math.hypot(dx, dy), X = sx(pill.x, 1), Y = sy(pill.y, 1);
     if (X > -80 && X < W + 80 && Y > -80 && Y < H + 400) { const pu = .5 + .5 * Math.sin(T * 2.2), L0 = Math.min(H * .6, 520 * zoom), bw = (14 + 8 * pu) * zoom, g0 = ctx.createLinearGradient(0, Y - L0, 0, Y); g0.addColorStop(0, 'rgba(224,92,255,0)'); g0.addColorStop(1, 'rgba(240,140,255,.7)');
       ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .45 + .35 * pu; ctx.fillStyle = g0; ctx.fillRect(X - bw / 2, Y - L0, bw, L0); ctx.fillRect(X - bw / 5, Y - L0, bw / 2.5, L0); const q = (46 + 10 * pu) * zoom; ctx.globalAlpha = .5; ctx.drawImage(glow('#e05cff'), X - q, Y - q, q * 2, q * 2); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
