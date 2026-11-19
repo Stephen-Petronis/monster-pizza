@@ -10,13 +10,26 @@
 <meta name="theme-color" content="#05030e">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>NEO NYC — Gang War (v0.55)</title>
+<title>NEO NYC — Gang War (v0.56)</title>
 <style>
   html,body{margin:0;height:100%;background:#03060f;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,Consolas,monospace}
   canvas{display:block;position:fixed;left:0;top:0}
   html,body{overscroll-behavior:none;touch-action:none}
   #fsBtn{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:6;display:none;padding:4px 10px;border:1px solid #05d9e8;border-radius:6px;background:rgba(5,3,14,.7);color:#bff7ff;font:800 10px ui-monospace,Menlo,monospace}
   body.touch.playing #fsBtn.can{display:block}
+  body.touch.playing #fsBtn.can{transform:translateX(calc(-100% - 6px))}
+  #drvBtn{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(6px);z-index:6;display:none;padding:4px 10px;border:1px solid #ff3ad4;border-radius:6px;background:rgba(5,3,14,.7);color:#ffc8f0;font:800 10px ui-monospace,Menlo,monospace;touch-action:none}
+  body.touch.playing #drvBtn{display:block} body.padmode #drvBtn{display:none!important}
+  #mGas{display:none!important;border:2px solid #39ff88;background:#39ff8818;color:#b8ffd6;font-size:10px}
+  body.touch.playing.drv-pedal.onveh #mGas{display:flex!important;right:110px;bottom:16px;width:66px;height:66px}
+  body.drv-pedal.onveh #mFire{width:84px;height:84px;right:16px;bottom:16px}
+  body.drv-pedal.onveh #mBrake{right:184px;bottom:16px;width:66px;height:66px;font-size:10px}
+  body.drv-pedal.onveh #mHit{right:112px;bottom:92px;width:58px;height:58px}
+  body.drv-pedal.onveh #mThrow{right:22px;bottom:110px;width:58px;height:58px}
+  body.drv-pedal.onveh #mJump{right:182px;bottom:94px;width:48px;height:48px}
+  body.drv-pedal.onveh #mRide{right:240px;bottom:86px;width:46px;height:46px}
+  body.drv-gun.onveh #mFire{border-color:#39ff88;color:#b8ffd6;background:radial-gradient(#39ff8833,#39ff880a);box-shadow:0 0 18px #39ff8855}
+  body.drv-gun.onveh #mBrake,body.drv-stick.onveh #mBrake{width:66px;height:66px;font-size:10px}
   #fsHelp{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(3,2,10,.88);color:#e8ecff;font:600 13px/1.55 ui-monospace,Menlo,monospace;text-align:left;padding:14px}
   #fsHelp.on{display:flex} #fsHelp .bx{max-width:460px;border:2px solid #05d9e8;background:#0b0614;padding:16px 18px;box-shadow:0 0 24px #05d9e855}
   #fsHelp b{color:#ffe696} #fsHelp h3{margin:0 0 8px;color:#5cf2ff;font:italic 900 18px ui-monospace,Menlo,monospace;letter-spacing:.08em}
@@ -31,7 +44,7 @@
   .ms i{position:absolute;width:34%;height:34%;border-radius:50%;background:currentColor;opacity:.12;pointer-events:none}
   .ms.on i{opacity:.7}
   .ms.on{filter:brightness(1.6)}
-  #mFire{right:18px;bottom:18px;width:108px;height:108px;border:3px solid #ff3ad4;background:radial-gradient(#ff3ad433,#ff3ad40a);color:#ff9ae2;box-shadow:0 0 18px #ff3ad455}
+  #mFire{right:18px;bottom:18px;width:96px;height:96px;border:3px solid #ff3ad4;background:radial-gradient(#ff3ad433,#ff3ad40a);color:#ff9ae2;box-shadow:0 0 18px #ff3ad455}
   #mHit{right:138px;bottom:24px;width:82px;height:82px;border:3px solid #ffb800;background:radial-gradient(#ffb80033,#ffb8000a);color:#ffe696}
   #mThrow{right:34px;bottom:142px;width:64px;height:64px;border:2px solid #39ff88;background:#39ff8814;color:#b8ffd6;font-size:9px}
   #mJump{right:126px;bottom:122px;width:54px;height:54px;border:2px solid #05d9e8;background:#05d9e814;color:#bff7ff;font-size:9px}
@@ -115,7 +128,7 @@ document.getElementById('agNo').onclick=function(){try{if(window.parent!==window
 <audio id="music" src="music.mp3" loop preload="auto"></audio>
 <div id="msg"></div>
 <div id="dev"><b id="devT">DEV ▾</b><div id="devB"></div></div>
-<div class="ms" id="mFire"><i></i>FIRE</div><div class="ms" id="mHit"><i></i>HIT</div><div class="ms" id="mThrow"><i></i>THROW</div><div class="ms" id="mJump">JUMP</div><div class="ms" id="mBrake">BRAKE</div><div class="ms" id="mRide">RIDE</div><div id="wbar"></div><div id="fsBtn">⛶ FULL SCREEN</div>
+<div class="ms" id="mFire"><i></i><span id="mFireT">FIRE</span></div><div class="ms" id="mGas">GAS</div><div class="ms" id="mHit"><i></i>HIT</div><div class="ms" id="mThrow"><i></i><span id="mAltT">ALT</span></div><div class="ms" id="mJump">JUMP</div><div class="ms" id="mBrake">BRAKE</div><div class="ms" id="mRide">RIDE</div><div id="wbar"></div><div id="fsBtn">⛶ FULL SCREEN</div><div id="drvBtn">DRIVE: PEDALS ▸</div>
 <div id="fsHelp"><div class="bx"><h3>HIDE THE ADDRESS BAR</h3>iPhone Safari won't let a web page go full screen, so install it like an app (one time, free):<br><br>
 <b>1.</b> Tap <b>Share</b> (the square with the ↑ arrow).<br><b>2.</b> Tap <b>Add to Home Screen</b>. If you see <b>Open as Web App</b>, leave it on.<br><b>3.</b> Open <b>NEO NYC</b> from your home screen: no bars, all screen.<br><button id="fsHelpX">GOT IT</button></div></div>
 <div class="tc" id="tr2">RIDE</div><div class="tc" id="tt">THROW</div><div class="tc" id="ts">FIRE</div><div class="tc" id="ta">HIT</div>
@@ -178,7 +191,7 @@ document.getElementById('agNo').onclick=function(){try{if(window.parent!==window
     <div class="seg"><b>GANG</b><button id="onRed" class="on">RED</button><button id="onBlue">BLUE</button></div>
     <div class="menu" style="width:auto"><button id="onJoin">JOIN</button></div><p class="tips" id="onMsg"></p>
     <button class="back">◂ BACK</button></div>
-  <div id="pOpt" class="panel hidden"><h3>OPTIONS</h3><div id="optBox"></div><button class="back">◂ BACK</button></div>
+  <div id="pOpt" class="panel hidden"><h3>OPTIONS</h3><div class="seg" id="drvSeg"><b>PHONE DRIVE</b><button data-dm="pedal">PEDALS</button><button data-dm="gun">GAS GUN</button><button data-dm="stick">SPLIT STICK</button><button data-dm="point">POINT</button></div><div id="optBox"></div><button class="back">◂ BACK</button></div>
 
 </div></div>
 <div class="ov hidden" id="tutEnd"><div class="card"><div class="hm" style="font-size:40px"><span>Y</span><span>O</span><span>U</span><span>'</span><span>R</span><span>E</span><span> </span><span>R</span><span>E</span><span>A</span><span>D</span><span>Y</span></div>
@@ -220,7 +233,10 @@ const CONFIG = {
   itemPixel: 1,
   touchZoom: .8,
   // phone ride assist: one thumb steers AND throttles, so the touch stick gets smoothing + gradual steering (pad/keys unchanged)
-  touchAssist: { on: true, follow: 10, full: .6, dead: .05, ease: 12, turnGas: .3 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
+  touchAssist: { on: true, follow: 10, full: .6, dead: .05, ease: 12, turnGas: .3 },
+  // phone driving schemes (top-of-screen DRIVE button): pedal = GAS+BRAKE buttons, gun = FIRE is the gas and drag shoots, stick = up/down throttle + sideways wheel, point = classic
+  // BRAKE in the new schemes: pressed above `ebrake` speed it's the e-brake (slide), otherwise brake then reverse; the slide hands over to braking below `ebEnd`
+  touchDrive: { def: 'pedal', ebrake: 230, ebEnd: 70 },   // phones see a bit more of the city   // ITEMS & WORDS scale (pickups, names, pop-ups) — kept crisp by default
   art: 1,   // Stephen's art sheet: roofs, signs, road tiles
   vhs: 1,   // scanlines + hit glitch
   turf: { dmg: .1, armor: .07, regen: .4 },
@@ -861,6 +877,13 @@ function mkStick(id, name) { const el = document.getElementById(id), knob = el.q
   el.addEventListener('pointermove', e => { const s0 = tsticks[name]; if (!s0) return; s0.x = e.clientX; s0.y = e.clientY; const dx = s0.x - s0.ox, dy = s0.y - s0.oy, d = Math.hypot(dx, dy); if (d > 14) s0.drag = true; if (knob && d > 0) { const m = Math.min(d, 38); knob.style.transform = `translate(${dx / d * m}px,${dy / d * m}px)`; } });
   const up = () => { const s0 = tsticks[name]; if (!s0) return; if (name === 'throw') throwRel = { s: s0, n: 2 }; delete tsticks[name]; el.classList.remove('on'); if (knob) knob.style.transform = ''; };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up); }
+const DRV_NAME = { pedal: 'PEDALS', gun: 'GAS GUN', stick: 'SPLIT STICK', point: 'POINT' }, DRV_HOW = { pedal: 'GAS + BRAKE · LEFT THUMB STEERS', gun: 'HOLD FIRE = GAS · DRAG IT = SHOOT', stick: 'LEFT THUMB: UP GAS · DOWN REVERSE · SIDE TURN', point: 'POINT WHERE YOU WANT TO RIDE' };
+let DRIVE = 'pedal'; try { DRIVE = localStorage.getItem('neoDrive') || CONFIG.touchDrive.def; } catch (_) { DRIVE = CONFIG.touchDrive.def; } if (!DRV_NAME[DRIVE]) DRIVE = 'pedal';
+const curDrive = () => (RP2 && PXCUR && PXCUR.remote) ? (DRV_NAME[PXCUR.drive] ? PXCUR.drive : 'pedal') : DRIVE;
+{ const g = document.getElementById('mGas'), on = e => { e.preventDefault(); startAudio(); touchMode = true; tbtn.g = 1; g.classList.add('on'); try { g.setPointerCapture(e.pointerId); } catch (_) {} }, off = () => { tbtn.g = 0; g.classList.remove('on'); };
+  g.addEventListener('pointerdown', on); g.addEventListener('pointerup', off); g.addEventListener('pointercancel', off); g.addEventListener('lostpointercapture', off);
+  const db = document.getElementById('drvBtn'), order = ['pedal', 'gun', 'stick', 'point']; db.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); setDrive(order[(order.indexOf(DRIVE) + 1) % order.length], true); });
+  for (const b of document.querySelectorAll('#drvSeg button')) b.onclick = () => setDrive(b.dataset.dm, false); setDrive(DRIVE, false); }
 mkStick('mFire', 'fire'); mkStick('mHit', 'hit'); mkStick('mThrow', 'throw'); mkStick('mBrake', 'brake');
 for (const [id, fn] of [['mJump', () => { jumpReq = true; }], ['mRide', () => { rideReq = true; }]]) { const el = document.getElementById(id); el.addEventListener('pointerdown', e => { e.preventDefault(); startAudio(); fn(); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 140); }); }
 const wbar = document.getElementById('wbar');
@@ -878,7 +901,7 @@ function wbarHTML(u) { const ic = n => { const i = ICON_I[n]; return i == null ?
   else { const mg = mountedGun(u), gk = mg || u.gun, ammo = mg ? '∞' : gk && u.guns && u.guns[gk] != null ? (u.guns[gk] >= 900 ? '∞' : u.guns[gk]) : '';
     html = `<div data-n="1" class="${u.slot === 1 ? 'sel' : ''}">${ic(u.melee)}<span>${meleeName(u.melee, tierOf(u, u.melee))}</span></div><div data-n="2" class="${u.slot === 2 ? 'sel' : ''} ${gk ? '' : 'off'}">${gk ? ic(gk === 'rifle' ? 'mg' : gk) : ''}<span>${gk ? WEAP[gk].name : 'NO GUN'}<br>${ammo}</span></div><div data-n="3" class="${u.slot === 3 ? 'sel' : ''} ${u.throwSel ? '' : 'off'}">${u.throwSel ? ic(u.throwSel) : ''}<span>${u.throwSel ? u.throwSel.toUpperCase() : 'NONE'}<br>${u.throwSel && u.thr ? '×' + (u.thr[u.throwSel] || 0) : ''}</span></div>`; }
   return html; }
-function updWbar(force) { if (!touchMode || !player) return; wbarT -= 1 / 60; if (wbarT > 0 && !force) return; wbarT = .2; const html = wbarHTML(player); if (html !== wbarKey) { wbar.innerHTML = html; wbarKey = html; } }
+function updWbar(force) { if (!touchMode || !player) return; wbarT -= 1 / 60; if (wbarT > 0 && !force) return; wbarT = .2; touchLabels(player.veh, altLabel(player), DRIVE); const html = wbarHTML(player); if (html !== wbarKey) { wbar.innerHTML = html; wbarKey = html; } }
 // ======================= 2 PLAYERS (one computer, two controllers) =======================
 const MP = { on: false, versus: false, screens: 1 }; let player2 = null, RP2 = false, PXCUR = null; const PXS = [], REM = [];   // PXS = every extra human (local P2 + online friends)
 const NOMOUSE = { on: false, down: false, rdown: false, x: 0, y: 0, wx: 0, wy: 0 }, NOSTICK = { id: null };
@@ -916,6 +939,29 @@ function renderAll() {
   const FW = W, vw = Math.floor(FW / 2);
   for (const i of [0, 1]) { const V = VIEWS[i]; renderView(V, vw, H, V.c, V.x, i === 1); MAINCTX.save(); MAINCTX.setTransform(1, 0, 0, 1, 0, 0); MAINCTX.drawImage(V.c, i * vw * DPR, 0); MAINCTX.restore(); }
   MAINCTX.fillStyle = '#ff3ad4'; MAINCTX.fillRect(vw - 1.5, 0, 3, H); }
+function touchDrive(u, k, D, STK, TSK, TBN, sm) {   // phone driving: pedals / gas-gun / split stick, with the smart BRAKE
+  const v = u.veh, TD = CONFIG.touchDrive, TA = CONFIG.touchAssist, now = performance.now(), dt = Math.min(.05, (now - (u.taT || now)) / 1000); u.taT = now;
+  const fwd = v.vx * Math.cos(v.a) + v.vy * Math.sin(v.a), brake = !!TSK.brake;
+  let thr = D === 'pedal' ? (TBN.g ? 1 : 0) : D === 'gun' ? (TSK.fire ? 1 : 0) : 0, brk = brake ? 1 : 0, st = 0;
+  if (D === 'stick') { if (STK.id !== null) { const x = clamp((STK.x - STK.ox) / 50, -1, 1), y = clamp(-(STK.y - STK.oy) / 50, -1, 1), ax = Math.abs(x);
+      if (y > .18) thr = Math.max(thr, Math.min(1, (y - .18) / .55)); if (y < -.3) brk = Math.max(brk, Math.min(1, (-y - .3) / .45));
+      st = ax < .12 ? 0 : Math.sign(x) * Math.min(1, (ax - .12) / .7) ** 1.15; } u.taOn = false; }
+  else if (STK.id !== null && sm > .2) {   // point the left thumb where to go (backing up: where the tail should go)
+    const raw = Math.atan2(STK.y - STK.oy, STK.x - STK.ox); u.taA = u.taA == null || !u.taOn ? raw : u.taA + wrapA(raw - u.taA) * Math.min(1, dt * TA.follow); u.taOn = true;
+    const rev = fwd < -12, diff = wrapA((rev ? u.taA + Math.PI : u.taA) - v.a), ad = Math.abs(diff);
+    st = Math.sign(diff) * Math.min(1, Math.max(0, ad - TA.dead) / (TA.full - TA.dead)) ** .85 * (rev ? -1 : 1); }
+  else u.taOn = false;
+  if (brake && !u.taBr) { u.taBr = true; u.taEB = v.kind !== 'tank' && fwd > TD.ebrake; }   // decided the moment you press: fast = e-brake, slow = brake/reverse
+  if (!brake) { u.taBr = false; u.taEB = false; }
+  if (u.taEB && Math.abs(fwd) < TD.ebEnd) { u.taEB = false; v.slT = 0; }   // slid to a crawl: keep holding = brake, then reverse
+  const eb = !!u.taEB; if (eb) brk = 0;
+  u.taS = (u.taS || 0) + (st - (u.taS || 0)) * Math.min(1, dt * TA.ease); k.st = u.taS; k.lf = k.st < -.05; k.rt = k.st > .05;
+  k.dn = brk > 0; k.brk = k.dn ? .4 + .6 * brk : null; k.up = thr > 0 && !k.dn; k.gas = k.up ? .35 + .65 * thr : null; }
+function altLabel(u) { if (!u) return 'ALT'; if (u.steve) return String(u.powerSel || 'explode').toUpperCase(); const vk = u.veh && u.veh.kind;
+  const V = { tank: 'STRIKE', milbike: 'SPIKES', sky: 'BOMBS', jeep: 'GRENADE', heli: 'MISSILE' }; if (V[vk]) return V[vk]; return u.throwSel && u.thr[u.throwSel] > 0 ? String(u.throwSel).toUpperCase() : 'ALT'; }
+function touchLabels(veh, alt, D) { document.body.classList.toggle('onveh', !!veh); const a = document.getElementById('mAltT'), f = document.getElementById('mFireT'); if (a.textContent !== alt) a.textContent = alt; const ft = veh && D === 'gun' ? 'GAS·GUN' : 'FIRE'; if (f.textContent !== ft) f.textContent = ft; }
+function setDrive(d, say) { if (!DRV_NAME[d]) return; DRIVE = d; try { localStorage.setItem('neoDrive', d); } catch (_) {} for (const x in DRV_NAME) document.body.classList.toggle('drv-' + x, x === d);
+  document.getElementById('drvBtn').textContent = 'DRIVE: ' + DRV_NAME[d] + ' ▸'; for (const b of document.querySelectorAll('#drvSeg button')) b.classList.toggle('on', b.dataset.dm === d); if (say) flashMsg(DRV_NAME[d] + ' · ' + DRV_HOW[d], '#ffc8f0', true); }
 function readPlayer() {
   const u = player, k = u.ctrl; pollPad(); const KB = keys, MS = mouse, STK = stick, TSK = tsticks, TBN = tbtn;
   let sx_ = (KB.KeyD || KB.ArrowRight ? 1 : 0) - (KB.KeyA || KB.ArrowLeft ? 1 : 0), sy_ = (KB.KeyS || KB.ArrowDown ? 1 : 0) - (KB.KeyW || KB.ArrowUp ? 1 : 0), sm = 0;
@@ -925,6 +971,7 @@ function readPlayer() {
   if (padDrive) { const r2 = pad.b[7] || 0, l2 = pad.b[6] || 0, x = pad.lx; k.st = Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 1.3) * 1.1); k.lf = k.st < -.05; k.rt = k.st > .05;
     k.up = r2 > .06; k.gas = .35 + .65 * r2; k.dn = l2 > .06; k.brk = .35 + .65 * l2; k.mx = k.my = 0;
     if (k.up && u.veh && !u.veh.jumpT) rumble(0, .04 + .1 * r2 * Math.min(1, Math.hypot(u.veh.vx, u.veh.vy) / 500), 90); }
+  else if (u.veh && touchMode && !pad.on && curDrive() !== 'point') { touchDrive(u, k, curDrive(), STK, TSK, TBN, sm); k.mx = k.my = 0; }
   else if (u.veh) {
     const TA = CONFIG.touchAssist, now = performance.now(), dtA = Math.min(.05, (now - (u.taT || now)) / 1000); u.taT = now;
     if (STK.id !== null && TA.on && sm > .2) {   // ride assist: smoothed heading, steering that leans in instead of snapping
@@ -950,8 +997,8 @@ function readPlayer() {
   else if (pad.on && inputMode === 'pad') { k.aim = pad.la != null ? pad.la : (u.veh ? u.veh.a : u.a); const rng = pad.lr || 240; k.tx = p.x + Math.cos(k.aim) * rng; k.ty = p.y + Math.sin(k.aim) * rng; }
   else if (MS.on && !TBN.f && !TBN.t && inputMode !== 'pad') { k.aim = Math.atan2(MS.wy - p.y, MS.wx - p.x); k.tx = MS.wx; k.ty = MS.wy; }
   else { const t = nearestHostile(u, 520); k.aim = t ? Math.atan2(pos(t).y - p.y, pos(t).x - p.x) : (u.veh ? u.veh.a : u.a); k.tx = t ? pos(t).x : p.x + Math.cos(k.aim) * 260; k.ty = t ? pos(t).y : p.y + Math.sin(k.aim) * 260; }
-  k.fire = MS.down || !!TBN.f || (pad.on && (pDown(5) || (!padDrive && (pad.b[7] || 0) > .3))) || !!(TSK.fire && (TSK.fire.drag || performance.now() - TSK.fire.t0 > 220));
-  k.swing = u.steve ? (KB.KeyE ? 1 : 0) : 0; k.swingAim = null; k.slide = !u.steve && !!(KB.ShiftLeft || KB.ShiftRight || TSK.brake || (pad.on && pDown(3))); if (pad.on) { if (pEdge(0)) jumpReq = true; if (pEdge(1)) rideReq = true; if (pEdge(14)) cycle(u, 1); if (pEdge(12)) cycle(u, 2); if (pEdge(15)) cycle(u, 3); } k.run = k.slide; k.jump = !u.steve && jumpReq; jumpReq = false; const padAim = pad.on && pad.rm > .35;
+  k.fire = MS.down || !!TBN.f || (pad.on && (pDown(5) || (!padDrive && (pad.b[7] || 0) > .3))) || !!(TSK.fire && (TSK.fire.drag || (performance.now() - TSK.fire.t0 > 220 && !(u.veh && touchMode && curDrive() === 'gun'))));
+  k.swing = u.steve ? (KB.KeyE ? 1 : 0) : 0; k.swingAim = null; const smartB = u.veh && touchMode && !pad.on && curDrive() !== 'point'; k.slide = !u.steve && !!(KB.ShiftLeft || KB.ShiftRight || (TSK.brake && !smartB) || (smartB && u.taEB) || (pad.on && pDown(3))); if (pad.on) { if (pEdge(0)) jumpReq = true; if (pEdge(1)) rideReq = true; if (pEdge(14)) cycle(u, 1); if (pEdge(12)) cycle(u, 2); if (pEdge(15)) cycle(u, 3); } k.run = k.slide; k.jump = !u.steve && jumpReq; jumpReq = false; const padAim = pad.on && pad.rm > .35;
   if (!k.swing && (KB.Space || (TSK.hit && TSK.hit.drag) || (pad.on && pDown(2) && padAim))) { // SPACE (or drag the HIT stick): swing toward the aim, left or right of where you're heading
     if (u.steve) k.swing = -1; else { const mv = Math.hypot(u.fvx || 0, u.fvy || 0), h = u.veh ? u.veh.a : mv > 30 ? Math.atan2(u.fvy, u.fvx) : null, df = h == null ? 0 : wrapA(k.aim - h);
       k.swing = Math.abs(df) < .12 ? (u.lastSide = -(u.lastSide || 1)) : df < 0 ? -1 : 1; k.swingAim = k.aim; } }
@@ -1030,7 +1077,7 @@ function menuNav() { if (state === 'play') return; pollPad(); if (!pad.on) retur
   if (!btns.includes(document.activeElement)) btns[0].focus(); if (pEdge(0)) document.activeElement.click(); if (pEdge(1)) { const back = ovs[0].querySelector('.panel:not(.hidden) .back'); if (back) back.click(); } }
 document.getElementById('again').onclick = () => { startAudio(); begin(); };
 let tut = null; const carsBak = [];
-const KEY = (a) => ({ ride: { kbm: 'W A S D', touch: 'your LEFT THUMB', pad: 'R2 (gas), L2 (brake) and the LEFT STICK' }, gas: { kbm: 'W', touch: 'the thumb', pad: 'R2' }, brake: { kbm: 'SHIFT', touch: 'BRAKE', pad: '△' }, jump: { kbm: 'F', touch: 'JUMP', pad: '✕' }, hit: { kbm: 'SPACE', touch: 'HIT', pad: '□' }, mount: { kbm: 'E', touch: 'RIDE', pad: '○' }, aim: { kbm: 'the MOUSE', touch: 'drag FIRE', pad: 'the RIGHT STICK' }, fire: { kbm: 'LEFT CLICK', touch: 'FIRE', pad: 'R1 or R2' }, throw: { kbm: 'hold RIGHT CLICK, aim, release', touch: 'drag THROW, release', pad: 'hold L1, aim with the right stick, release' } })[a][inputMode] || '';
+const KEY = (a) => ({ ride: { kbm: 'W A S D', touch: { pedal: 'GAS, BRAKE and your LEFT THUMB to steer', gun: 'FIRE (it is your gas on a bike) and your LEFT THUMB to steer', stick: 'your LEFT THUMB (up = gas)', point: 'your LEFT THUMB' }[DRIVE], pad: 'R2 (gas), L2 (brake) and the LEFT STICK' }, gas: { kbm: 'W', touch: { pedal: 'GAS', gun: 'the FIRE button', stick: 'the LEFT THUMB pushed up', point: 'the thumb' }[DRIVE], pad: 'R2' }, brake: { kbm: 'SHIFT', touch: 'BRAKE', pad: '△' }, jump: { kbm: 'F', touch: 'JUMP', pad: '✕' }, hit: { kbm: 'SPACE', touch: 'HIT', pad: '□' }, mount: { kbm: 'E', touch: 'RIDE', pad: '○' }, aim: { kbm: 'the MOUSE', touch: 'drag FIRE', pad: 'the RIGHT STICK' }, fire: { kbm: 'LEFT CLICK', touch: 'FIRE', pad: 'R1 or R2' }, throw: { kbm: 'hold RIGHT CLICK, aim, release', touch: 'drag the ALT button (it names what it throws), release', pad: 'hold L1, aim with the right stick, release' } })[a][inputMode] || '';
 const TUT_STEPS = [
   { t: 'RIDE', d: () => `Ride east to the marker. Steer with ${KEY('ride')}.` },
   { t: 'POWER-SLIDE', d: () => `Hold ${KEY('brake')} while you turn to slide the back out.` },
@@ -2796,7 +2843,7 @@ function applyIn(e, m) {
   const K = {}; for (const c of m.k || []) K[c] = 1; e.keys = K; const M = m.m || [0, 0, 0, 0, 0]; Object.assign(e.mouse, { x: M[0], y: M[1], down: !!M[2], rdown: !!M[3], on: !!M[4] });
   const S = m.s; if (S) Object.assign(e.stick, { id: 1, ox: S[0], oy: S[1], x: S[2], y: S[3] }); else e.stick.id = null;
   const now = performance.now(), ts = m.ts || {}; for (const n of ['fire', 'hit', 'throw', 'brake']) { const t = ts[n]; if (t) { const o = e.tsticks[n] || (e.tsticks[n] = {}); Object.assign(o, { ox: t[0], oy: t[1], x: t[2], y: t[3], drag: !!t[4], t0: now - t[5] }); } else delete e.tsticks[n]; }
-  const B = m.tb || [0, 0, 0]; e.tbtn.a = B[0]; e.tbtn.f = B[1]; e.tbtn.t = B[2];
+  const B = m.tb || [0, 0, 0]; e.tbtn.a = B[0]; e.tbtn.f = B[1]; e.tbtn.t = B[2]; e.tbtn.g = B[3] || 0; e.drive = m.dm;
   const P = e.pad, Q = m.p; if (Q) { P.on = true; P.lx = Q[0]; P.ly = Q[1]; P.rx = Q[2]; P.ry = Q[3]; P.nb = Q[4] || []; P.lm = Math.min(1, Math.hypot(P.lx, P.ly)); P.rm = Math.min(1, Math.hypot(P.rx, P.ry)); } else { P.on = false; P.nb = []; P.lx = P.ly = P.rx = P.ry = P.lm = P.rm = 0; }
   e.inputMode = m.im === 'pad' || m.im === 'touch' ? m.im : 'kbm'; e.touchMode = !!m.tm; }
 function hostMsg(e, m) { e.rx = performance.now();
@@ -2822,7 +2869,7 @@ function netUnseatAll() { for (const e of REM) unseatRemote(e); }
 function netStateTo(e) { const m = { t: 'st', s: state, map: MAPID };
   if (state === 'over') { const et = document.getElementById('endT'); m.end = { t: et.textContent, c: et.style.textShadow, s: document.getElementById('endS').textContent, h: document.getElementById('endTable').innerHTML }; }
   netSend(e, m); }
-function netWbar(e) { if (!e.touchMode) return; e.wbT = (e.wbT || 0) - 1 / 60; if (e.wbT > 0) return; e.wbT = .2; const h = wbarHTML(e.u); if (h !== e.wbK) { e.wbK = h; netSend(e, { t: 'wb', h }); } }
+function netWbar(e) { if (!e.touchMode) return; e.wbT = (e.wbT || 0) - 1 / 60; if (e.wbT > 0) return; e.wbT = .2; const h = wbarHTML(e.u), v = e.u.veh ? 1 : 0, a = altLabel(e.u), key = h + v + a; if (key !== e.wbK) { e.wbK = key; netSend(e, { t: 'wb', h, v, a }); } }
 let netFr = 0;
 function netRender() { if (state === 'title') return; netFr++;
   for (const e of REM) { if (!e.u || !e.cv) continue; if (NETCFG.fps < 50 && (netFr + e.k) % 2) continue; const d0 = DPR; DPR = e.sc;
@@ -2871,7 +2918,7 @@ function gOverlay(t, sub, end) { $n('netG').classList.remove('hidden'); $n('netG
 function gLost(t) { if (NETG.lost) return; NETG.lost = true; NETG.up = false; document.body.classList.remove('playing'); gOverlay(t, ''); $n('netGM').textContent = 'Hit LEAVE to go back to the menu.'; try { music.pause(); } catch (_) {} }
 function guestMsg(m) {
   if (m.t === 'msg') flashMsg(m.s, m.c, true);
-  else if (m.t === 'wb') { wbar.innerHTML = m.h; }
+  else if (m.t === 'wb') { wbar.innerHTML = m.h; touchLabels(m.v, m.a || 'ALT', DRIVE); }
   else if (m.t === 'rum') rumble(m.a, m.b, m.ms, PAD1);
   else if (m.t === 'hud') { for (const k0 in hudHit) delete hudHit[k0]; Object.assign(hudHit, m.r || {}); }
   else if (m.t === 'bye') gLost('THE HOST CLOSED THE ROOM');
@@ -2881,7 +2928,7 @@ function guestMsg(m) {
 function gIn() { const k = []; for (const c in keys) if (keys[c]) k.push(c); const now = performance.now(), ts = {};
   for (const n in tsticks) { const s0 = tsticks[n]; ts[n] = [s0.ox | 0, s0.oy | 0, s0.x | 0, s0.y | 0, s0.drag ? 1 : 0, (now - s0.t0) | 0]; }
   const r2 = v => Math.round(v * 100) / 100;
-  return { t: 'in', k, m: [mouse.x | 0, mouse.y | 0, mouse.down ? 1 : 0, mouse.rdown ? 1 : 0, mouse.on ? 1 : 0], s: stick.id !== null ? [stick.ox | 0, stick.oy | 0, stick.x | 0, stick.y | 0] : 0, ts, tb: [tbtn.a, tbtn.f, tbtn.t],
+  return { t: 'in', k, m: [mouse.x | 0, mouse.y | 0, mouse.down ? 1 : 0, mouse.rdown ? 1 : 0, mouse.on ? 1 : 0], s: stick.id !== null ? [stick.ox | 0, stick.oy | 0, stick.x | 0, stick.y | 0] : 0, ts, tb: [tbtn.a, tbtn.f, tbtn.t, tbtn.g ? 1 : 0], dm: DRIVE,
     p: pad.on ? [r2(pad.lx), r2(pad.ly), r2(pad.rx), r2(pad.ry), pad.b.map(r2)] : 0, im: inputMode, tm: touchMode ? 1 : 0 }; }
 function guestFrame(t) { const dt = Math.min(.05, (t - lastT) / 1000); lastT = t; pollPad();
   if (msgT > 0) { msgT -= dt; if (msgT <= 0) msgEl.style.opacity = 0; }
