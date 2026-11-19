@@ -1,0 +1,3 @@
+{ "name": "NEO NYC", "short_name": "NEO NYC", "start_url": "./index.html", "scope": "./", "display": "fullscreen", "orientation": "landscape",
+  "background_color": "#05030e", "theme_color": "#05030e",
+  "icons": [ { "src": "icon.png", "sizes": "180x180", "type": "image/png" }, { "src": "icon512.png", "sizes": "512x512", "type": "image/png" } ] }

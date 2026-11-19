@@ -8,13 +8,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NEO NYC">
 <meta name="theme-color" content="#05030e">
-<title>NEO NYC — Gang War (v0.54)</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>NEO NYC — Gang War (v0.55)</title>
 <style>
   html,body{margin:0;height:100%;background:#03060f;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,Consolas,monospace}
   canvas{display:block;position:fixed;left:0;top:0}
   html,body{overscroll-behavior:none;touch-action:none}
   #fsBtn{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:6;display:none;padding:4px 10px;border:1px solid #05d9e8;border-radius:6px;background:rgba(5,3,14,.7);color:#bff7ff;font:800 10px ui-monospace,Menlo,monospace}
   body.touch.playing #fsBtn.can{display:block}
+  #fsHelp{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(3,2,10,.88);color:#e8ecff;font:600 13px/1.55 ui-monospace,Menlo,monospace;text-align:left;padding:14px}
+  #fsHelp.on{display:flex} #fsHelp .bx{max-width:460px;border:2px solid #05d9e8;background:#0b0614;padding:16px 18px;box-shadow:0 0 24px #05d9e855}
+  #fsHelp b{color:#ffe696} #fsHelp h3{margin:0 0 8px;color:#5cf2ff;font:italic 900 18px ui-monospace,Menlo,monospace;letter-spacing:.08em}
+  #fsHelp button{margin-top:10px;font:900 14px ui-monospace,Menlo,monospace;padding:8px 18px;border:2px solid #ff3ad4;background:#ff3ad4;color:#14051c}
   body.mouse canvas{cursor:none}
   #msg{position:fixed;left:0;right:0;top:34%;text-align:center;color:#fff;font-size:36px;font-weight:900;letter-spacing:.26em;text-shadow:0 0 18px #ff2a6d,0 0 4px #ff2a6d;opacity:0;pointer-events:none;transition:opacity .2s}
   .tc{position:fixed;bottom:22px;width:84px;height:84px;border-radius:50%;border:2px solid #ff2a6daa;background:#ff2a6d18;color:#ffc0d3;font:800 12px ui-monospace,Menlo,monospace;display:none;align-items:center;justify-content:center;letter-spacing:.06em}
@@ -110,6 +116,8 @@ document.getElementById('agNo').onclick=function(){try{if(window.parent!==window
 <div id="msg"></div>
 <div id="dev"><b id="devT">DEV ▾</b><div id="devB"></div></div>
 <div class="ms" id="mFire"><i></i>FIRE</div><div class="ms" id="mHit"><i></i>HIT</div><div class="ms" id="mThrow"><i></i>THROW</div><div class="ms" id="mJump">JUMP</div><div class="ms" id="mBrake">BRAKE</div><div class="ms" id="mRide">RIDE</div><div id="wbar"></div><div id="fsBtn">⛶ FULL SCREEN</div>
+<div id="fsHelp"><div class="bx"><h3>HIDE THE ADDRESS BAR</h3>iPhone Safari won't let a web page go full screen, so install it like an app (one time, free):<br><br>
+<b>1.</b> Tap <b>Share</b> (the square with the ↑ arrow).<br><b>2.</b> Tap <b>Add to Home Screen</b>. If you see <b>Open as Web App</b>, leave it on.<br><b>3.</b> Open <b>NEO NYC</b> from your home screen: no bars, all screen.<br><button id="fsHelpX">GOT IT</button></div></div>
 <div class="tc" id="tr2">RIDE</div><div class="tc" id="tt">THROW</div><div class="tc" id="ts">FIRE</div><div class="tc" id="ta">HIT</div>
 <div class="ov" id="start"><div class="card">
   <div class="hm"><span>N</span><span>E</span><span>O</span><span> </span><span>N</span><span>Y</span><span>C</span></div><h2 class="hmsub">GANG WAR · RED vs BLUE vs MILITARY</h2><div id="menuMain" class="menu">
@@ -856,8 +864,12 @@ function mkStick(id, name) { const el = document.getElementById(id), knob = el.q
 mkStick('mFire', 'fire'); mkStick('mHit', 'hit'); mkStick('mThrow', 'throw'); mkStick('mBrake', 'brake');
 for (const [id, fn] of [['mJump', () => { jumpReq = true; }], ['mRide', () => { rideReq = true; }]]) { const el = document.getElementById(id); el.addEventListener('pointerdown', e => { e.preventDefault(); startAudio(); fn(); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 140); }); }
 const wbar = document.getElementById('wbar');
-{ const fb = document.getElementById('fsBtn'), de = document.documentElement, req = de.requestFullscreen || de.webkitRequestFullscreen; if (req && !navigator.standalone) fb.classList.add('can');
-  fb.addEventListener('pointerdown', e => { e.preventDefault(); try { const r = req.call(de, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (_) {} fb.classList.remove('can'); setTimeout(resize, 300); }); }
+{ const fb = document.getElementById('fsBtn'), de = document.documentElement, req = de.requestFullscreen || de.webkitRequestFullscreen, help = document.getElementById('fsHelp');
+  let inApp = !!navigator.standalone || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches; try { inApp = inApp || !!top.navigator.standalone || top.matchMedia('(display-mode: standalone)').matches; } catch (_) {}
+  const iOS = /iPhone|iPod/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1 && !req);
+  if (!inApp && (req || iOS)) fb.classList.add('can');
+  document.getElementById('fsHelpX').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); help.classList.remove('on'); });
+  fb.addEventListener('pointerdown', e => { e.preventDefault(); if (!req) { help.classList.add('on'); return; } try { const r = req.call(de, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } catch (_) {} fb.classList.remove('can'); setTimeout(resize, 300); }); }
 wbar.addEventListener('pointerdown', e => { const d = e.target.closest('[data-n]'); if (!d || !player) return; e.preventDefault(); cycle(player, +d.dataset.n); updWbar(true); });
 let wbarT = 0, wbarKey = '';
 function wbarHTML(u) { const ic = n => { const i = ICON_I[n]; return i == null ? '' : `<b style="background-position:-${(i % 8) * 30}px -${((i / 8) | 0) * 30}px"></b>`; };
