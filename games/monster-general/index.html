@@ -314,7 +314,7 @@ function sellRoom(r){
   for(let y=r.y;y<r.y+3;y++)for(let x=r.x;x<r.x+3;x++)T(x,y).room=null;
   G.rooms=G.rooms.filter(q=>q!==r);clearFields();
 }
-function sellObj(o){earn(Math.round(OBJ_TYPES[o.type].cost*.5),o.x+.5,o.y+.5);T(o.x,o.y).obj=null;G.objs=G.objs.filter(q=>q!==o);clearFields()}
+function sellObj(o){if(o.seats)for(const q of o.seats)if(q)q.seat=null;earn(Math.round(OBJ_TYPES[o.type].cost*.5),o.x+.5,o.y+.5);T(o.x,o.y).obj=null;G.objs=G.objs.filter(q=>q!==o);clearFields()}
 
 // =================== money / rep ===================
 function earn(v,x,y){G.cash+=v;G.mIn+=v;if(x!=null)addFx(x,y,'+'+money(v),'#2bd67b')}
@@ -330,14 +330,59 @@ function spawnPatient(o={}){
     name:species==='monster'?pick(MFIRST)+' '+pick(LAST):pick(FIRST)+' '+pick(LAST),x:e.x+.5,y:e.y+.5,speed:rand(1.1,1.5),dis,diag:null,
     state:'arrive',patience:100,health:100,thirst:rand(0,40),shirt:pick(SHIRTS),skin:pick(SKINS),
     ox:rand(-.28,.28),oy:rand(-.28,.28),t:0,phase:Math.random()*10,emergency:!!o.emergency,infected:false,cured:false};
+  p.jx=p.ox;p.jy=p.oy;p.thinkT=rand(4,14);
   if(o.emergency){p.diag=dis;p.state='needTreat'}
   G.patients.push(p);return p;
 }
 function detach(p){
   const rq=G.recep.queue,i=rq.indexOf(p);if(i>=0)rq.splice(i,1);
   for(const r of G.rooms){const j=r.queue.indexOf(p);if(j>=0)r.queue.splice(j,1);if(r.occupant===p)r.occupant=null}
-  p.room=null;
+  p.room=null;releaseSeat(p);
 }
+function releaseSeat(p){if(p.seat){const s=p.seat.b.seats;if(s&&s[p.seat.i]===p)s[p.seat.i]=null;p.seat=null}}
+function findSeat(p,near){
+  let best=null,bd=6;const px=Math.floor(p.x),py=Math.floor(p.y);
+  for(const o of G.objs){if(o.type!=='bench')continue;o.seats=o.seats||[null,null];const i=o.seats.indexOf(null);if(i<0)continue;
+    const d=Math.abs(o.x-near.x)+Math.abs(o.y-near.y);if(d<bd&&reachable(tileField(o.x,o.y),px,py)){bd=d;best={b:o,i}}}
+  if(best){best.b.seats[best.i]=p;p.seat=best}
+}
+// wait in line: the front patient stands at the spot, everyone else grabs a nearby bench seat if there is one
+function queueWait(p,q,spot,dt){
+  if(q.indexOf(p)===0){releaseSeat(p);p.ox=p.jx;p.oy=p.jy;p.atSpot=step(p,tileField(spot.x,spot.y),dt);return}
+  p.atSpot=false;
+  if(!p.seat&&(p.seatT=(p.seatT||0)-dt)<=0){p.seatT=1;findSeat(p,spot)}
+  if(p.seat){const b=p.seat.b;p.ox=p.seat.i?.22:-.22;p.oy=.03;step(p,tileField(b.x,b.y),dt)}
+  else{p.ox=p.jx;p.oy=p.jy;step(p,tileField(spot.x,spot.y),dt)}
+}
+// how a patient is feeling, shown now and then as a thought cloud
+function moodThought(p){
+  const o=[];const add=(w,list)=>o.push([w,list]);
+  if(p.state==='leaving'&&p.cured)add(10,["I feel brand new!","Best hospital ever!","My tummy says thank you."]);
+  if(p.state==='leaving'&&p.angry)add(10,["Never coming back here.","Hmph!","What a waste of a day."]);
+  if(p.patience<30)add(6,["This is taking forever...","Grrrr.","I might just go home.","Is anyone even working here?"]);
+  if(p.health<35)add(6,["I don't feel so good...","Ooh, I need a doctor soon.","Everything is a bit wobbly."]);
+  if(p.thirst>80)add(5,["So... thirsty...","I'd do anything for a juice.","My mouth is a desert."]);
+  if(p.infected)add(5,["*hic* why am I giggling?","Hee hee *hic* help."]);
+  if(G.temp<17)add(4,["Brrr, it's freezing in here.","Even my fur is cold."]);
+  if(G.temp>25)add(4,["Phew, it's so hot in here.","I'm melting like a popsicle."]);
+  const tx=Math.floor(p.x),ty=Math.floor(p.y);let mess=false;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const t=T(tx+dx,ty+dy);if(t&&t.litter)mess=true}
+  if(mess)add(5,["Eww, who left that there?","Is that slime? Gross.","Somebody should clean this up."]);
+  if(G.rats.length)add(2,["Was that a dust bunny?!","Something fluffy just ran past me."]);
+  if(G.price>1.4&&!p.cured)add(3,["This place is pricey...","I hope my piggy bank is big enough."]);
+  if(isSitting(p))add(3,["Ahh, nice to sit down.","Comfy bench."]);
+  if(p.patience>70&&p.health>50&&p.thirst<60&&!mess)add(3,["This place is nice!","The staff seem friendly.","Ooh, I like the plants.","Not too busy today."]);
+  if(!o.length)return null;let tot=o.reduce((a,b)=>a+b[0],0),r=Math.random()*tot;
+  for(const [w,l] of o){if((r-=w)<=0)return pick(l)}return pick(o[0][1]);
+}
+function updThought(p,dt){
+  if(p.thought&&(p.thought.t-=dt)<=0)p.thought=null;
+  if((p.thinkT-=dt)>0)return;p.thinkT=rand(12,24);
+  if(p.bubble||p.state==='inRoom'||p.state==='enterRoom'||Math.random()>.5)return;
+  if(G.patients.filter(q=>q.thought).length>=4)return;
+  const txt=moodThought(p);if(txt)p.thought={text:txt,t:3.5};
+}
+const isSitting=a=>!!(a.seat&&!a.moving&&!a.nx);
 function bubble(a,text,t=2.5){a.bubble={text,t}}
 function leave(p,msg,angry=true){
   detach(p);if(msg)bubble(p,msg,3);p.state='leaving';p.angry=angry;
@@ -363,11 +408,13 @@ function maybeDrink(p){
 function updPatient(p,dt){
   p.t+=dt;if(p.bubble&&(p.bubble.t-=dt)<=0)p.bubble=null;
   if(p.state==='dead'){if(p.t>2.5)G.patients.splice(G.patients.indexOf(p),1);return}
+  updThought(p,dt);
+  if(p.seat&&p.state!=='queue'&&p.state!=='queueRecep'&&p.state!=='wait')releaseSeat(p);
   if(p.state!=='leaving'){
     const waiting=p.state==='queue'||p.state==='queueRecep'||p.state==='wait';
     p.thirst=Math.min(100,p.thirst+dt*.55*(G.temp>25?2:1));
     p.health-=dt*CONFIG.healthDrain*(p.emergency?3:1)*(p.infected?1.5:1);
-    if(waiting){let r=CONFIG.patienceDrain*comfort();if(nearBench(p))r*=.5;if(p.thirst>85)r*=1.4;p.patience-=r*dt}
+    if(waiting){let r=CONFIG.patienceDrain*comfort();if(isSitting(p))r*=.4;else if(nearBench(p))r*=.6;if(p.thirst>85)r*=1.4;p.patience-=r*dt}
     if(p.health<=0){die(p);return}
     if(p.patience<=0&&p.state!=='inRoom'&&p.state!=='enterRoom'){leave(p,pick(["I've waited long enough!","I'll try the vet.","Never again!"]));return}
     if(Math.random()<dt*CONFIG.vomitRate*(p.infected?3:1))dropLitter(p,'vomit');
@@ -379,17 +426,19 @@ function updPatient(p,dt){
   }
   switch(p.state){
     case 'arrive':{const s=G.recep.servSpot;if(step(p,tileField(s.x,s.y),dt)){G.recep.queue.push(p);p.state='queueRecep';p.checkT=0}break}
-    case 'queueRecep':if(!G.recep.staff)hint('recep','Nobody is at the front desk. A monster is trying to check in with a pot plant. Hire a Receptionist.');maybeDrink(p);break;
+    case 'queueRecep':queueWait(p,G.recep.queue,G.recep.servSpot,dt);if(!G.recep.staff)hint('recep','Nobody is at the front desk. A monster is trying to check in with a pot plant. Hire a Receptionist.');maybeDrink(p);break;
     case 'needGP':case 'needTreat':{
       const type=p.state==='needGP'?'gp':DISEASES[p.diag].room,r=chooseRoom(type,p);
       if(r){p.room=r;p.state='toRoom';p.need=p.state}
       else{p.need=p.state;p.state='wait';p.recheck=2;p.waitFor=type;bubble(p,'Where is the '+ROOM_TYPES[type].name+'?',3);
         hint('room'+type,`Patients need a ${ROOM_TYPES[type].name}. They are standing about looking poorly.`)}
       break}
-    case 'wait':if(maybeDrink(p))break;step(p,lobbyField(),dt);if((p.recheck-=dt)<=0&&!p.moving)p.state=p.diag?'needTreat':'needGP';break;
+    case 'wait':if(maybeDrink(p))break;if(!p.seat&&(p.seatT=(p.seatT||0)-dt)<=0){p.seatT=1;findSeat(p,{x:Math.floor(p.x),y:Math.floor(p.y)})}
+      if(p.seat){p.ox=p.seat.i?.22:-.22;p.oy=.03;step(p,tileField(p.seat.b.x,p.seat.b.y),dt)}else step(p,lobbyField(),dt);if((p.recheck-=dt)<=0&&!p.moving)p.state=p.diag?'needTreat':'needGP';break;
     case 'toRoom':{const r=p.room;if(!r||r.sold){p.state=p.diag?'needTreat':'needGP';break}
       if(step(p,tileField(r.door.ox,r.door.oy),dt)){r.queue.push(p);p.state='queue'}break}
     case 'queue':{const r=p.room;if(!r||r.sold){p.state=p.diag?'needTreat':'needGP';break}
+      queueWait(p,r.queue,{x:r.door.ox,y:r.door.oy},dt);
       if(!r.staff)hint('nostaff'+r.type,`The ${ROOM_TYPES[r.type].name} has a queue and no ${STAFF_TYPES[ROOM_TYPES[r.type].staff].name}. Bold strategy.`);
       maybeDrink(p);break}
     case 'enterRoom':{const r=p.room;if(!r){p.state='needGP';break}const c=roomSpots(r).center;
@@ -452,7 +501,7 @@ function updStaff(s,dt){
     case 'atPost':{
       const busy=s.role==='receptionist'?G.recep.queue.length>0:!!(s.room&&s.room.occupant);
       s.energy=Math.max(0,s.energy-dt*(busy?.45:.06));
-      if(s.role==='receptionist'){const q=G.recep.queue;if(q.length){const p=q[0];p.checkT=(p.checkT||0)+dt;if(p.checkT>1.4){q.shift();p.state='needGP'}}}
+      if(s.role==='receptionist'){const q=G.recep.queue;if(q.length){const p=q[0];if(p.atSpot)p.checkT=(p.checkT||0)+dt;if(p.checkT>1.4){q.shift();p.state='needGP'}}}
       if(tired&&!busy&&G.rooms.some(r=>r.type==='staffroom')){
         if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;s.room=null;goRest(s);bubble(s,'Tea break.',2)}
       else if(tired&&Math.random()<dt*.05)bubble(s,'*yawn*',1.5);
@@ -523,7 +572,7 @@ function update(dt){
     G.spawnT=Math.max(2,(CONFIG.spawnBase-G.rep*.06)/G.L.spawn)*rand(.7,1.3)}
   updEvents(dt);
   for(const r of G.rooms){if(r.type==='staffroom')continue;
-    if(r.staff&&r.staff.state==='atPost'&&!r.broken&&!r.occupant&&r.queue.length){const p=r.queue.shift();r.occupant=p;p.state='enterRoom'}}
+    if(r.staff&&r.staff.state==='atPost'&&!r.broken&&!r.occupant&&r.queue.length){const p=r.queue.shift();releaseSeat(p);r.occupant=p;p.state='enterRoom';p.ox=p.jx;p.oy=p.jy}}
   for(const p of [...G.patients])updPatient(p,dt);
   for(const s of [...G.staff])updStaff(s,dt);
   for(const r of G.rats)updRat(r,dt);
@@ -588,7 +637,14 @@ function drawMonster(a,t,sick){
   ctx.fillStyle=bodyCol;ctx.beginPath();ctx.ellipse(0,-12,8.5,11,0,0,7);ctx.fill();
   if(!bald){ctx.beginPath();for(let i=0;i<=8;i++){const ang=Math.PI+i*Math.PI/8,r=i%2?8.5:10.6;ctx.lineTo(Math.cos(ang)*r*.95,-14+Math.sin(ang)*r*1.15)}ctx.fill()}
   else for(let i=0;i<3;i++)circle(-4+i*4,-21+(i%2),1.4,a.fur);
-  ctx.fillStyle=shade(bodyCol,.25);ctx.beginPath();ctx.ellipse(0,-8,5,5.5,0,0,7);ctx.fill();
+  if(staff&&role==='doctor'){ // white doctor's coat, open down the front
+    const sw=a.moving?Math.sin(t*10)*.8:0;ctx.strokeStyle='#c9d3dc';ctx.lineWidth=.8;
+    poly([{x:-7.6,y:-18},{x:-1.6,y:-15.5},{x:-1.2,y:-1},{x:-9.6+sw,y:-1.5}],'#ffffff','#c9d3dc');
+    poly([{x:7.6,y:-18},{x:1.6,y:-15.5},{x:1.2,y:-1},{x:9.6-sw,y:-1.5}],'#ffffff','#c9d3dc');
+    poly([{x:-7.6,y:-18},{x:-1.6,y:-15.5},{x:-4.2,y:-12.5}],'#e6ecf1');poly([{x:7.6,y:-18},{x:1.6,y:-15.5},{x:4.2,y:-12.5}],'#e6ecf1');
+    rrect(-10.5,-15,3.2,9,1.6,'#ffffff');rrect(7.3,-15,3.2,9,1.6,'#ffffff');
+    rrect(3,-8,3.6,3,.6,'#e6ecf1');ctx.fillStyle='#3a86ff';ctx.fillRect(3.6,-10,.9,2.4);ctx.fillStyle='#ff4f5e';ctx.fillRect(4.9,-9.6,.9,2)}
+  else{ctx.fillStyle=shade(bodyCol,.25);ctx.beginPath();ctx.ellipse(0,-8,5,5.5,0,0,7);ctx.fill()}
   if(a.infected)for(let i=0;i<4;i++)circle(-5+i*3.5,-14+(i%2)*4,1.3,'#7bd96b');
   // horns / antennae
   const h=staff?(role==='doctor'?1:role==='handyman'?0:2):a.horns;
@@ -608,8 +664,8 @@ function drawMonster(a,t,sick){
   if(dis==='humanitis'){poly([{x:-1,y:-6},{x:1,y:-6},{x:1.6,y:-1},{x:0,y:0},{x:-1.6,y:-1}],'#c1121f');rrect(7,-7,6,5,1,'#6b4226')}
   if(dis==='scary'&&Math.sin(t*2)>.6)circle(7,-18,1.3,'#8ecae6');
   // staff accessories
-  if(staff){if(role==='doctor'){ctx.strokeStyle='#ddd';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(0,-10,4.5,.1,Math.PI-.1);ctx.stroke();circle(0,-5.5,1.5,'#bbb');circle(0,-24,2.4,'#e9ecef')}
-    if(role==='nurse'){rrect(-4.5,-28,9,4,1,'#fff');ctx.fillStyle='#ff4f5e';ctx.fillRect(-1,-27.5,2,3);ctx.fillRect(-1.5,-27,3,2)}
+  if(staff){if(role==='doctor'){ctx.strokeStyle='#4a4e69';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(-2.6,-15.5);ctx.quadraticCurveTo(-3,-9,0,-7.5);ctx.moveTo(2.6,-15.5);ctx.quadraticCurveTo(3,-9,0,-7.5);ctx.stroke();circle(0,-6.6,1.5,'#adb5bd');circle(0,-24,2.4,'#e9ecef')}
+    if(role==='nurse'){poly([{x:-6,y:-24.5},{x:6,y:-24.5},{x:4.6,y:-31},{x:-4.6,y:-31}],'#ffffff','#d0d7de');ctx.fillStyle='#e5383b';ctx.fillRect(-.9,-30,1.8,4.6);ctx.fillRect(-2.3,-28.6,4.6,1.8)}
     if(role==='handyman'){rrect(-6,-25,12,4,2,'#1d4e89');rrect(2,-24,7,2,1,'#1d4e89')}}
   ctx.restore();
 }
@@ -631,7 +687,7 @@ function drawPerson(a){
       ctx.fillStyle='#ffd166';ctx.font='bold 10px Fredoka';ctx.textAlign='center';ctx.fillText('*',Math.cos(ang)*8,-12-k*20+Math.sin(ang)*3)}ctx.restore();return}
   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(0,0,8,4,0,0,Math.PI*2);ctx.fill();
   const bob=a.moving?Math.abs(Math.sin(t*10))*2:0,pat=a.kind==='patient',sick=pat&&!a.cured;
-  ctx.translate(0,-bob);
+  ctx.translate(0,-bob-(pat&&isSitting(a)?5:0));
   const monster=pat?a.species==='monster':a.role!=='receptionist';
   if(monster)drawMonster(a,t,sick);else drawHuman(a,t,sick);
   ctx.restore();
@@ -693,7 +749,7 @@ function render(){
       if(!(dr.side==='E'&&dr.iy===y))D.push({d:r.x+3+y+.5+.01,f:()=>wall(r.x+3,y,r.x+3,y+1,8,shade(RT.color,-.25),.85)})}
     const fs=roomSpots(r).furn;D.push({d:fs.x+fs.y+1,f:()=>drawFurniture(r)})}
   for(const o of G.objs)D.push({d:o.x+o.y+(o.w||1)/2+(o.h||1)/2,f:()=>drawObj(o)});
-  for(const a of G.patients)D.push({d:a.x+a.y,f:()=>drawPerson(a)});
+  for(const a of G.patients)D.push({d:a.x+a.y+(isSitting(a)?.6:0),f:()=>drawPerson(a)});
   for(const a of G.staff)D.push({d:a.x+a.y,f:()=>drawPerson(a)});
   for(const a of G.rats)D.push({d:a.x+a.y,f:()=>drawRat(a)});
   D.sort((a,b)=>a.d-b.d);for(const it of D)it.f();
@@ -710,6 +766,11 @@ function render(){
       if(a.health<30&&Math.sin(animT*8)>0){ctx.fillStyle='#ff4f5e';ctx.font='bold 10px Fredoka';ctx.fillText('+',c.x-12,c.y-30)}
       if(a.emergency){rrect(c.x-3,c.y-46,6,6,3,Math.sin(animT*10)>0?'#ff4f5e':'#3a86ff')}}
     else if(a.energy<CONFIG.tiredAt){ctx.fillStyle='#fff';ctx.font='bold 9px Fredoka';ctx.fillText('z',c.x+9,c.y-30-Math.sin(animT*3)*3)}
+    if(a.thought&&!a.bubble){ctx.font='italic 500 9px Fredoka';const tw=ctx.measureText(a.thought.text).width+14,bx=c.x+6-tw/2,by=c.y-66;
+      ctx.globalAlpha=Math.min(1,a.thought.t*2);const cl='rgba(255,255,255,.95)';
+      for(let i=0;i<Math.ceil(tw/10);i++){circle(bx+5+i*((tw-10)/Math.max(1,Math.ceil(tw/10)-1)),by+1,5,cl);circle(bx+5+i*((tw-10)/Math.max(1,Math.ceil(tw/10)-1)),by+14,5,cl)}
+      rrect(bx,by,tw,15,7,cl);circle(c.x+5,c.y-46,2.6,cl);circle(c.x+2,c.y-40.5,1.6,cl);
+      ctx.fillStyle='#5a6470';ctx.fillText(a.thought.text,c.x+6,by+10.5);ctx.globalAlpha=1}
     if(a.bubble){ctx.font='600 9px Fredoka';const w=ctx.measureText(a.bubble.text).width+10;rrect(c.x-w/2,c.y-56,w,14,6,'#fff');
       poly([{x:c.x-3,y:c.y-42},{x:c.x+3,y:c.y-42},{x:c.x,y:c.y-38}],'#fff');ctx.fillStyle='#10262c';ctx.fillText(a.bubble.text,c.x,c.y-46)}}
   for(const f of G.fx){const c=iso(f.x,f.y);ctx.globalAlpha=1-f.t/1.6;ctx.font='bold 12px Fredoka';ctx.fillStyle=f.color;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=3;
@@ -857,7 +918,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;animT+=dt;
   if((hudT-=dt)<=0){hudT=.25;updateHUD()}
   try{render()}catch(e){console.error(e)}requestAnimationFrame(loop)}
 addEventListener('resize',()=>{resize()});
-window.BP={get G(){return G},buildRoom,validateRoom,hire,buildObj};
+window.BP={get G(){return G},cam,buildRoom,validateRoom,hire,buildObj,spawnPatient};
 resize();menu();requestAnimationFrame(loop);
 }
 </script>
