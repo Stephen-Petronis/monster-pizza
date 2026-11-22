@@ -71,6 +71,14 @@ window.MONSTER_PIZZA = {
       color: "#3a9ae8",
     },
     {
+      id: "monster-general",
+      title: "Monster General",
+      blurb: "Run the hospital where monsters and humans get better together. Build rooms, hire staff, cure Fuzz Loss and Too Many Teeth, and shoo the dust bunnies.",
+      url: "games/monster-general/index.html",        // lives inside this repo
+      screen: "games/monster-general/screen.gif",     // no drawn cabinet yet: uses the built-in one
+      color: "#0f9d8a",
+    },
+    {
       id: "zomboni",
       title: "Zomboni",
       blurb: "Drive the zombie Zamboni! Clean up after monster hockey: 8 nights, snow goblins, ghosts, and lights out at midnight.",

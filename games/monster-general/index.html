@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Monster General</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: cheeky 90s British hospital sim, a bit grubby, very silly
+   IDEA: a hospital clipboard + PA system wrapped around an isometric ward
+   PICTURE: the hospital itself, full screen, cutaway walls, wobbling patients
+   COLOUR and TYPE: scrub teal chrome, mint floors, emergency red accent; Fredoka
+   LAYOUT: HUD strip on top, announcer ticker, canvas fills, tabbed clipboard at bottom */
+:root{color-scheme:light dark;--chrome:#0f4c5c;--chrome2:#0b3a46;--mint:#b8f2e6;--red:#ff4f5e;--ink:#10262c;--paper:#fffdf5;--gold:#ffd166}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#06262e;font:16px/1.4 Fredoka,"Trebuchet MS",system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#hud{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;background:var(--chrome);color:#fff;padding:6px 10px;font-weight:600;font-size:14px;z-index:3}
+.st{display:flex;gap:4px;align-items:baseline;white-space:nowrap}.st i{font-style:normal;opacity:.65;font-weight:400;font-size:12px}
+.st b.bad{color:var(--red)}.st b.good{color:#7dffb0}
+#speed{margin-left:auto;display:flex;gap:3px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+#speed button,#voiceBtn{background:var(--chrome2);color:#fff;min-width:38px;height:34px;font-size:13px}
+#speed button.on{background:var(--gold);color:var(--ink)}
+#ticker{background:#082f38;color:var(--mint);font-size:14px;padding:5px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:3;border-bottom:2px solid var(--red)}
+#ticker b{color:var(--red);margin-right:6px}
+#stage{position:relative;flex:1}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#eventBar{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:6px 14px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:0 4px 0 #a3202c;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
+#placeBar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:var(--paper);padding:6px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:96%}
+#placeBar button{height:44px;padding:0 14px;font-weight:600;background:#e8efe9}
+#placeBar #pOk{background:#2bb673;color:#fff}#placeBar #pNo{background:var(--red);color:#fff}
+#pMsg{font-size:13px;padding:0 6px;max-width:180px}
+#info{position:absolute;right:8px;top:8px;width:min(300px,92vw);background:var(--paper);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:14px}
+#info h3{margin:0 0 2px;font-size:18px}#info .sub{opacity:.7;margin-bottom:8px}
+.bar{height:9px;background:#dfe6e2;border-radius:6px;overflow:hidden;margin:2px 0 7px}.bar>span{display:block;height:100%}
+.row{display:flex;justify-content:space-between;gap:8px}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn{background:var(--chrome);color:#fff;height:40px;padding:0 14px;font-weight:600}
+.btn.red{background:var(--red)}.btn.ghost{background:#e3ebe7;color:var(--ink)}
+#panel{position:absolute;left:0;right:0;bottom:0;max-height:55%;overflow:auto;background:var(--paper);border-radius:18px 18px 0 0;padding:12px;box-shadow:0 -8px 24px rgba(0,0,0,.35)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.card{background:#fff;border:2px solid #d6e5df;border-radius:12px;padding:8px 10px;text-align:left;color:var(--ink);min-height:44px}
+.card:disabled{opacity:.45}.card b{display:block;font-size:15px}.card small{display:block;opacity:.7;font-size:12px;line-height:1.3}
+.card .price{color:#1b7f53;font-weight:700;font-size:13px}
+.card .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#panel h4{margin:4px 0 8px;font-size:16px}
+#panel label{display:block;font-weight:600;margin-top:8px}
+input[type=range]{width:100%;height:32px;accent-color:var(--chrome)}
+.goal{display:flex;justify-content:space-between;padding:6px 10px;border-radius:10px;background:#eef5f1;margin:4px 0}.goal.done{background:#c9f5dc}
+#toolbar{display:flex;background:var(--chrome);z-index:3}
+#toolbar button{flex:1;height:52px;background:none;color:#fff;font-weight:600;font-size:15px;border-radius:0;border-top:3px solid transparent}
+#toolbar button.on{background:var(--chrome2);border-top-color:var(--gold)}
+#toast{position:absolute;left:50%;top:50px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#modal{position:fixed;inset:0;background:rgba(4,30,36,.82);display:flex;align-items:center;justify-content:center;z-index:10;padding:16px}
+.mbox{background:var(--paper);border-radius:20px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:22px;box-shadow:0 12px 0 #062a32}
+.mbox h1{font-size:clamp(34px,8vw,52px);line-height:1.05;margin:0;color:var(--chrome);letter-spacing:-.5px}
+.mbox h1 span{color:var(--red)}
+.mbox h2{margin:0 0 6px;font-size:28px;color:var(--chrome)}
+.lvl{display:flex;justify-content:space-between;align-items:center;width:100%;background:#fff;border:2px solid #cfe3db;border-radius:14px;padding:12px;margin:8px 0;text-align:left;color:var(--ink);min-height:56px}
+.lvl:disabled{opacity:.5}.lvl b{font-size:17px}.lvl small{display:block;opacity:.7}
+.mbox ul{padding-left:20px;margin:8px 0}.mbox li{margin:3px 0;font-size:15px}
+.hidden{display:none!important}
+@media(max-width:600px){#hud{font-size:13px;gap:2px 8px}.st i{display:none}#speed button,#voiceBtn{min-width:34px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <span class="st"><i>Cash</i><b id="hCash">$0</b></span>
+    <span class="st"><i>Rep</i><b id="hRep">50</b></span>
+    <span class="st"><i>Cured</i><b id="hCured">0</b></span>
+    <span class="st"><i>Date</i><b id="hDate">Jan 1</b></span>
+    <span class="st"><i>Temp</i><b id="hTemp">20°</b></span>
+    <span id="speed"><button data-s="0">II</button><button data-s="1" class="on">&#9654;</button><button data-s="2">&#9654;&#9654;</button><button data-s="4">&#9654;&#9654;&#9654;</button></span>
+    <button id="voiceBtn" title="Announcer voice">PA on</button>
+  </div>
+  <div id="ticker"><b>PA</b><span id="tickerText">Welcome to Monster General.</span></div>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="eventBar" class="hidden"></div>
+    <div id="toast" class="hidden"></div>
+    <div id="info" class="hidden"></div>
+    <div id="panel" class="hidden"></div>
+    <div id="placeBar" class="hidden"><button id="pRot">Turn door</button><span id="pMsg"></span><button id="pOk">Place</button><button id="pNo">&#10005;</button></div>
+  </div>
+  <div id="toolbar">
+    <button data-tab="rooms">Rooms</button><button data-tab="items">Items</button><button data-tab="staff">Staff</button><button data-tab="hosp">Hospital</button>
+  </div>
+</div>
+<div id="modal"></div>
+
+<script>
+{
+// =================== CONFIG (tunables) ===================
+const CONFIG={
+  TW:64, TH:32,
+  dayLength:2.5,        // seconds per in-game day at 1x
+  monthDays:30,
+  gpFee:120, drinkPrice:20, vaccineCost:60,
+  patienceDrain:0.8,    // per second while waiting
+  healthDrain:0.12,     // per second until cured
+  vomitRate:0.0025,
+  spawnBase:10, maxPatients:45,
+  salaries:{doctor:1000,nurse:650,handyman:380,receptionist:320},
+  heatCost:220, tiredAt:25, machineWear:9,
+};
+const ROOM_TYPES={
+  gp:{name:'Check-Up Room',cost:2500,staff:'doctor',color:'#7cc6fe',dur:4,desc:'Works out what is wrong (and if you are a monster). Needs a Doctor.'},
+  pharmacy:{name:'Snack Lab',cost:2000,staff:'nurse',color:'#9be59b',dur:3,desc:'Medicine cookies for tummies and sneezes. Needs a Nurse.'},
+  psych:{name:'Scare School',cost:3000,staff:'doctor',color:'#d7a6ff',dur:6,desc:'Teaches monsters to be scary again. Needs a Doctor.'},
+  shower:{name:'Fur Salon',cost:3500,staff:'nurse',color:'#ffb3d9',dur:5,machine:true,desc:'Grows fur back on monsters, trims it off humans. Machine.'},
+  flip:{name:'Tooth Trimmer',cost:4500,staff:'doctor',color:'#ffd6a5',dur:6,machine:true,desc:'Too many teeth? Not any more. Machine wears out.'},
+  staffroom:{name:'Staff Room',cost:1500,staff:null,color:'#f5d76e',dur:0,desc:'Tired staff nap here instead of mixing up patients.'},
+};
+const OBJ_TYPES={
+  bench:{name:'Bench',cost:120,block:false,desc:'Waiting patients nearby lose patience half as fast.'},
+  drinks:{name:'Juice Machine',cost:500,block:true,desc:'Swamp juice for monsters, apple juice for humans. $20 a cup.'},
+  plant:{name:'Pot Plant',cost:80,block:true,desc:'Cheers the place up. Monsters sometimes nibble it.'},
+  desk:{name:'Reception Desk',cost:0,block:true,hidden:true},
+};
+// who: which kind of patient can catch it
+const DISEASES={
+  tummy:{name:'Grumbly Tummy',who:'any',room:'pharmacy',price:300,desc:'Their tummy growls, and sometimes it talks back.'},
+  echo:{name:'Echo Sneeze',who:'human',room:'pharmacy',price:350,desc:'Every sneeze repeats. Louder each time.'},
+  scary:{name:'Lost Their Scary',who:'monster',room:'psych',price:600,desc:'Says "boo" and nobody jumps. Very sad about it.'},
+  humanitis:{name:'Human-itis',who:'monster',room:'psych',price:650,desc:'A monster who suddenly wants a tie and a briefcase.'},
+  fuzz:{name:'Fuzz Loss',who:'monster',room:'shower',price:750,desc:'All their fur fell out. Leaves fluffy clumps everywhere.'},
+  monsteritis:{name:'Monster-itis',who:'human',room:'shower',price:700,desc:'A human growing fur and horns. Rather likes it.'},
+  teeth:{name:'Too Many Teeth',who:'monster',room:'flip',price:900,desc:'Their mouth is all teeth. They cannot close it.'},
+  hiccup:{name:'Giggle Hiccups',who:'any',room:'pharmacy',price:400,desc:'Catching! Every hiccup comes with a giggle.'},
+};
+const STAFF_TYPES={
+  doctor:{name:'Doctor',body:'#3a86ff',desc:'Big gentle monster. Runs Check-Ups, Scare School, Tooth Trimmer.'},
+  nurse:{name:'Nurse',body:'#ff8fb1',desc:'Small speedy monster. Runs the Snack Lab and Fur Salon.'},
+  handyman:{name:'Janitor',body:'#ff9f1c',desc:'Eats messes (yum) and fixes machines.'},
+  receptionist:{name:'Receptionist',body:'#9b5de5',desc:'Human with a clipboard. Nobody gets seen without one.'},
+};
+const LEVELS=[
+  {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:1.0,goals:{cash:18000,rep:55,cured:25},
+   diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','staffroom'],events:['emergency'],blurb:'A little clinic on the corner where monsters and humans live side by side.'},
+  {name:'Snowmonster Valley Hospital',W:15,H:12,cash:15000,spawn:1.35,goals:{cash:35000,rep:60,cured:60},
+   diseases:['tummy','echo','scary','fuzz','monsteritis'],rooms:['gp','pharmacy','psych','shower','staffroom'],events:['emergency','epidemic'],blurb:'Winter is here. Fur is falling out. Giggle Hiccups are going round.'},
+  {name:'Mount Grumble Medical Centre',W:18,H:14,cash:20000,spawn:1.75,goals:{cash:70000,rep:70,cured:120},
+   diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth'],rooms:['gp','pharmacy','psych','shower','flip','staffroom'],events:['emergency','epidemic','earthquake'],blurb:'Built on a sleeping giant monster. It rolls over sometimes.'},
+];
+const FLAVOR=[
+  "Would the monster eating the waiting-room chairs please stop. Those are for sitting.",
+  "Reminder: please do not scare the receptionist. She has asked very nicely.",
+  "Humans, please stop petting the monsters without asking first.",
+  "Monsters, please stop petting the humans without asking first.",
+  "The juice machine has swamp juice and apple juice. Please check which one you pressed.",
+  "Would the owner of a lost tail please collect it from the front desk. It is wiggling.",
+  "Patients with Grumbly Tummy: your tummy is not allowed to order food from the snack lab.",
+  "If you can hear this announcement, congratulations on your ears. All of them.",
+  "Visitors are asked not to lick the equipment. Yes, even the monsters.",
+  "Please wait quietly. Roaring in the queue does not make it go faster.",
+  "Today's lost property: one mitten, one sock, one horn. Please collect your horn.",
+  "Remember: the bench is for sitting, not for eating. We mean you, Gerald.",
+];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const OUTDOOR=[2,3,7,12,17,21,24,23,19,13,8,4];
+const FIRST=['Nigel','Doris','Barry','Mavis','Clive','Ethel','Trevor','Gladys','Derek','Pam','Keith','Brenda','Rupert','Agnes','Colin','Shirley','Gordon','Maureen'];
+const MFIRST=['Grumbo','Fluffington','Snorkle','Bloop','Gnarla','Wigglesworth','Moppet','Grizzle','Zibby','Hooga','Plunk','Snerf','Boogaloo','Muffle','Krunch','Fizzgig'];
+const FURS=['#5ec4ff','#ff6fb5','#8ee06b','#ffb347','#b28dff','#ff6b6b','#4dd4c6','#f9e04b','#7d8cff','#c48b5c'];
+const LAST=['Pumpernickel','Wobblesworth','Sneed','Bottomley','Crumpet','Fizzwick','Puddlefoot','Grubb','Higginbottom','Muddle','Spratt','Noggin','Bumble','Tolley'];
+const SHIRTS=['#ef476f','#ffd166','#06d6a0','#118ab2','#f78c6b','#8338ec','#3a86ff','#fb5607','#adb5bd','#2ec4b6'];
+const SKINS=['#f1c27d','#e0ac69','#c68642','#8d5524','#ffdbac','#f6d2b5'];
+const NB=[[1,0],[-1,0],[0,1],[0,-1]];
+const DIRS={S:[0,1],E:[1,0],N:[0,-1],W:[-1,0]};
+const SIDES=['S','E','N','W'];
+
+// =================== helpers ===================
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const money=v=>(v<0?'-$':'$')+Math.abs(Math.round(v)).toLocaleString();
+const iso=(x,y)=>({x:(x-y)*CONFIG.TW/2,y:(x+y)*CONFIG.TH/2});
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;
+  const m=f<0?0:255,k=Math.abs(f);r=Math.round(r+(m-r)*k);g=Math.round(g+(m-g)*k);b=Math.round(b+(m-b)*k);return `rgb(${r},${g},${b})`;}
+let store={};try{store=JSON.parse(localStorage.getItem('monster-general')||'{}')}catch(e){}
+function saveStore(){try{localStorage.setItem('monster-general',JSON.stringify(store))}catch(e){}}
+
+// =================== audio + announcer ===================
+let actx=null, voiceOn=true;
+function beep(f1,f2,dur=0.18,vol=0.06){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.setValueAtTime(f1,actx.currentTime);
+  o.frequency.linearRampToValueAtTime(f2,actx.currentTime+dur);g.gain.setValueAtTime(vol,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+dur);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+dur);}catch(e){}}
+function chime(){beep(660,660,.25);setTimeout(()=>beep(523,523,.35),220)}
+let voice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){}}
+try{speechSynthesis.onvoiceschanged=pickVoice;pickVoice()}catch(e){}
+const annQ=[];let annT=0;
+function announce(text,urgent){ if(urgent) annQ.unshift(text); else annQ.push(text); if(annQ.length>4) annQ.length=4; }
+function showNextAnnouncement(){const t=annQ.shift();if(!t)return;$('tickerText').textContent=t;annT=6;chime();
+  if(voiceOn){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.rate=1.02;u.pitch=1.15;setTimeout(()=>speechSynthesis.speak(u),500)}catch(e){}}}
+let toastT=0;function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');toastT=4}
+
+// =================== game state ===================
+let G=null, speed=1, animT=0, selected=null, cam={x:0,y:0,z:1};
+const T=(x,y)=>(!G||x<0||y<0||x>=G.W||y>=G.H)?null:G.tiles[y*G.W+x];
+const blocks=t=>!!(t.obj&&OBJ_TYPES[t.obj.type].block);
+
+function newGame(li){
+  const L=LEVELS[li];
+  G={li,L,W:L.W,H:L.H,cash:L.cash,rep:50,cured:0,died:0,sentHome:0,day:0,dayT:0,heat:2,price:1,
+    tiles:[],rooms:[],objs:[],patients:[],staff:[],rats:[],fx:[],fields:new Map(),uid:0,
+    spawnT:4,eventT:rand(55,80),flavorT:30,epidemic:null,emergency:null,shake:0,hints:{},
+    mIn:0,mOut:0,lastMonth:{in:0,out:0},over:false,checkT:1,litter:0,temp:20,place:null};
+  for(let i=0;i<G.W*G.H;i++) G.tiles.push({room:null,obj:null,litter:null,res:false});
+  const ex=Math.floor(G.W/2), ry=G.H-4;
+  G.entrance={x:ex,y:G.H-1};
+  G.recep={desk:[{x:ex-1,y:ry},{x:ex,y:ry}],staffSpot:{x:ex,y:ry-1},servSpot:{x:ex,y:ry+1},queue:[],staff:null};
+  const desk={type:'desk',x:ex-1,y:ry,w:2,h:1,id:++G.uid};G.objs.push(desk);
+  T(ex-1,ry).obj=desk;T(ex,ry).obj=desk;
+  for(const p of [G.entrance,G.recep.staffSpot,G.recep.servSpot]) T(p.x,p.y).res=true;
+  selected=null;fitCamera();
+  announce(`Welcome to ${L.name}! Build a Check-Up Room, hire a Doctor and a Receptionist, and keep everybody happy. Monsters and humans alike.`,true);
+  closePanel();renderPanel();updateHUD();
+}
+
+// =================== pathfinding ===================
+function isDoorEdge(r,ax,ay,bx,by){const d=r.door;return (ax===d.ix&&ay===d.iy&&bx===d.ox&&by===d.oy)||(bx===d.ix&&by===d.iy&&ax===d.ox&&ay===d.oy)}
+function canStep(ax,ay,bx,by){
+  const a=T(ax,ay),b=T(bx,by);if(!a||!b)return false;if(blocks(a)||blocks(b))return false;
+  if(a.room===b.room)return true;if(a.room&&b.room)return false;
+  return isDoorEdge(a.room||b.room,ax,ay,bx,by);
+}
+function field(key,sources){
+  let f=G.fields.get(key);if(f)return f;
+  const W=G.W,H=G.H;f=new Int32Array(W*H).fill(1e9);const q=[];
+  for(const s of sources){const t=T(s.x,s.y);if(!t||blocks(t))continue;f[s.y*W+s.x]=0;q.push(s.x,s.y)}
+  for(let i=0;i<q.length;i+=2){const x=q[i],y=q[i+1],d=f[y*W+x];
+    for(const [dx,dy] of NB){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;
+      if(f[ny*W+nx]<=d+1||!canStep(nx,ny,x,y))continue;f[ny*W+nx]=d+1;q.push(nx,ny)}}
+  G.fields.set(key,f);return f;
+}
+const tileField=(x,y)=>field('T'+x+','+y,[{x,y}]);
+function drinksField(){return field('DRINKS',G.objs.filter(o=>o.type==='drinks').flatMap(o=>NB.map(([dx,dy])=>({x:o.x+dx,y:o.y+dy}))).filter(p=>{const t=T(p.x,p.y);return t&&!t.room&&!blocks(t)}))}
+function lobbyField(){const b=G.objs.filter(o=>o.type==='bench');if(b.length)return field('LOBBY',b);
+  const s=G.recep.servSpot,c=[];for(let dx=-3;dx<=3;dx++)for(let dy=-1;dy<=1;dy++){const x=s.x+dx,y=s.y+dy,t=T(x,y);if(t&&!t.room&&!t.res&&!blocks(t)&&Math.abs(dx)>1)c.push({x,y})}
+  return field('LOBBY',c.length?c:[s])}
+function clearFields(){G.fields.clear();for(const a of allAgents())a.nx=null}
+function allAgents(){return [...G.patients,...G.staff,...G.rats]}
+function step(a,f,dt){
+  if(a.nx!=null){const dx=a.nx-a.x,dy=a.ny-a.y,d=Math.hypot(dx,dy),s=a.speed*dt;
+    if(d<=s){a.x=a.nx;a.y=a.ny;a.nx=null}else{a.x+=dx/d*s;a.y+=dy/d*s}a.moving=true;return false}
+  const cx=Math.floor(a.x),cy=Math.floor(a.y),W=G.W,d=f[cy*W+cx];
+  if(d===0){const tx=cx+.5+(a.ox||0),ty=cy+.5+(a.oy||0),dx=tx-a.x,dy=ty-a.y,dd=Math.hypot(dx,dy);
+    if(dd<.03){a.moving=false;return true}const s=a.speed*dt;if(dd<=s){a.x=tx;a.y=ty}else{a.x+=dx/dd*s;a.y+=dy/dd*s}a.moving=true;return false}
+  if(d>=1e9){a.moving=false;a.stuck=(a.stuck||0)+dt;return false}
+  const o=[];for(const [dx,dy] of NB){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=W||ny>=G.H)continue;if(f[ny*W+nx]===d-1&&canStep(cx,cy,nx,ny))o.push([nx,ny])}
+  if(!o.length){a.stuck=(a.stuck||0)+dt;return false}
+  const n=pick(o);a.nx=n[0]+.5;a.ny=n[1]+.5;a.stuck=0;return false;
+}
+const reachable=(f,x,y)=>f[y*G.W+x]<1e9;
+
+// =================== rooms & objects ===================
+function doorFor(rx,ry,side){let ix,iy;
+  if(side==='S'){ix=rx+1;iy=ry+2}if(side==='N'){ix=rx+1;iy=ry}if(side==='E'){ix=rx+2;iy=ry+1}if(side==='W'){ix=rx;iy=ry+1}
+  const d=DIRS[side];return {ix,iy,ox:ix+d[0],oy:iy+d[1],side}}
+function roomSpots(r){const d=DIRS[r.door.side],cx=r.x+1,cy=r.y+1;
+  return {center:{x:cx,y:cy},staff:{x:cx-d[0],y:cy-d[1]},furn:{x:cx+d[1],y:cy-d[0]}}}
+function connectivityOK(){
+  G.fields.clear();const f=field('ENT',[G.entrance]);
+  const need=[G.recep.servSpot,G.recep.staffSpot,...G.rooms.map(r=>({x:r.door.ox,y:r.door.oy}))];
+  for(const p of need)if(!reachable(f,p.x,p.y))return false;
+  for(const o of G.objs){if(o.type!=='drinks')continue;
+    if(!NB.some(([dx,dy])=>{const t=T(o.x+dx,o.y+dy);return t&&!t.room&&reachable(f,o.x+dx,o.y+dy)}))return false}
+  return true;
+}
+function isDoorOutside(x,y){return G.rooms.some(r=>r.door.ox===x&&r.door.oy===y)}
+function validateRoom(type,rx,ry,side){
+  const RT=ROOM_TYPES[type];if(G.cash<RT.cost)return 'Not enough cash';
+  for(let y=ry;y<ry+3;y++)for(let x=rx;x<rx+3;x++){const t=T(x,y);if(!t)return 'Off the edge';
+    if(t.room||t.obj||t.res)return 'Something is in the way';if(isDoorOutside(x,y))return "Blocks another room's door"}
+  const d=doorFor(rx,ry,side),o=T(d.ox,d.oy);if(!o||o.room||blocks(o))return 'Door opens onto a wall';
+  const tmp={type,x:rx,y:ry,door:d};const cells=[];
+  for(let y=ry;y<ry+3;y++)for(let x=rx;x<rx+3;x++){T(x,y).room=tmp;cells.push(T(x,y))}
+  G.rooms.push(tmp);const ok=connectivityOK();G.rooms.pop();for(const c of cells)c.room=null;G.fields.clear();
+  return ok?null:'That would block the corridor';
+}
+function validateObj(type,x,y){
+  const OT=OBJ_TYPES[type];if(G.cash<OT.cost)return 'Not enough cash';
+  const t=T(x,y);if(!t)return 'Off the edge';if(t.room)return 'Items go in corridors';
+  if(t.obj||t.res)return 'Something is in the way';if(isDoorOutside(x,y))return 'That is in front of a door';
+  if(!OT.block)return null;
+  const tmp={type,x,y};t.obj=tmp;G.objs.push(tmp);const ok=connectivityOK();G.objs.pop();t.obj=null;G.fields.clear();
+  return ok?null:'That would block the corridor';
+}
+function buildRoom(type,rx,ry,side){
+  const RT=ROOM_TYPES[type];spend(RT.cost);
+  const r={id:++G.uid,type,x:rx,y:ry,w:3,h:3,door:doorFor(rx,ry,side),queue:[],staff:null,occupant:null,cond:100,broken:false,warned:false};
+  for(let y=ry;y<ry+3;y++)for(let x=rx;x<rx+3;x++)T(x,y).room=r;
+  G.rooms.push(r);clearFields();
+  for(const a of allAgents()){const t=T(Math.floor(a.x),Math.floor(a.y));if(t&&t.room===r){a.x=r.door.ox+.5;a.y=r.door.oy+.5}}
+  addFx(r.x+1.5,r.y+1.5,'-'+money(RT.cost),'#ff4f5e');beep(300,500,.15);
+}
+function buildObj(type,x,y){
+  const OT=OBJ_TYPES[type];spend(OT.cost);const o={id:++G.uid,type,x,y,w:1,h:1};
+  G.objs.push(o);T(x,y).obj=o;clearFields();
+  if(OT.block)for(const a of allAgents())if(Math.floor(a.x)===x&&Math.floor(a.y)===y){
+    for(const [dx,dy] of NB){const t=T(x+dx,y+dy);if(t&&!t.room&&!blocks(t)){a.x=x+dx+.5;a.y=y+dy+.5;break}}}
+  beep(400,600,.1);
+}
+function sellRoom(r){
+  const RT=ROOM_TYPES[r.type];earn(Math.round(RT.cost*.5),r.x+1.5,r.y+1.5);
+  r.sold=true;for(const p of [...r.queue,r.occupant].filter(Boolean)){p.room=null;p.state=p.diag?'needTreat':'needGP'}
+  r.queue=[];r.occupant=null;
+  for(const s of G.staff){if(s.room===r||s.restRoom===r){s.room=null;s.restRoom=null;s.state='idle'}if(s.job&&s.job.room===r){s.job=null;s.state='idle'}}
+  for(let y=r.y;y<r.y+3;y++)for(let x=r.x;x<r.x+3;x++)T(x,y).room=null;
+  G.rooms=G.rooms.filter(q=>q!==r);clearFields();
+}
+function sellObj(o){earn(Math.round(OBJ_TYPES[o.type].cost*.5),o.x+.5,o.y+.5);T(o.x,o.y).obj=null;G.objs=G.objs.filter(q=>q!==o);clearFields()}
+
+// =================== money / rep ===================
+function earn(v,x,y){G.cash+=v;G.mIn+=v;if(x!=null)addFx(x,y,'+'+money(v),'#2bd67b')}
+function spend(v){G.cash-=v;G.mOut+=v}
+function rep(d){G.rep=clamp(G.rep+d,0,100)}
+function addFx(x,y,text,color){G.fx.push({x,y,text,color,t:0})}
+function hint(key,text){const now=G.day;if(G.hints[key]!=null&&now-G.hints[key]<12)return;G.hints[key]=now;announce(text)}
+
+// =================== patients ===================
+function spawnPatient(o={}){
+  const e=G.entrance,dis=o.dis||pick(G.L.diseases),who=DISEASES[dis].who,species=who==='any'?(Math.random()<.55?'monster':'human'):who;
+  const p={kind:'patient',species,fur:pick(FURS),horns:Math.floor(Math.random()*3),eyes:1+Math.floor(Math.random()*3),big:rand(.9,1.15),id:++G.uid,
+    name:species==='monster'?pick(MFIRST)+' '+pick(LAST):pick(FIRST)+' '+pick(LAST),x:e.x+.5,y:e.y+.5,speed:rand(1.1,1.5),dis,diag:null,
+    state:'arrive',patience:100,health:100,thirst:rand(0,40),shirt:pick(SHIRTS),skin:pick(SKINS),
+    ox:rand(-.28,.28),oy:rand(-.28,.28),t:0,phase:Math.random()*10,emergency:!!o.emergency,infected:false,cured:false};
+  if(o.emergency){p.diag=dis;p.state='needTreat'}
+  G.patients.push(p);return p;
+}
+function detach(p){
+  const rq=G.recep.queue,i=rq.indexOf(p);if(i>=0)rq.splice(i,1);
+  for(const r of G.rooms){const j=r.queue.indexOf(p);if(j>=0)r.queue.splice(j,1);if(r.occupant===p)r.occupant=null}
+  p.room=null;
+}
+function bubble(a,text,t=2.5){a.bubble={text,t}}
+function leave(p,msg,angry=true){
+  detach(p);if(msg)bubble(p,msg,3);p.state='leaving';p.angry=angry;
+  if(angry){G.sentHome++;rep(-2);if(p.emergency&&G.emergency)G.emergency.lost++}
+}
+function die(p){detach(p);p.state='dead';p.t=0;G.died++;rep(-6);if(p.emergency&&G.emergency)G.emergency.lost++;
+  announce(pick(["A patient has fainted from waiting and been carried home by their mum. Not great.","Someone flopped over in the corridor. Their grandma is coming to collect them.","A patient got so poorly they had to go home in a wheelbarrow."]),true);beep(400,120,.6,.08)}
+function nearBench(p){return G.objs.some(o=>o.type==='bench'&&Math.abs(o.x+.5-p.x)<1.7&&Math.abs(o.y+.5-p.y)<1.7)}
+function comfort(){return G.temp<17?1.6:G.temp>25?1.3:1}
+function chooseRoom(type,p){
+  let best=null,bs=1e9;for(const r of G.rooms){if(r.type!==type)continue;
+    const f=tileField(r.door.ox,r.door.oy),d=f[Math.floor(p.y)*G.W+Math.floor(p.x)];if(d>=1e9)continue;
+    const s=r.queue.length*6+(r.occupant?3:0)+(r.staff?0:8)+(r.broken?15:0)+d*.4;if(s<bs){bs=s;best=r}}
+  return best;
+}
+function maybeDrink(p){
+  if(p.thirst<80||!G.objs.some(o=>o.type==='drinks'))return false;
+  if(p.state==='queue'&&p.room&&p.room.queue[0]===p)return false;
+  const f=drinksField();if(!reachable(f,Math.floor(p.x),Math.floor(p.y)))return false;
+  const back=p.state==='queueRecep'||p.state==='arrive'?'arrive':p.diag?'needTreat':'needGP';
+  detach(p);p.after=back;p.state='toDrink';return true;
+}
+function updPatient(p,dt){
+  p.t+=dt;if(p.bubble&&(p.bubble.t-=dt)<=0)p.bubble=null;
+  if(p.state==='dead'){if(p.t>2.5)G.patients.splice(G.patients.indexOf(p),1);return}
+  if(p.state!=='leaving'){
+    const waiting=p.state==='queue'||p.state==='queueRecep'||p.state==='wait';
+    p.thirst=Math.min(100,p.thirst+dt*.55*(G.temp>25?2:1));
+    p.health-=dt*CONFIG.healthDrain*(p.emergency?3:1)*(p.infected?1.5:1);
+    if(waiting){let r=CONFIG.patienceDrain*comfort();if(nearBench(p))r*=.5;if(p.thirst>85)r*=1.4;p.patience-=r*dt}
+    if(p.health<=0){die(p);return}
+    if(p.patience<=0&&p.state!=='inRoom'&&p.state!=='enterRoom'){leave(p,pick(["I've waited long enough!","I'll try the vet.","Never again!"]));return}
+    if(Math.random()<dt*CONFIG.vomitRate*(p.infected?3:1))dropLitter(p,'vomit');
+    if(p.dis==='fuzz'&&!p.cured&&Math.random()<dt*.03)dropLitter(p,'fur');
+    if(!p.cured){if(p.dis==='echo'&&Math.random()<dt*.08)bubble(p,'ACHOO achoo achoo',1.6);if(p.dis==='tummy'&&Math.random()<dt*.07)bubble(p,pick(['GRRRUMBLE','feed me...','*tummy: hello*']),1.6);if(p.dis==='humanitis'&&Math.random()<dt*.06)bubble(p,pick(['Must file my taxes','Anyone seen my briefcase?']),1.8);if(p.dis==='teeth'&&Math.random()<dt*.05)bubble(p,'*clack clack*',1.4);}
+    if(p.dis==='scary'&&!p.cured&&Math.random()<dt*.06)bubble(p,'boo? ...boo.',1.6);
+    if(p.infected&&Math.random()<dt*.1)bubble(p,'*hic* hehehe',1.4);
+    if(p.infected&&G.epidemic)for(const q of G.patients)if(q!==p&&!q.infected&&q.state!=='dead'&&q.state!=='leaving'&&Math.hypot(q.x-p.x,q.y-p.y)<.9&&Math.random()<dt*.04){q.infected=true;bubble(q,'*hic?*')}
+  }
+  switch(p.state){
+    case 'arrive':{const s=G.recep.servSpot;if(step(p,tileField(s.x,s.y),dt)){G.recep.queue.push(p);p.state='queueRecep';p.checkT=0}break}
+    case 'queueRecep':if(!G.recep.staff)hint('recep','Nobody is at the front desk. A monster is trying to check in with a pot plant. Hire a Receptionist.');maybeDrink(p);break;
+    case 'needGP':case 'needTreat':{
+      const type=p.state==='needGP'?'gp':DISEASES[p.diag].room,r=chooseRoom(type,p);
+      if(r){p.room=r;p.state='toRoom';p.need=p.state}
+      else{p.need=p.state;p.state='wait';p.recheck=2;p.waitFor=type;bubble(p,'Where is the '+ROOM_TYPES[type].name+'?',3);
+        hint('room'+type,`Patients need a ${ROOM_TYPES[type].name}. They are standing about looking poorly.`)}
+      break}
+    case 'wait':if(maybeDrink(p))break;step(p,lobbyField(),dt);if((p.recheck-=dt)<=0&&!p.moving)p.state=p.diag?'needTreat':'needGP';break;
+    case 'toRoom':{const r=p.room;if(!r||r.sold){p.state=p.diag?'needTreat':'needGP';break}
+      if(step(p,tileField(r.door.ox,r.door.oy),dt)){r.queue.push(p);p.state='queue'}break}
+    case 'queue':{const r=p.room;if(!r||r.sold){p.state=p.diag?'needTreat':'needGP';break}
+      if(!r.staff)hint('nostaff'+r.type,`The ${ROOM_TYPES[r.type].name} has a queue and no ${STAFF_TYPES[ROOM_TYPES[r.type].staff].name}. Bold strategy.`);
+      maybeDrink(p);break}
+    case 'enterRoom':{const r=p.room;if(!r){p.state='needGP';break}const c=roomSpots(r).center;
+      if(step(p,tileField(c.x,c.y),dt)){p.state='inRoom';const s=r.staff;p.timer=ROOM_TYPES[r.type].dur*(s&&s.energy<CONFIG.tiredAt?1.6:1)}break}
+    case 'inRoom':{const r=p.room;if(!r){p.state='needGP';break}if(r.staff&&r.staff.state==='atPost')p.timer-=dt;if(p.timer<=0)resolveRoom(p,r);break}
+    case 'toDrink':if(step(p,drinksField(),dt)){p.thirst=0;earn(CONFIG.drinkPrice,p.x,p.y);bubble(p,'*slurp*',1.5);
+      if(Math.random()<.25)dropLitter(p,'can');p.state=p.after;}break;
+    case 'leaving':if(step(p,tileField(G.entrance.x,G.entrance.y),dt))G.patients.splice(G.patients.indexOf(p),1);break;
+  }
+}
+function resolveRoom(p,r){
+  r.occupant=null;p.room=null;const s=r.staff,RT=ROOM_TYPES[r.type];
+  if(s)s.energy=Math.max(0,s.energy-6);
+  if(RT.machine){r.cond-=CONFIG.machineWear;if(r.cond<=0){r.cond=0;r.broken=true;announce(`The ${RT.name} has broken down. Somebody find the Janitor.`,true)}
+    else if(r.cond<30&&!r.warned){r.warned=true;announce(`The ${RT.name} is making a noise it should not make.`)}}
+  if(r.type==='gp'){
+    const tired=s&&s.energy<CONFIG.tiredAt,wrong=Math.random()<(tired?.35:.05);
+    p.diag=wrong?pick(G.L.diseases.filter(d=>d!==p.dis&&(DISEASES[d].who==='any'||DISEASES[d].who===p.species)))||p.dis:p.dis;
+    earn(Math.round(CONFIG.gpFee*G.price),p.x,p.y);
+    const refuse=Math.max(0,(G.price-1)*.5-G.rep/400);
+    if(Math.random()<refuse){leave(p,'HOW much?!');return}
+    bubble(p,DISEASES[p.diag].name+'?!',2.5);p.state='needTreat';return;
+  }
+  if(p.diag===p.dis){
+    p.cured=true;p.infected=false;G.cured++;earn(Math.round(DISEASES[p.dis].price*G.price),p.x,p.y);
+    rep(1.4-Math.max(0,G.price-1)*.8);bubble(p,'Cured!',2.5);beep(880,1320,.12);
+    if(p.emergency&&G.emergency)G.emergency.cured++;p.state='leaving';p.angry=false;
+  }else{leave(p,"This isn't what I have!");rep(-2);announce('A patient got the wrong treatment. A human now has very fluffy ears. Perhaps the doctor needs a nap.')}
+}
+function dropLitter(a,type){const t=T(Math.floor(a.x),Math.floor(a.y));if(t&&!t.litter&&!blocks(t))t.litter=type}
+
+// =================== staff ===================
+function hire(role){
+  const fee=Math.round(CONFIG.salaries[role]*.5);if(G.cash<fee){toast('Not enough cash for the signing fee');return}
+  spend(fee);const e=G.entrance,pre=role==='doctor'?'Dr. ':role==='nurse'?'Nurse ':'';
+  G.staff.push({kind:'staff',role,id:++G.uid,name:pre+pick(FIRST)+(role==='doctor'||role==='nurse'?'':' '+pick(LAST)),x:e.x+.5,y:e.y+.5,
+    speed:1.7,energy:100,state:'idle',room:null,ox:0,oy:0,t:0,phase:Math.random()*10});
+  addFx(e.x+.5,e.y+.5,'-'+money(fee),'#ff4f5e');beep(500,700,.12);renderPanel();
+}
+function fire(s){
+  if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;
+  if(s.job&&s.job.tile)s.job.tile.resBy=null;if(s.job&&s.job.room)s.job.room.repairBy=null;
+  s.room=null;s.job=null;s.state='leaving';bubble(s,'Fine. FINE.',3);
+}
+function staffRoomTile(){const rs=G.rooms.filter(r=>r.type==='staffroom');if(!rs.length)return null;const r=pick(rs);
+  const c=[];for(let y=r.y;y<r.y+3;y++)for(let x=r.x;x<r.x+3;x++)if(!(x===r.door.ix&&y===r.door.iy))c.push({x,y});return {r,t:pick(c)}}
+function updStaff(s,dt){
+  s.t+=dt;if(s.bubble&&(s.bubble.t-=dt)<=0)s.bubble=null;
+  const tired=s.energy<CONFIG.tiredAt;
+  switch(s.state){
+    case 'idle':{
+      if(s.energy<90&&G.rooms.some(r=>r.type==='staffroom')&&s.role!=='receptionist'&&Math.random()<dt*.5){goRest(s);break}
+      if(s.role==='receptionist'){if(!G.recep.staff){G.recep.staff=s;s.state='toPost'}break}
+      if(s.role==='handyman'){findHandyJob(s);break}
+      let best=null,bd=1e9;for(const r of G.rooms){if(ROOM_TYPES[r.type].staff!==s.role||r.staff)continue;
+        const d=Math.abs(r.x-s.x)+Math.abs(r.y-s.y);if(d<bd){bd=d;best=r}}
+      if(best){best.staff=s;s.room=best;s.state='toPost'}break}
+    case 'toPost':{let spot;if(s.role==='receptionist')spot=G.recep.staffSpot;else{if(!s.room||s.room.sold){s.state='idle';s.room=null;break}spot=roomSpots(s.room).staff}
+      if(step(s,tileField(spot.x,spot.y),dt))s.state='atPost';break}
+    case 'atPost':{
+      const busy=s.role==='receptionist'?G.recep.queue.length>0:!!(s.room&&s.room.occupant);
+      s.energy=Math.max(0,s.energy-dt*(busy?.45:.06));
+      if(s.role==='receptionist'){const q=G.recep.queue;if(q.length){const p=q[0];p.checkT=(p.checkT||0)+dt;if(p.checkT>1.4){q.shift();p.state='needGP'}}}
+      if(tired&&!busy&&G.rooms.some(r=>r.type==='staffroom')){
+        if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;s.room=null;goRest(s);bubble(s,'Tea break.',2)}
+      else if(tired&&Math.random()<dt*.05)bubble(s,'*yawn*',1.5);
+      break}
+    case 'toRest':{if(!s.restRoom||s.restRoom.sold){s.state='idle';break}if(step(s,tileField(s.restTile.x,s.restTile.y),dt))s.state='resting';break}
+    case 'resting':s.energy+=dt*7;if(s.energy>=100){s.energy=100;s.state='idle';s.restRoom=null}break;
+    case 'toJob':{const j=s.job;if(!j){s.state='idle';break}
+      if(j.room&&j.room.sold){s.job=null;s.state='idle';break}
+      if(step(s,tileField(j.x,j.y),dt)){s.state='working';s.workT=j.room?3:1.2}break}
+    case 'working':{s.workT-=dt*(tired?.6:1);s.energy=Math.max(0,s.energy-dt*.5);if(s.workT<=0){const j=s.job;
+      if(j.tile){j.tile.litter=null;j.tile.resBy=null;bubble(s,pick(['*munch*','Yum!','*slurp*']),1.4)}if(j.room){j.room.cond=100;j.room.broken=false;j.room.warned=false;j.room.repairBy=null;bubble(s,'Good as new. Ish.',2)}
+      s.job=null;s.state='idle'}break}
+    case 'leaving':if(step(s,tileField(G.entrance.x,G.entrance.y),dt))G.staff.splice(G.staff.indexOf(s),1);break;
+  }
+}
+function goRest(s){const sr=staffRoomTile();if(!sr){s.state='idle';return}s.restRoom=sr.r;s.restTile=sr.t;s.state='toRest'}
+function findHandyJob(s){
+  if(s.energy<CONFIG.tiredAt&&G.rooms.some(r=>r.type==='staffroom')){goRest(s);return}
+  const mr=G.rooms.filter(r=>ROOM_TYPES[r.type].machine&&!r.repairBy&&(r.broken||r.cond<55)).sort((a,b)=>a.cond-b.cond)[0];
+  if(mr){const c=roomSpots(mr).center;mr.repairBy=s;s.job={room:mr,x:c.x,y:c.y};s.state='toJob';return}
+  let best=null,bd=1e9;const sx=Math.floor(s.x),sy=Math.floor(s.y);
+  for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);if(!t.litter||t.resBy)continue;const d=Math.abs(x-sx)+Math.abs(y-sy);if(d<bd){bd=d;best={x,y,t}}}
+  if(best&&reachable(tileField(best.x,best.y),sx,sy)){best.t.resBy=s;s.job={tile:best.t,x:best.x,y:best.y};s.state='toJob'}
+}
+
+// =================== rats ===================
+function updRat(r,dt){
+  if(r.nx==null){const cx=Math.floor(r.x),cy=Math.floor(r.y),o=NB.filter(([dx,dy])=>canStep(cx,cy,cx+dx,cy+dy));
+    if(o.length){const [dx,dy]=pick(o);r.nx=cx+dx+.5+rand(-.2,.2);r.ny=cy+dy+.5+rand(-.2,.2)}}
+  else{const dx=r.nx-r.x,dy=r.ny-r.y,d=Math.hypot(dx,dy),s=r.speed*dt;if(d<=s){r.x=r.nx;r.y=r.ny;r.nx=null}else{r.x+=dx/d*s;r.y+=dy/d*s;r.dir=dx-dy}}
+}
+function squash(r){G.rats.splice(G.rats.indexOf(r),1);earn(25,r.x,r.y);addFx(r.x,r.y-0.4,'POOF','#9aa5b1');beep(200,60,.15,.1)}
+
+// =================== events ===================
+function startEvent(){
+  const kind=pick(G.L.events);
+  if(kind==='emergency'){const dis=pick(G.L.diseases),n=3+Math.floor(Math.random()*3);
+    G.emergency={dis,total:n,cured:0,lost:0,t:120,spawned:0,spawnT:0,reward:n*600};
+    announce(`Emergency! ${n} patients with ${DISEASES[dis].name} are arriving by helicopter. Cure them all for a ${money(n*600)} bonus.`,true)}
+  if(kind==='epidemic'){const pool=G.patients.filter(p=>p.state!=='dead'&&p.state!=='leaving');
+    const n=Math.min(pool.length,3+Math.floor(Math.random()*2));if(n<2){G.eventT=20;return}
+    for(let i=0;i<n;i++)pick(pool).infected=true;
+    G.epidemic={t:75};announce('Giggle Hiccups are going round! Tap the patients with green faces to give them a hiccup shot before the health inspector arrives.',true)}
+  if(kind==='earthquake'){G.shake=4;announce('Earthquake! Please remain calm. Or at least remain somewhere.',true);beep(80,40,1.5,.12);
+    for(const r of G.rooms)if(ROOM_TYPES[r.type].machine){r.cond=Math.max(0,r.cond-35);if(r.cond===0)r.broken=true}
+    for(let i=0;i<6;i++){const x=Math.floor(Math.random()*G.W),y=Math.floor(Math.random()*G.H),t=T(x,y);if(!blocks(t)&&!t.litter)t.litter='rubble'}}
+}
+function updEvents(dt){
+  const em=G.emergency;
+  if(em){em.t-=dt;if(em.spawned<em.total&&(em.spawnT-=dt)<=0){spawnPatient({dis:em.dis,emergency:true});em.spawned++;em.spawnT=1.2}
+    if(em.cured+em.lost>=em.total||em.t<=0){
+      if(em.cured>=em.total){earn(em.reward);rep(5);announce(`Emergency handled. Bonus of ${money(em.reward)} received. Try not to let it go to your head.`,true)}
+      else{rep(-3*(em.total-em.cured));announce(`Emergency over. ${em.cured} of ${em.total} saved. The helicopter pilot is disappointed in you.`,true)}
+      for(const p of G.patients)p.emergency=false;G.emergency=null}}
+  const ep=G.epidemic;
+  if(ep){ep.t-=dt;if(ep.t<=0){const n=G.patients.filter(p=>p.infected&&p.state!=='dead').length;
+    if(n===0){earn(1500);rep(5);announce('The health inspector found no Giggle Hiccups. She is almost smiling. Bonus $1,500.',true)}
+    else{const fine=n*500;spend(fine);rep(-2*n);announce(`The inspector found ${n} giggling, hiccuping patients. Fine of ${money(fine)}. She giggled too, which she did not enjoy.`,true)}
+    G.epidemic=null}}
+  if(!G.emergency&&!G.epidemic&&G.day>12&&(G.eventT-=dt)<=0){startEvent();G.eventT=rand(80,140)}
+}
+
+// =================== main update ===================
+function update(dt){
+  G.dayT+=dt;if(G.dayT>=CONFIG.dayLength){G.dayT=0;G.day++;if(G.day%CONFIG.monthDays===0)monthEnd()}
+  const m=Math.floor(G.day/CONFIG.monthDays)%12;G.temp=OUTDOOR[m]*.5+8+G.heat*3.5;
+  if((G.spawnT-=dt)<=0){const alive=G.patients.filter(p=>p.state!=='dead').length;if(alive<CONFIG.maxPatients)spawnPatient();
+    G.spawnT=Math.max(2,(CONFIG.spawnBase-G.rep*.06)/G.L.spawn)*rand(.7,1.3)}
+  updEvents(dt);
+  for(const r of G.rooms){if(r.type==='staffroom')continue;
+    if(r.staff&&r.staff.state==='atPost'&&!r.broken&&!r.occupant&&r.queue.length){const p=r.queue.shift();r.occupant=p;p.state='enterRoom'}}
+  for(const p of [...G.patients])updPatient(p,dt);
+  for(const s of [...G.staff])updStaff(s,dt);
+  for(const r of G.rats)updRat(r,dt);
+  for(const f of G.fx)f.t+=dt;G.fx=G.fx.filter(f=>f.t<1.6);
+  if(G.shake>0)G.shake-=dt;
+  if((G.checkT-=dt)<=0){G.checkT=1;
+    let lit=0;for(const t of G.tiles)if(t.litter)lit++;G.litter=lit;
+    const plants=G.objs.filter(o=>o.type==='plant').length;
+    rep(-lit*.004-G.rats.length*.012-(comfort()>1?.012:0)+Math.min(.012,plants*.002)+.004);
+    if(lit>=8&&G.rats.length<6&&Math.random()<.12){const e=G.entrance;G.rats.push({kind:'rat',x:e.x+.5,y:e.y+.5,speed:2.4,nx:null});
+      if(G.rats.length===1)announce('Dust bunnies have moved in. They love a messy floor. Tap them to shoo them out!')}
+    if(lit<3&&G.rats.length&&Math.random()<.2)G.rats.pop();
+    if(lit>=6)hint('dirty','The floors are getting slimy. A Janitor would gobble that right up.');
+    checkEnd();}
+  if((G.flavorT-=dt)<=0){G.flavorT=rand(30,55);if(!annQ.length)announce(pick(FLAVOR))}
+}
+function monthEnd(){
+  const sal=G.staff.filter(s=>s.state!=='leaving').reduce((a,s)=>a+CONFIG.salaries[s.role],0),heat=G.heat*CONFIG.heatCost;
+  spend(sal+heat);G.lastMonth={in:G.mIn,out:G.mOut};
+  toast(`${MONTHS[(Math.floor(G.day/30)+11)%12]} report: earned ${money(G.mIn)}, spent ${money(G.mOut)} (salaries ${money(sal)}, heating ${money(heat)})`);
+  G.mIn=0;G.mOut=0;
+}
+function goalsDone(){const g=G.L.goals;return {cash:G.cash>=g.cash,rep:G.rep>=g.rep,cured:G.cured>=g.cured}}
+function checkEnd(){
+  if(G.over)return;const d=goalsDone();
+  if(d.cash&&d.rep&&d.cured){G.over=true;store.unlocked=Math.max(store.unlocked||1,G.li+2);saveStore();beep(523,1046,.5);
+    showModal(`<h2>Promoted!</h2><p>The board is thrilled with ${G.L.name}. ${G.cured} cured, ${G.died} lost, ${money(G.cash)} in the bank.</p>
+    ${G.li<LEVELS.length-1?`<p><b>${LEVELS[G.li+1].name}</b> is now unlocked.</p>`:'<p>You have run every hospital in the land. Everyone, monster and human, is very impressed.</p>'}
+    <div class="btns">${G.li<LEVELS.length-1?`<button class="btn" data-go="${G.li+1}">Next hospital</button>`:''}<button class="btn ghost" data-menu>Menu</button></div>`)}
+  else if(G.cash<-5000||G.rep<=5){G.over=true;
+    showModal(`<h2>Sacked.</h2><p>${G.cash<-5000?'The bank has repossessed the stethoscopes.':'Even the monsters are too scared of this hospital to come in.'}</p>
+    <div class="btns"><button class="btn" data-go="${G.li}">Try again</button><button class="btn ghost" data-menu>Menu</button></div>`)}
+}
+
+// =================== rendering ===================
+const cv=$('cv'),ctx=cv.getContext('2d');let CW=0,CH=0,DPR=1;
+function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);CW=r.width;CH=r.height;cv.width=CW*DPR;cv.height=CH*DPR}
+function fitCamera(){resize();if(!G)return;const w=(G.W+G.H)*CONFIG.TW/2,h=(G.W+G.H)*CONFIG.TH/2+70;
+  cam.z=clamp(Math.min(CW/w*(CW<600?1.45:1),CH/h)*.95,.35,2.5);const c=iso(G.W/2,G.H/2);cam.x=c.x;cam.y=c.y-20}
+function poly(pts,fill,stroke){ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
+function diamond(x,y,w=1,h=1){return [iso(x,y),iso(x+w,y),iso(x+w,y+h),iso(x,y+h)]}
+const up=(p,h)=>({x:p.x,y:p.y-h});
+function box(x,y,w,h,ht,c){const A=iso(x,y),B=iso(x+w,y),C=iso(x+w,y+h),D=iso(x,y+h);
+  poly([D,C,up(C,ht),up(D,ht)],shade(c,-.25));poly([B,C,up(C,ht),up(B,ht)],shade(c,-.4));poly([A,B,C,D].map(p=>up(p,ht)),c,'rgba(0,0,0,.15)')}
+function wall(x1,y1,x2,y2,ht,c,alpha=1){const a=iso(x1,y1),b=iso(x2,y2);ctx.globalAlpha=alpha;poly([a,b,up(b,ht),up(a,ht)],c);
+  ctx.strokeStyle=shade(c,.4);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,a.y-ht);ctx.lineTo(b.x,b.y-ht);ctx.stroke();ctx.globalAlpha=1}
+function rrect(x,y,w,h,r,c){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);ctx.fillStyle=c;ctx.fill()}
+function circle(x,y,r,c){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=c;ctx.fill()}
+
+function eye(x,y,r,t,droop){circle(x,y,r,'#fff');ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=.6;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();
+  const blink=Math.sin(t*1.3)>.97;if(blink){ctx.fillStyle='#222';ctx.fillRect(x-r,y-.4,r*2,.8);return}
+  circle(x+Math.sin(t*.7)*r*.3,y+r*.15,r*.5,'#1b1b1b');if(droop){ctx.fillStyle=ctx.__lid;ctx.beginPath();ctx.arc(x,y,r+.2,Math.PI,0);ctx.fill()}}
+function drawMonster(a,t,sick){
+  const staff=a.kind==='staff',role=a.role,dis=sick?a.dis:null;
+  let fur=staff?STAFF_TYPES[role].body:a.fur;if(dis==='scary')fur=shade(fur,.45);if(a.infected)fur=shade(fur,-.1);
+  const bald=dis==='fuzz',bodyCol=bald?'#f4c7c3':fur,sc=staff?(role==='doctor'?1.25:role==='nurse'?.8:1.05):a.big;
+  ctx.save();ctx.scale(sc,sc);
+  // feet
+  const leg=a.moving?Math.sin(t*10)*1.6:0;circle(-4,-1-Math.max(0,leg),2.6,shade(bodyCol,-.3));circle(4,-1-Math.max(0,-leg),2.6,shade(bodyCol,-.3));
+  // body blob
+  ctx.fillStyle=bodyCol;ctx.beginPath();ctx.ellipse(0,-12,8.5,11,0,0,7);ctx.fill();
+  if(!bald){ctx.beginPath();for(let i=0;i<=8;i++){const ang=Math.PI+i*Math.PI/8,r=i%2?8.5:10.6;ctx.lineTo(Math.cos(ang)*r*.95,-14+Math.sin(ang)*r*1.15)}ctx.fill()}
+  else for(let i=0;i<3;i++)circle(-4+i*4,-21+(i%2),1.4,a.fur);
+  ctx.fillStyle=shade(bodyCol,.25);ctx.beginPath();ctx.ellipse(0,-8,5,5.5,0,0,7);ctx.fill();
+  if(a.infected)for(let i=0;i<4;i++)circle(-5+i*3.5,-14+(i%2)*4,1.3,'#7bd96b');
+  // horns / antennae
+  const h=staff?(role==='doctor'?1:role==='handyman'?0:2):a.horns;
+  if(h===1){poly([{x:-6,y:-21},{x:-8,y:-28},{x:-3,y:-23}],'#fff4d6');poly([{x:6,y:-21},{x:8,y:-28},{x:3,y:-23}],'#fff4d6')}
+  if(h===2){ctx.strokeStyle=shade(bodyCol,-.35);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-3,-22);ctx.lineTo(-5,-29+Math.sin(t*4));ctx.moveTo(3,-22);ctx.lineTo(5,-29+Math.cos(t*4));ctx.stroke();
+    circle(-5,-29+Math.sin(t*4),1.6,'#ffd166');circle(5,-29+Math.cos(t*4),1.6,'#ffd166')}
+  // eyes
+  ctx.__lid=bodyCol;const n=staff?(role==='nurse'?1:2):a.eyes,droop=dis==='scary'||(staff&&a.energy<CONFIG.tiredAt);
+  if(n===1)eye(0,-16,3.4,t,droop);else if(n===2){eye(-3,-16,2.5,t,droop);eye(3,-16,2.5,t+1,droop)}else{eye(-3.6,-15.5,2.1,t,droop);eye(3.6,-15.5,2.1,t+1,droop);eye(0,-19.5,1.9,t+2,droop)}
+  // mouth
+  if(dis==='teeth'){ctx.fillStyle='#5a1020';ctx.beginPath();ctx.ellipse(0,-9.5,6,3.4,0,0,7);ctx.fill();ctx.fillStyle='#fff';
+    for(let i=0;i<6;i++){poly([{x:-5+i*2,y:-12},{x:-3+i*2,y:-12},{x:-4+i*2,y:-9.5}],'#fff');poly([{x:-5+i*2,y:-7},{x:-3+i*2,y:-7},{x:-4+i*2,y:-9.5}],'#fff')}}
+  else if(staff&&role==='handyman'){ctx.fillStyle='#5a1020';ctx.beginPath();ctx.ellipse(0,-10,5,a.state==='working'?3.5+Math.sin(t*20)*1.5:2,0,0,7);ctx.fill()}
+  else{ctx.strokeStyle='#3b1a1a';ctx.lineWidth=1.1;ctx.beginPath();if(dis==='scary'||a.angry)ctx.arc(0,-8,2.6,Math.PI*1.15,Math.PI*1.85);else ctx.arc(0,-11,2.8,.2,Math.PI-.2);ctx.stroke();
+    if(!dis||dis!=='scary'){poly([{x:-1.8,y:-9.2},{x:-.4,y:-9},{x:-1.1,y:-7.6}],'#fff');poly([{x:.4,y:-9},{x:1.8,y:-9.2},{x:1.1,y:-7.6}],'#fff')}}
+  if(dis==='tummy'){const o=Math.max(0,Math.sin(t*3))*1.8;ctx.fillStyle='#5a1020';ctx.beginPath();ctx.ellipse(0,-6,2.6,.4+o,0,0,7);ctx.fill()}
+  if(dis==='humanitis'){poly([{x:-1,y:-6},{x:1,y:-6},{x:1.6,y:-1},{x:0,y:0},{x:-1.6,y:-1}],'#c1121f');rrect(7,-7,6,5,1,'#6b4226')}
+  if(dis==='scary'&&Math.sin(t*2)>.6)circle(7,-18,1.3,'#8ecae6');
+  // staff accessories
+  if(staff){if(role==='doctor'){ctx.strokeStyle='#ddd';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(0,-10,4.5,.1,Math.PI-.1);ctx.stroke();circle(0,-5.5,1.5,'#bbb');circle(0,-24,2.4,'#e9ecef')}
+    if(role==='nurse'){rrect(-4.5,-28,9,4,1,'#fff');ctx.fillStyle='#ff4f5e';ctx.fillRect(-1,-27.5,2,3);ctx.fillRect(-1.5,-27,3,2)}
+    if(role==='handyman'){rrect(-6,-25,12,4,2,'#1d4e89');rrect(2,-24,7,2,1,'#1d4e89')}}
+  ctx.restore();
+}
+function drawHuman(a,t,sick){
+  const pat=a.kind==='patient',dis=sick?a.dis:null;
+  const leg=a.moving?Math.sin(t*10)*2:0;ctx.fillStyle='#2d3142';ctx.fillRect(-4,-7+leg*.3,3,7);ctx.fillRect(1,-7-leg*.3,3,7);
+  rrect(-5.5,-19,11,13,3,pat?a.shirt:STAFF_TYPES[a.role].body);
+  const skin=a.infected?'#8fd16b':(a.skin||'#f1c27d');circle(0,-23,5.2,skin);
+  circle(-1.8,-23.5,.9,'#222');circle(1.8,-23.5,.9,'#222');
+  ctx.strokeStyle='#3b1a1a';ctx.lineWidth=.9;ctx.beginPath();if(a.angry)ctx.arc(0,-19.5,1.8,Math.PI*1.15,Math.PI*1.85);else ctx.arc(0,-22,1.8,.3,Math.PI-.3);ctx.stroke();
+  ctx.fillStyle=shade(a.skin||'#f1c27d',-.45);ctx.beginPath();ctx.arc(0,-25,5.4,Math.PI*1.05,-.05);ctx.fill();
+  if(dis==='monsteritis'){poly([{x:-4,y:-27},{x:-6,y:-33},{x:-2,y:-28}],'#fff4d6');poly([{x:4,y:-27},{x:6,y:-33},{x:2,y:-28}],'#fff4d6');
+    for(let i=0;i<5;i++)circle(-4+i*2,-16+(i%2)*3,1.6,'#6ab04c')}
+  if(!pat&&a.role==='receptionist'){ctx.strokeStyle='#333';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,-24,5.8,Math.PI,0);ctx.stroke();circle(-5.8,-23,1.4,'#333')}
+}
+function drawPerson(a){
+  const c=iso(a.x,a.y),t=animT+a.phase;ctx.save();ctx.translate(c.x,c.y);
+  if(a.state==='dead'){const k=Math.min(1,a.t/2.5);ctx.globalAlpha=1-k;for(let i=0;i<4;i++){const ang=animT*4+i*Math.PI/2;
+      ctx.fillStyle='#ffd166';ctx.font='bold 10px Fredoka';ctx.textAlign='center';ctx.fillText('*',Math.cos(ang)*8,-12-k*20+Math.sin(ang)*3)}ctx.restore();return}
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(0,0,8,4,0,0,Math.PI*2);ctx.fill();
+  const bob=a.moving?Math.abs(Math.sin(t*10))*2:0,pat=a.kind==='patient',sick=pat&&!a.cured;
+  ctx.translate(0,-bob);
+  const monster=pat?a.species==='monster':a.role!=='receptionist';
+  if(monster)drawMonster(a,t,sick);else drawHuman(a,t,sick);
+  ctx.restore();
+}
+function drawRat(r){const c=iso(r.x,r.y);ctx.save();ctx.translate(c.x,c.y);
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(0,0,6,2.5,0,0,7);ctx.fill();const hop=Math.abs(Math.sin(animT*14+r.x))*3;
+  for(let i=0;i<7;i++)circle(Math.cos(i)*3.5,-5-hop+Math.sin(i*2)*2.5,3.2,i%2?'#b8bec6':'#a3a9b2');
+  ctx.fillStyle='#a3a9b2';ctx.beginPath();ctx.ellipse(-2.5,-12-hop,1.3,3.5,-.3,0,7);ctx.ellipse(2.5,-12-hop,1.3,3.5,.3,0,7);ctx.fill();
+  circle(-1.5,-6-hop,.9,'#222');circle(1.5,-6-hop,.9,'#222');ctx.restore()}
+function drawObj(o){
+  if(o.type==='desk'){box(o.x+.1,o.y+.15,1.8,.7,13,'#c08552');const p=iso(o.x+1.5,o.y+.5);circle(p.x,p.y-15,2.5,'#ffd166');return}
+  if(o.type==='bench'){box(o.x+.15,o.y+.3,.7,.4,6,'#8d6e63');return}
+  if(o.type==='drinks'){box(o.x+.2,o.y+.2,.6,.6,32,'#6ab04c');const p=iso(o.x+.8,o.y+.5);ctx.fillStyle='#fff';ctx.font='bold 7px Fredoka';ctx.textAlign='center';ctx.fillText('JUICE',p.x+6,p.y-18);return}
+  if(o.type==='plant'){box(o.x+.3,o.y+.3,.4,.4,8,'#b5651d');const p=iso(o.x+.5,o.y+.5);circle(p.x,p.y-16,7,'#2a9d8f');circle(p.x-4,p.y-12,5,'#52b788');circle(p.x+4,p.y-13,5,'#40916c')}
+}
+function drawFurniture(r){
+  const sp=roomSpots(r).furn,RT=ROOM_TYPES[r.type],x=sp.x,y=sp.y;
+  if(r.type==='gp'){box(x+.15,y+.2,.7,.6,12,'#a0785a');const p=iso(x+.5,y+.5);rrect(p.x-4,p.y-20,8,6,1,'#cde')}
+  else if(r.type==='pharmacy'){box(x+.1,y+.1,.8,.8,16,'#e9f5db');const p=iso(x+.5,y+.5);for(let i=0;i<3;i++)circle(p.x-5+i*5,p.y-19,2,['#ff4f5e','#ffd166','#3a86ff'][i])}
+  else if(r.type==='psych'){box(x+.1,y+.25,.8,.5,8,'#8338ec');box(x+.1,y+.25,.2,.5,15,'#6a2bc4')}
+  else if(r.type==='shower'){box(x+.25,y+.25,.5,.5,10,'#c9c9c9');const p=iso(x+.5,y+.5);ctx.fillStyle=r.broken?'#777':'#ff6fb5';ctx.beginPath();ctx.ellipse(p.x,p.y-30,9,7,0,Math.PI,0);ctx.fill();ctx.fillRect(p.x-1,p.y-30,2,14);
+    if(!r.broken&&r.occupant)for(let i=0;i<5;i++)circle(p.x-8+i*4,p.y-24+((animT*30+i*7)%14),1.6,'#f7d9c4')}
+  else if(r.type==='flip'){const p=iso(x+.5,y+.5);box(x+.1,y+.1,.8,.8,12,r.broken?'#777':'#ffe8d6');
+    ctx.save();ctx.translate(p.x,p.y-24);const op=r.occupant&&!r.broken?Math.abs(Math.sin(animT*8))*4:2;poly([{x:-8,y:-op},{x:8,y:-op},{x:6,y:-op-5},{x:-6,y:-op-5}],'#fff');poly([{x:-8,y:op},{x:8,y:op},{x:6,y:op+5},{x:-6,y:op+5}],'#fff');ctx.restore()}
+  else if(r.type==='staffroom'){box(x+.2,y+.2,.6,.6,9,'#c9a227');const p=iso(x+.5,y+.5);rrect(p.x-3,p.y-16,6,5,1,'#fff')}
+  if(RT.machine&&(r.broken||r.cond<30)){const p=iso(x+.5,y+.5);for(let i=0;i<3;i++){const k=(animT*.8+i/3)%1;ctx.globalAlpha=1-k;circle(p.x+Math.sin(i*3+animT)*5,p.y-35-k*25,4+k*5,'#555')}ctx.globalAlpha=1}
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#06262e';ctx.fillRect(0,0,cv.width,cv.height);if(!G)return;
+  let sx=0,sy=0;if(G.shake>0){sx=rand(-6,6);sy=rand(-4,4)}
+  const z=cam.z;ctx.setTransform(DPR*z,0,0,DPR*z,DPR*(CW/2-cam.x*z+sx),DPR*(CH/2-cam.y*z+sy));
+  // outside ground
+  poly([iso(-2,-2),iso(G.W+2,-2),iso(G.W+2,G.H+2),iso(-2,G.H+2)],'#3c6e47');
+  // outer back walls
+  for(let x=0;x<G.W;x++){wall(x,0,x+1,0,44,'#d9e8e3');if(x%3===1){const a=iso(x+.2,0),b=iso(x+.8,0);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#9fd8f5')}}
+  for(let y=0;y<G.H;y++){wall(0,y,0,y+1,44,'#c3d8d1');if(y%3===1){const a=iso(0,y+.2),b=iso(0,y+.8);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#8cc9e8')}}
+  // floors
+  for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);let c;
+    if(t.room)c=shade(ROOM_TYPES[t.room.type].color,.45);else c=(x+y)%2?'#eef3ea':'#e3ebe0';
+    if(x===G.entrance.x&&y===G.entrance.y)c='#b33a3a';poly(diamond(x,y),c,'rgba(0,0,0,.06)');
+    if(t.litter){const p=iso(x+.5,y+.5);
+      if(t.litter==='vomit'){ctx.fillStyle='#9be15d';ctx.beginPath();ctx.ellipse(p.x,p.y,11,5,0,0,7);ctx.fill();circle(p.x+5,p.y+1,3,'#7cc94a');circle(p.x-4,p.y-1,1.6,'#d8f7b8')}
+      else if(t.litter==='fur'){for(let i=0;i<6;i++)circle(p.x+Math.sin(i*7.3)*9,p.y+Math.cos(i*3.1)*4,2.4,i%2?'#e9d5c3':'#cdb4a0')}
+      else if(t.litter==='can'){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(.8);rrect(-5,-2,10,4,1,'#e63946');ctx.restore()}
+      else{for(let i=0;i<4;i++)box(x+.2+i*.15,y+.3+(i%2)*.2,.15,.15,4,'#9c8c7a')}}}
+  // placement ghost
+  const P=G.place;
+  if(P&&P.x!=null){const ok=!P.msg,col=ok?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)';
+    if(P.kind==='room'){for(let y=P.y;y<P.y+3;y++)for(let x=P.x;x<P.x+3;x++)poly(diamond(x,y),col);
+      const d=doorFor(P.x,P.y,P.side);poly(diamond(d.ox,d.oy),'rgba(255,209,102,.8)');const a=iso(d.ix+.5,d.iy+.5),b=iso(d.ox+.5,d.oy+.5);
+      ctx.strokeStyle='#7a5c00';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();circle(b.x,b.y,4,'#7a5c00')}
+    else poly(diamond(P.x,P.y),col)}
+  // sorted drawables
+  const D=[];
+  for(const r of G.rooms){const RT=ROOM_TYPES[r.type],wc=shade(RT.color,-.1),dr=r.door;
+    for(let x=r.x;x<r.x+3;x++){if(!(dr.side==='N'&&dr.ix===x))D.push({d:x+.5+r.y-.01,f:()=>wall(x,r.y,x+1,r.y,22,wc)});
+      if(!(dr.side==='S'&&dr.ix===x))D.push({d:x+.5+r.y+3+.01,f:()=>wall(x,r.y+3,x+1,r.y+3,8,wc,.85)})}
+    for(let y=r.y;y<r.y+3;y++){if(!(dr.side==='W'&&dr.iy===y))D.push({d:r.x+y+.5-.01,f:()=>wall(r.x,y,r.x,y+1,22,shade(RT.color,-.25))});
+      if(!(dr.side==='E'&&dr.iy===y))D.push({d:r.x+3+y+.5+.01,f:()=>wall(r.x+3,y,r.x+3,y+1,8,shade(RT.color,-.25),.85)})}
+    const fs=roomSpots(r).furn;D.push({d:fs.x+fs.y+1,f:()=>drawFurniture(r)})}
+  for(const o of G.objs)D.push({d:o.x+o.y+(o.w||1)/2+(o.h||1)/2,f:()=>drawObj(o)});
+  for(const a of G.patients)D.push({d:a.x+a.y,f:()=>drawPerson(a)});
+  for(const a of G.staff)D.push({d:a.x+a.y,f:()=>drawPerson(a)});
+  for(const a of G.rats)D.push({d:a.x+a.y,f:()=>drawRat(a)});
+  D.sort((a,b)=>a.d-b.d);for(const it of D)it.f();
+  // overlays
+  ctx.textAlign='center';
+  for(const r of G.rooms){const p=iso(r.x+1.5,r.y+.2);ctx.font='600 10px Fredoka';const RT=ROOM_TYPES[r.type],label=RT.name+(r.broken?' (BROKEN)':'');
+    const w=ctx.measureText(label).width+10;rrect(p.x-w/2,p.y-40,w,14,7,r===selected?'#ffd166':'rgba(15,76,92,.85)');ctx.fillStyle=r===selected?'#10262c':'#fff';ctx.fillText(label,p.x,p.y-30);
+    if(RT.machine){rrect(p.x-15,p.y-24,30,4,2,'#333');rrect(p.x-15,p.y-24,30*r.cond/100,4,2,r.cond<30?'#ff4f5e':'#2bd67b')}
+    if(RT.staff&&!r.staff){ctx.font='600 9px Fredoka';ctx.fillStyle='#ff4f5e';ctx.fillText('needs '+STAFF_TYPES[RT.staff].name,p.x,p.y-16)}}
+  for(const a of [...G.patients,...G.staff]){if(a.state==='dead')continue;const c=iso(a.x,a.y);
+    if(a===selected){ctx.strokeStyle='#ffd166';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(c.x,c.y,11,5.5,0,0,7);ctx.stroke()}
+    if(a.kind==='patient'){if(['queue','queueRecep','wait'].includes(a.state)||a.patience<40){const v=a.patience/100;rrect(c.x-8,c.y-38,16,3,1.5,'rgba(0,0,0,.4)');rrect(c.x-8,c.y-38,16*v,3,1.5,v>.5?'#2bd67b':v>.25?'#ffd166':'#ff4f5e')}
+      if(a.thirst>80&&a.state!=='leaving'){ctx.fillStyle='#3a86ff';ctx.beginPath();ctx.moveTo(c.x+11,c.y-38);ctx.quadraticCurveTo(c.x+15,c.y-31,c.x+11,c.y-30);ctx.quadraticCurveTo(c.x+7,c.y-31,c.x+11,c.y-38);ctx.fill()}
+      if(a.health<30&&Math.sin(animT*8)>0){ctx.fillStyle='#ff4f5e';ctx.font='bold 10px Fredoka';ctx.fillText('+',c.x-12,c.y-30)}
+      if(a.emergency){rrect(c.x-3,c.y-46,6,6,3,Math.sin(animT*10)>0?'#ff4f5e':'#3a86ff')}}
+    else if(a.energy<CONFIG.tiredAt){ctx.fillStyle='#fff';ctx.font='bold 9px Fredoka';ctx.fillText('z',c.x+9,c.y-30-Math.sin(animT*3)*3)}
+    if(a.bubble){ctx.font='600 9px Fredoka';const w=ctx.measureText(a.bubble.text).width+10;rrect(c.x-w/2,c.y-56,w,14,6,'#fff');
+      poly([{x:c.x-3,y:c.y-42},{x:c.x+3,y:c.y-42},{x:c.x,y:c.y-38}],'#fff');ctx.fillStyle='#10262c';ctx.fillText(a.bubble.text,c.x,c.y-46)}}
+  for(const f of G.fx){const c=iso(f.x,f.y);ctx.globalAlpha=1-f.t/1.6;ctx.font='bold 12px Fredoka';ctx.fillStyle=f.color;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=3;
+    ctx.strokeText(f.text,c.x,c.y-40-f.t*25);ctx.fillText(f.text,c.x,c.y-40-f.t*25)}ctx.globalAlpha=1;
+}
+
+// =================== input ===================
+const ptrs=new Map();let drag=null,pinch=null;
+function screenToWorld(cx,cy){const r=cv.getBoundingClientRect();return {x:(cx-r.left-CW/2)/cam.z+cam.x,y:(cy-r.top-CH/2)/cam.z+cam.y}}
+function worldToTile(w){const a=w.x/(CONFIG.TW/2),b=w.y/(CONFIG.TH/2);return {x:(a+b)/2,y:(b-a)/2}}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1)drag={sx:e.clientX,sy:e.clientY,cx:cam.x,cy:cam.y,moved:false};
+  else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};drag=null}});
+cv.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)){if(e.pointerType==='mouse'&&G&&G.place)setGhost(worldToTile(screenToWorld(e.clientX,e.clientY)));return}
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];cam.z=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.35,3);return}
+  if(drag){const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.hypot(dx,dy)>8)drag.moved=true;if(drag.moved){cam.x=drag.cx-dx/cam.z;cam.y=drag.cy-dy/cam.z}}});
+function endPtr(e){if(drag&&!drag.moved&&ptrs.size===1)tap(e.clientX,e.clientY);ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(ptrs.size===0)drag=null}
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);drag=null;pinch=null});
+cv.addEventListener('wheel',e=>{e.preventDefault();cam.z=clamp(cam.z*(e.deltaY<0?1.1:.9),.35,3)},{passive:false});
+function setGhost(tp){const P=G.place;if(P.kind==='room'){P.x=Math.floor(tp.x)-1;P.y=Math.floor(tp.y)-1;P.msg=validateRoom(P.type,P.x,P.y,P.side)}
+  else{P.x=Math.floor(tp.x);P.y=Math.floor(tp.y);P.msg=validateObj(P.type,P.x,P.y)}updatePlaceBar()}
+function tap(cx,cy){
+  if(!G||G.over)return;const w=screenToWorld(cx,cy),tp=worldToTile(w);
+  if(G.place){const P=G.place,ox=P.x,oy=P.y;setGhost(tp);if(P.x===ox&&P.y===oy&&!P.msg)commitPlace();return}
+  const hit=(list,r)=>{let best=null,bd=r;for(const a of list){if(a.state==='dead')continue;const c=iso(a.x,a.y),d=Math.hypot(c.x-w.x,c.y-14-w.y);if(d<bd){bd=d;best=a}}return best};
+  const rat=hit(G.rats,18);if(rat){squash(rat);return}
+  const pt=hit(G.patients,16);
+  if(pt&&pt.infected&&G.epidemic){if(G.cash>=CONFIG.vaccineCost){spend(CONFIG.vaccineCost);pt.infected=false;bubble(pt,'Ow! Thanks.');addFx(pt.x,pt.y,'-$60','#ff4f5e');beep(900,700,.1)}else toast('No cash for vaccines');return}
+  const a=pt||hit(G.staff,16);if(a){select(a);return}
+  const t=T(Math.floor(tp.x),Math.floor(tp.y));
+  if(t&&t.room){select(t.room);return}if(t&&t.obj&&t.obj.type!=='desk'){select(t.obj);return}select(null);
+}
+function startPlace(kind,type){closePanel();select(null);G.place={kind,type,side:'S',x:null,y:null,msg:'Tap the floor to position'};updatePlaceBar()}
+function commitPlace(){const P=G.place;if(P.kind==='room'){buildRoom(P.type,P.x,P.y,P.side);G.place=null}
+  else{buildObj(P.type,P.x,P.y);P.x=null;P.msg='Placed. Tap to place another'}updatePlaceBar()}
+function updatePlaceBar(){const P=G&&G.place;$('placeBar').classList.toggle('hidden',!P);if(!P)return;
+  const name=P.kind==='room'?ROOM_TYPES[P.type].name:OBJ_TYPES[P.type].name;
+  $('pMsg').textContent=P.x==null?name+': '+P.msg:(P.msg||name+': tap again or press Place');$('pRot').classList.toggle('hidden',P.kind!=='room');$('pOk').disabled=P.x==null||!!P.msg}
+$('pRot').onclick=()=>{const P=G.place;P.side=SIDES[(SIDES.indexOf(P.side)+1)%4];if(P.x!=null)P.msg=validateRoom(P.type,P.x,P.y,P.side);updatePlaceBar()};
+$('pOk').onclick=()=>{if(G.place&&G.place.x!=null&&!G.place.msg)commitPlace()};
+$('pNo').onclick=()=>{G.place=null;updatePlaceBar()};
+addEventListener('keydown',e=>{if(!G)return;if(e.key===' '){setSpeed(speed?0:1);e.preventDefault()}if(e.key==='r'&&G.place)$('pRot').click();if(e.key==='Escape'){G.place=null;updatePlaceBar();select(null);closePanel()}});
+
+// =================== info panel ===================
+function select(o){selected=o;renderInfo()}
+function bar(v,c){return `<div class="bar"><span style="width:${clamp(v,0,100)}%;background:${c}"></span></div>`}
+const STATE_TXT={arrive:'Heading to reception',queueRecep:'Queueing at reception',needGP:'Looking for a GP',needTreat:'Looking for treatment',wait:'Waiting for a room to exist',
+  toRoom:'Walking to a room',queue:'Queueing',enterRoom:'Going in',inRoom:'Being seen',toDrink:'Off for a drink',leaving:'Leaving',idle:'Looking for work',toPost:'Going to work',
+  atPost:'Working',toRest:'Off for a tea break',resting:'Resting',toJob:'Going to a job',working:'Fixing / mopping'};
+function renderInfo(){
+  const el=$('info');if(!selected||!G){el.classList.add('hidden');return}el.classList.remove('hidden');const o=selected;let h='';
+  if(o.kind==='patient'){const D=o.diag?DISEASES[o.diag]:null;
+    h=`<h3>${o.name}</h3><div class="sub">${D?D.name+(o.diag!==o.dis?' (probably)':''):'Undiagnosed'}${o.emergency?' · Emergency':''}${o.infected?' · Giggle Hiccups':''}${' · '+(o.species==='monster'?'Monster':'Human')}</div>
+    ${D?`<div style="font-size:13px;margin-bottom:6px">${D.desc}</div>`:''}<div class="row"><span>Patience</span></div>${bar(o.patience,'#2bd67b')}
+    <div class="row"><span>Health</span></div>${bar(o.health,'#ff4f5e')}<div class="row"><span>Thirst</span></div>${bar(o.thirst,'#3a86ff')}
+    <div class="sub">${STATE_TXT[o.state]||o.state}</div><div class="btns"><button class="btn red" data-act="home">Send home</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  else if(o.kind==='staff'){h=`<h3>${o.name}</h3><div class="sub">${STAFF_TYPES[o.role].name} · ${money(CONFIG.salaries[o.role])}/month</div>
+    <div class="row"><span>Energy</span></div>${bar(o.energy,o.energy<CONFIG.tiredAt?'#ff4f5e':'#ffd166')}<div class="sub">${STATE_TXT[o.state]||o.state}${o.room?' · '+ROOM_TYPES[o.room.type].name:''}</div>
+    <div class="btns">${o.role!=='receptionist'?'<button class="btn" data-act="rest">Send to rest</button>':''}<button class="btn red" data-act="fire">Fire</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  else if(o.queue){const RT=ROOM_TYPES[o.type];h=`<h3>${RT.name}</h3><div class="sub">${RT.desc}</div>
+    ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}</b></div><div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}
+    ${RT.machine?`<div class="row"><span>Condition</span><b>${Math.round(o.cond)}%</b></div>${bar(o.cond,o.cond<30?'#ff4f5e':'#2bd67b')}`:''}
+    <div class="btns"><button class="btn red" data-act="sell">Sell (+${money(RT.cost/2)})</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  else{const OT=OBJ_TYPES[o.type];h=`<h3>${OT.name}</h3><div class="sub">${OT.desc}</div><div class="btns"><button class="btn red" data-act="sellobj">Sell</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  el.innerHTML=h;
+}
+$('info').addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return;const o=selected;
+  if(a==='home')leave(o,'Fine, I will walk it off.');if(a==='fire')fire(o);if(a==='rest'){if(o.room&&o.room.staff===o&&!o.room.occupant){o.room.staff=null;o.room=null;goRest(o)}else if(o.state==='idle')goRest(o);else toast('Busy with a patient, try in a moment')}
+  if(a==='sell')sellRoom(o);if(a==='sellobj')sellObj(o);select(null)});
+
+// =================== bottom panels ===================
+let tab=null;
+document.querySelectorAll('#toolbar button').forEach(b=>b.onclick=()=>{tab=tab===b.dataset.tab?null:b.dataset.tab;if(G&&G.place){G.place=null;updatePlaceBar()}renderPanel()});
+function closePanel(){tab=null;renderPanel()}
+function renderPanel(){
+  document.querySelectorAll('#toolbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const el=$('panel');if(!tab||!G){el.classList.add('hidden');return}el.classList.remove('hidden');let h='';
+  if(tab==='rooms')h='<h4>Build a room</h4><div class="grid">'+G.L.rooms.map(k=>{const R=ROOM_TYPES[k];
+    return `<button class="card" data-room="${k}" ${G.cash<R.cost?'disabled':''}><b><span class="sw" style="background:${R.color}"></span>${R.name}</b><span class="price">${money(R.cost)}</span><small>${R.desc}</small></button>`}).join('')+'</div>';
+  if(tab==='items')h='<h4>Buy items</h4><div class="grid">'+Object.entries(OBJ_TYPES).filter(([k,O])=>!O.hidden).map(([k,O])=>
+    `<button class="card" data-obj="${k}" ${G.cash<O.cost?'disabled':''}><b>${O.name}</b><span class="price">${money(O.cost)}</span><small>${O.desc}</small></button>`).join('')+'</div>';
+  if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length;
+    h='<h4>Hire staff <small style="font-weight:400;opacity:.7">signing fee = half a month\'s salary</small></h4><div class="grid">'+Object.entries(STAFF_TYPES).map(([k,S])=>
+    `<button class="card" data-hire="${k}"><b>${S.name} <small style="display:inline">(${cnt(k)} employed)</small></b><span class="price">${money(CONFIG.salaries[k])}/month</span><small>${S.desc}</small></button>`).join('')+'</div>';}
+  if(tab==='hosp'){const g=G.L.goals,d=goalsDone(),sal=G.staff.reduce((a,s)=>a+CONFIG.salaries[s.role],0);
+    h=`<h4>${G.L.name}</h4><div class="goal ${d.cash?'done':''}"><span>Bank balance</span><b>${money(G.cash)} / ${money(g.cash)}</b></div>
+    <div class="goal ${d.rep?'done':''}"><span>Reputation</span><b>${Math.round(G.rep)} / ${g.rep}</b></div><div class="goal ${d.cured?'done':''}"><span>Patients cured</span><b>${G.cured} / ${g.cured}</b></div>
+    <label for="price">Treatment prices: ${Math.round(G.price*100)}%</label><input id="price" type="range" min="50" max="200" step="10" value="${G.price*100}">
+    <small>Higher prices earn more but some patients refuse, and cures earn less reputation.</small>
+    <label for="heat">Heating: ${['Off','Low','Medium','High','Sauna'][G.heat]} (${money(G.heat*CONFIG.heatCost)}/month)</label><input id="heat" type="range" min="0" max="4" step="1" value="${G.heat}">
+    <small>Inside it's ${Math.round(G.temp)}°C. Cold makes patients impatient, hot makes them thirsty. Aim for 17–25°C.</small>
+    <div class="goal"><span>Monthly salaries</span><b>${money(sal)}</b></div><div class="goal"><span>Last month in / out</span><b>${money(G.lastMonth.in)} / ${money(G.lastMonth.out)}</b></div>
+    <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="btns"><button class="btn ghost" data-menu>Quit to menu</button></div>`}
+  el.innerHTML=h;
+  const pr=$('price'),ht=$('heat');if(pr)pr.oninput=()=>{G.price=pr.value/100;el.querySelector('label[for=price]').textContent=`Treatment prices: ${pr.value}%`};
+  if(ht)ht.oninput=()=>{G.heat=+ht.value;renderPanel()};
+}
+$('panel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.room)startPlace('room',b.dataset.room);if(b.dataset.obj)startPlace('obj',b.dataset.obj);if(b.dataset.hire)hire(b.dataset.hire)});
+
+// =================== HUD, speed, modal ===================
+function setSpeed(s){speed=s;document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.s===s))}
+document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>setSpeed(+b.dataset.s));
+$('voiceBtn').onclick=()=>{voiceOn=!voiceOn;$('voiceBtn').textContent=voiceOn?'PA on':'PA off';if(!voiceOn)try{speechSynthesis.cancel()}catch(e){}};
+function updateHUD(){if(!G)return;const g=G.L.goals,d=goalsDone();
+  $('hCash').textContent=money(G.cash);$('hCash').className=G.cash<0?'bad':d.cash?'good':'';
+  $('hRep').textContent=Math.round(G.rep);$('hRep').className=G.rep<25?'bad':d.rep?'good':'';
+  $('hCured').textContent=G.cured+'/'+g.cured;$('hCured').className=d.cured?'good':'';
+  const m=Math.floor(G.day/30);$('hDate').textContent=`${MONTHS[m%12]} ${G.day%30+1}, Yr ${Math.floor(m/12)+1}`;
+  $('hTemp').textContent=Math.round(G.temp)+'°';$('hTemp').className=G.temp<17||G.temp>25?'bad':'';
+  const eb=$('eventBar');let t='';
+  if(G.emergency){const e=G.emergency;t=`Emergency: ${DISEASES[e.dis].name} — ${e.cured}/${e.total} cured — ${Math.ceil(e.t)}s`}
+  else if(G.epidemic){t=`Hiccups: tap green faces for a shot ($60) — ${G.patients.filter(p=>p.infected&&p.state!=='dead').length} infected — inspector in ${Math.ceil(G.epidemic.t)}s`}
+  eb.textContent=t;eb.classList.toggle('hidden',!t);
+  if(tab&&tab!=='hosp'){document.querySelectorAll('#panel .card[data-room],#panel .card[data-obj]').forEach(b=>{const c=b.dataset.room?ROOM_TYPES[b.dataset.room].cost:OBJ_TYPES[b.dataset.obj].cost;b.disabled=G.cash<c})}
+  if(selected&&selected.kind==='patient'&&!G.patients.includes(selected))select(null);
+  else if(selected&&selected.kind==='staff'&&!G.staff.includes(selected))select(null);
+  else if(selected&&(selected.kind==='patient'||selected.kind==='staff'))renderInfo();
+}
+function showModal(h){$('modal').innerHTML=`<div class="mbox">${h}</div>`;$('modal').classList.remove('hidden')}
+function hideModal(){$('modal').classList.add('hidden')}
+$('modal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(er){}
+  if(b.dataset.go!=null){hideModal();newGame(+b.dataset.go);setSpeed(1)}if(b.dataset.menu!=null)menu()});
+document.addEventListener('click',e=>{if(e.target.closest('[data-menu]')&&!e.target.closest('#modal'))menu()});
+function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('placeBar').classList.add('hidden');$('eventBar').classList.add('hidden');const un=store.unlocked||1;
+  showModal(`<h1>Monster <span>General</span></h1><p style="margin:6px 0 14px;opacity:.8">The hospital where monsters and humans get better together. Mostly.</p>
+  ${LEVELS.map((L,i)=>`<button class="lvl" data-go="${i}" ${i>=un?'disabled':''}><span><b>${i+1}. ${L.name}</b><small>${i>=un?'Locked — finish the previous hospital':L.blurb}</small></span><span>${i>=un?'Locked':'Play'}</span></button>`).join('')}
+  <details style="margin-top:10px"><summary style="font-weight:600;cursor:pointer;min-height:32px">How to run a hospital</summary><ul>
+  <li>Patients go: front desk → Check-Up Room (diagnosis) → treatment room → pay up → home.</li>
+  <li>Build rooms from <b>Rooms</b>. Tap the floor to position, tap again (or Place) to build. Turn door chooses which way the door faces.</li>
+  <li>Hire a Receptionist, Doctors, Nurses and a Janitor from <b>Staff</b>. Staff walk to rooms that need them.</li>
+  <li>Tired staff misdiagnose. A Staff Room fixes that. Messy floors bring dust bunnies — tap them to shoo them away.</li>
+  <li>Benches calm the queue, juice machines make money, and the heating slider keeps people comfy.</li>
+  <li>Drag to pan, pinch or scroll to zoom. Tap anyone or any room for details.</li></ul></details>`)}
+
+// =================== loop ===================
+let last=performance.now(),hudT=0;
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;animT+=dt;
+  if(G&&!G.over&&speed>0)for(let i=0;i<speed;i++)update(dt);
+  if(annT>0)annT-=dt;else if(annQ.length)showNextAnnouncement();
+  if(toastT>0&&(toastT-=dt)<=0)$('toast').classList.add('hidden');
+  if((hudT-=dt)<=0){hudT=.25;updateHUD()}
+  try{render()}catch(e){console.error(e)}requestAnimationFrame(loop)}
+addEventListener('resize',()=>{resize()});
+window.BP={get G(){return G},buildRoom,validateRoom,hire,buildObj};
+resize();menu();requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
