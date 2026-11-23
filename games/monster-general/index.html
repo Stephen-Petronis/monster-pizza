@@ -31,7 +31,7 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 #placeBar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center;width:max-content;background:var(--paper);padding:6px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:96%}
 #placeBar button{height:44px;padding:0 14px;font-weight:600;background:#e8efe9}
 #placeBar #pOk{background:#2bb673;color:#fff}#pSizes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#pSizes button{background:var(--chrome);color:#fff}#pSizes button.draw{background:#ffd166;color:var(--ink)}#pSizes button:disabled{opacity:.45}
-.stick .x{float:right;background:#e3ebe7;color:var(--ink);width:40px;height:40px;font-size:18px;margin-left:8px}
+.pclose{display:block;position:sticky;top:0;z-index:3;width:42px;height:42px;border-radius:50%;background:var(--red);color:#fff;font-size:24px;line-height:1;font-weight:700;margin:0 0 -42px auto;box-shadow:0 3px 0 #a3202c}.stick .pclose{float:right;position:static;margin:0 0 6px 8px}.pclose:focus-visible{outline:3px solid var(--gold)}
 #panel.full{top:0;max-height:none;border-radius:0}#panel.full .stick{border-radius:0}
 .stick{position:sticky;top:-12px;background:var(--paper);z-index:2;margin:-12px -12px 0;padding:12px 12px 4px;border-radius:18px 18px 0 0}#placeBar #pNo{background:var(--red);color:#fff}
 #pMsg{font-size:13px;padding:0 6px;max-width:180px}
@@ -1036,7 +1036,7 @@ function render(){
     if(t.room)c=shade(ROOM_TYPES[t.room.type].color,.45);else c=(x+y)%2?'#eef3ea':'#e3ebe0';
     if(x===G.entrance.x&&y===G.entrance.y)c='#b33a3a';
     const fk=useArt()?(x===G.entrance.x&&y===G.entrance.y?'f_cross':t.room?FLOOR_ART[t.room.type]:'f_white'):null,fim=fk&&ART[fk];
-    if(fim){const p=iso(x,y),hall=fk==='f_white';if(hall){poly(diamond(x,y),c);ctx.globalAlpha=.45}ctx.drawImage(fim,p.x-32,p.y,64,64*fim.height/fim.width);ctx.globalAlpha=1;if(t.room)poly(diamond(x,y),shade(ROOM_TYPES[t.room.type].color,.2).replace('rgb','rgba').replace(')',',.22)'))}
+    if(fim){const p=iso(x,y),hall=fk==='f_white';if(hall){poly(diamond(x,y),c);ctx.globalAlpha=.45}ctx.drawImage(fim,p.x-32,p.y,64,32);ctx.globalAlpha=1;if(t.room)poly(diamond(x,y),shade(ROOM_TYPES[t.room.type].color,.2).replace('rgb','rgba').replace(')',',.22)'))}
     else poly(diamond(x,y),c,'rgba(0,0,0,.06)');
     if(G.temps&&G.L.f.temp&&!t.room){const tv=G.temps[y*G.W+x];if(tv<16)poly(diamond(x,y),`rgba(80,160,255,${Math.min(.28,(16-tv)*.04)})`);else if(tv>25)poly(diamond(x,y),`rgba(255,110,60,${Math.min(.28,(tv-25)*.05)})`)}
     if(t.litter){const p=iso(x+.5,y+.5);
@@ -1216,7 +1216,7 @@ function renderPanel(){
   if(tab==='items')h='<h4>Buy items</h4><div class="grid">'+Object.entries(OBJ_TYPES).filter(([k,O])=>!O.hidden&&(G.L.items||[]).includes(k)).map(([k,O])=>
     `<button class="card" data-obj="${k}" ${G.cash<O.cost?'disabled':''}><b>${O.name}</b><span class="price">${money(O.cost)}</span><small>${O.desc}</small></button>`).join('')+'</div>';
   if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length,role=G.hireRole||'doctor';
-    h=`<div class="stick"><button class="x" data-close aria-label="Close">&#10005;</button><h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
+    h=`<div class="stick"><button class="pclose" data-close aria-label="Close">&#10005;</button><h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
     <div class="chips">${Object.entries(STAFF_TYPES).map(([k,S])=>`<button class="chip ${k===role?'on':''}" data-hrole="${k}">${S.name}s (${cnt(k)})</button>`).join('')}<button class="chip" data-newapps>New applicants ($150)</button></div></div>
     <div class="grid">${G.cands[role].map((c,i)=>`<div class="card cand"><b>${c.name}</b><div>${rankHTML(c)} ${badgeHTML(c)}</div>${pipsHTML('Stamina',c.stamina)}${pipsHTML('Focus',c.focus)}
       <span class="price">${money(salary(c))}/month</span><div class="blurb">${c.blurb}</div><button class="btn" data-hirec="${i}">Hire (${money(Math.round(salary(c)*.5))} fee)</button></div>`).join('')}</div>
@@ -1233,6 +1233,7 @@ function renderPanel(){
     <div class="goal"><span>Monthly salaries</span><b>${money(sal)}</b></div><div class="goal"><span>Last month in / out</span><b>${money(G.lastMonth.in)} / ${money(G.lastMonth.out)}</b></div>
     <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="goal"><span>Art style</span><span><button class="chip ${artOn?'on':''}" data-art="sylli">Sylli Town</button> <button class="chip ${artOn?'':'on'}" data-art="classic">Classic</button></span></div>
     <div class="btns"><button class="btn red" data-quit>Quit to menu</button></div>`}
+  if(tab!=='staff')h='<button class="pclose" data-close aria-label="Close">&#10005;</button>'+h;
   el.innerHTML=h;
   const pr=$('price'),ht=$('heat');if(pr)pr.oninput=()=>{G.price=pr.value/100;el.querySelector('label[for=price]').textContent=`Treatment prices: ${pr.value}%`};
   if(ht)ht.oninput=()=>{G.heat=+ht.value;renderPanel()};
