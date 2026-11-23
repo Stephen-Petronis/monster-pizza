@@ -149,13 +149,33 @@ const STAFF_TYPES={
   handyman:{name:'Janitor',body:'#ff9f1c',desc:'Eats messes (yum) and fixes machines.'},
   receptionist:{name:'Receptionist',body:'#9b5de5',desc:'Human with a clipboard. Nobody gets seen without one.'},
 };
+// Each hospital adds a couple of new things so players learn one idea at a time.
+// f = which systems are switched on: bladder (toilets), trash (bins), temp (radiators)
 const LEVELS=[
-  {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:1.0,goals:{cash:18000,rep:55,cured:25},
-   diseases:['tummy','echo','scary'],rooms:['gp','scanner','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','radiator','plant','sofa','tv'],events:['emergency'],blurb:'A little clinic on the corner where monsters and humans live side by side.'},
-  {name:'Snowmonster Valley Hospital',W:15,H:12,cash:15000,spawn:1.35,goals:{cash:35000,rep:60,cured:60},
-   diseases:['tummy','echo','scary','fuzz','monsteritis'],rooms:['gp','scanner','xray','pharmacy','psych','shower','toilet','staffroom','training'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic'],blurb:'Winter is here. Fur is falling out. Giggle Hiccups are going round.'},
-  {name:'Mount Grumble Medical Centre',W:18,H:14,cash:20000,spawn:1.75,goals:{cash:70000,rep:70,cured:120},
-   diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth','floppy'],rooms:['gp','scanner','xray','pharmacy','psych','shower','flip','ward','toilet','staffroom','training','research'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic','earthquake'],blurb:'Built on a sleeping giant monster. It rolls over sometimes.'},
+  {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:.9,goals:{cash:16000,rep:50,cured:15},f:{},
+   diseases:['tummy','echo'],rooms:['gp','pharmacy','staffroom'],items:['bench','drinks','plant'],events:[],
+   blurb:'A little clinic on the corner where monsters and humans live side by side.',
+   intro:['Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Hire a Receptionist, a Doctor, a Nurse and a Janitor to get started.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
+  {name:'Puddle Lane Hospital',W:13,H:11,cash:13000,spawn:1.05,goals:{cash:22000,rep:55,cured:30},f:{bladder:1,trash:1},
+   diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','plant'],events:['emergency'],
+   blurb:'A busier street, with busier tummies.',
+   intro:['<b>Scare School</b> helps monsters who have Lost Their Scary. It needs a Doctor.','Patients need the loo now, and juice makes it worse. Build <b>Toilets</b> or there will be puddles.','<b>Bins</b> stop patients dropping wrappers and cans on the floor.','<b>Emergencies:</b> sometimes a helicopter drops off several sick patients at once. Cure them all for a bonus.']},
+  {name:'Snowmonster Valley Hospital',W:14,H:12,cash:15000,spawn:1.2,goals:{cash:30000,rep:58,cured:45},f:{bladder:1,trash:1,temp:1},
+   diseases:['tummy','echo','scary','humanitis'],rooms:['gp','scanner','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','radiator','plant','sofa','tv'],events:['emergency'],
+   blurb:'It is snowing. Everyone is cold, and some cases are tricky.',
+   intro:['It gets cold here! <b>Radiators</b> warm the floor around them. Blue floor means cold, orange means hot.','Turn radiator power up or down under <b>Hospital</b>. Cold patients run out of patience fast.','Tricky illnesses like Human-itis need a <b>Snot Scanner</b> before the Doctor is sure.','Put a <b>Sofa</b> or <b>TV</b> in the Staff Room so breaks are shorter.']},
+  {name:'Fluffington Heights',W:15,H:12,cash:17000,spawn:1.35,goals:{cash:40000,rep:60,cured:60},f:{bladder:1,trash:1,temp:1},
+   diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis'],rooms:['gp','scanner','xray','pharmacy','psych','shower','toilet','staffroom','training'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic'],
+   blurb:'A fancy neighbourhood where everyone cares about their fur.',
+   intro:['The <b>Fur Salon</b> grows fur back on monsters and trims it off humans. Its machine wears out, so keep a Janitor around.','The <b>Fur X-Ray</b> is another way to check tricky cases.','Send staff to the <b>Training Room</b> (tap them, then Train) to earn skill stars.','<b>Giggle Hiccups</b> spread! Tap green-faced patients for a shot before the inspector arrives.']},
+  {name:'Grizzle Bay General',W:16,H:13,cash:19000,spawn:1.55,goals:{cash:55000,rep:65,cured:90},f:{bladder:1,trash:1,temp:1},
+   diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth','floppy'],rooms:['gp','scanner','xray','pharmacy','psych','shower','flip','ward','toilet','staffroom','training'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic'],
+   blurb:'A big seaside hospital. Lots of teeth. Lots of bendy bones.',
+   intro:['The <b>Tooth Trimmer</b> fixes Too Many Teeth. It needs a Doctor.','The <b>Snooze Ward</b> has 3 beds for Floppy Bones. One Nurse looks after all of them.']},
+  {name:'Mount Grumble Medical Centre',W:18,H:14,cash:20000,spawn:1.75,goals:{cash:75000,rep:70,cured:120},f:{bladder:1,trash:1,temp:1},
+   diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth','floppy'],rooms:['gp','scanner','xray','pharmacy','psych','shower','flip','ward','toilet','staffroom','training','research'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic','earthquake'],
+   blurb:'Built on a sleeping giant monster. It rolls over sometimes.',
+   intro:['The <b>Mad Lab</b> lets a Doctor invent upgrades. Check progress under Hospital.','<b>Earthquakes!</b> The giant rolls over, machines get damaged and rubble falls. Keep your Janitors busy.']},
 ];
 const FLAVOR=[
   "Would the monster eating the waiting-room chairs please stop. Those are for sitting.",
@@ -224,7 +244,7 @@ const T=(x,y)=>(!G||x<0||y<0||x>=G.W||y>=G.H)?null:G.tiles[y*G.W+x];
 const blocks=t=>!!(t.obj&&OBJ_TYPES[t.obj.type].block);
 
 function newGame(li){
-  const L=LEVELS[li];
+  const L=LEVELS[li];annQ.length=0;annT=0;
   G={li,L,W:L.W,H:L.H,cash:L.cash,rep:50,cured:0,died:0,sentHome:0,day:0,dayT:0,heat:2,price:1,
     tiles:[],rooms:[],objs:[],patients:[],staff:[],rats:[],fx:[],fields:new Map(),uid:0,
     spawnT:4,eventT:rand(55,80),flavorT:30,epidemic:null,emergency:null,shake:0,hints:{},
@@ -236,10 +256,12 @@ function newGame(li){
   const desk={type:'desk',x:ex-1,y:ry,w:2,h:1,id:++G.uid};G.objs.push(desk);
   T(ex-1,ry).obj=desk;T(ex,ry).obj=desk;
   for(const p of [G.entrance,G.recep.staffSpot,G.recep.servSpot]) T(p.x,p.y).res=true;
-  for(const [x,y] of [[ex-3,G.H-3],[ex+3,G.H-3]])if(!validateObj('radiator',x,y)){buildObj('radiator',x,y);G.cash+=OBJ_TYPES.radiator.cost;G.mOut=0}
+  if(L.f.temp)for(const [x,y] of [[ex-3,G.H-3],[ex+3,G.H-3]])if(!validateObj('radiator',x,y)){buildObj('radiator',x,y);G.cash+=OBJ_TYPES.radiator.cost;G.mOut=0}
   computeTemps();
   selected=null;fitCamera();
-  announce(`Welcome to ${L.name}! Build a Check-Up Room, hire a Doctor and a Receptionist, and keep everybody happy. Monsters and humans alike.`,true);
+  announce(`Welcome to ${L.name}! ${li===0?'Build a Check-Up Room, hire a Doctor and a Receptionist, and keep everybody happy.':'Have a look around. Something new is waiting.'}`,true);
+  if(L.intro){setSpeed(0);showModal(`<h2>${li+1}. ${L.name}</h2><p>${L.blurb}</p><h4 style="margin:10px 0 4px">${li===0?'How it works':'New at this hospital'}</h4><ul>${L.intro.map(t=>`<li>${t}</li>`).join('')}</ul>
+    <p style="font-size:14px;opacity:.8">Goal: ${money(L.goals.cash)} in the bank, ${L.goals.rep} reputation, ${L.goals.cured} patients cured.</p><div class="btns"><button class="btn" data-start>Open the doors</button></div>`)}
   closePanel();renderPanel();updateHUD();
 }
 
@@ -426,7 +448,7 @@ function die(p){detach(p);p.state='dead';p.t=0;G.died++;rep(-6);if(p.emergency&&
   announce(pick(["A patient has fainted from waiting and been carried home by their mum. Not great.","Someone flopped over in the corridor. Their grandma is coming to collect them.","A patient got so poorly they had to go home in a wheelbarrow."]),true);beep(400,120,.6,.08)}
 function nearBench(p){return G.objs.some(o=>o.type==='bench'&&Math.abs(o.x+.5-p.x)<1.7&&Math.abs(o.y+.5-p.y)<1.7)}
 function computeTemps(){
-  const m=Math.floor(G.day/CONFIG.monthDays)%12,base=OUTDOOR[m]*.5+8,rads=G.objs.filter(o=>o.type==='radiator'),pw=G.heat/2;
+  const m=Math.floor(G.day/CONFIG.monthDays)%12,base=G.L.f.temp?OUTDOOR[m]*.5+8:20,rads=G.L.f.temp?G.objs.filter(o=>o.type==='radiator'):[],pw=G.heat/2;
   const tm=G.temps=new Float32Array(G.W*G.H);
   for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){let v=base;for(const r of rads){const d=Math.hypot(r.x-x,r.y-y);if(d<5)v+=(5-d)*3*pw}tm[y*G.W+x]=Math.min(36,v)}
   const ps=G.patients.filter(p=>p.state!=='dead'&&p.state!=='leaving');let sum=0,n=0;
@@ -436,7 +458,7 @@ function computeTemps(){
 const tempAt=a=>G.temps?G.temps[clamp(Math.floor(a.y),0,G.H-1)*G.W+clamp(Math.floor(a.x),0,G.W-1)]:20;
 function comfort(p){const t=tempAt(p);return t<17?1.6:t>25?1.3:1}
 function binNear(p,r=2.6){return G.objs.some(o=>o.type==='bin'&&Math.hypot(o.x+.5-p.x,o.y+.5-p.y)<r)}
-function dropTrash(p,type){if(!binNear(p))dropLitter(p,type)}
+function dropTrash(p,type){if(G.L.f.trash&&!binNear(p))dropLitter(p,type)}
 function maybeToilet(p){
   if(p.bladder<75||(p.room&&p.room.type==='toilet')||p.state==='queue'&&p.room&&p.room.queue[0]===p)return false;
   const r=chooseRoom('toilet',p);if(!r){if(p.bladder>85)hint('toilet','Patients are crossing their legs. Some Toilets would be lovely.');return false}
@@ -462,7 +484,7 @@ function updPatient(p,dt){
   if(p.seat&&p.state!=='queue'&&p.state!=='queueRecep'&&p.state!=='wait')releaseSeat(p);
   if(p.state!=='leaving'){
     const waiting=p.state==='queue'||p.state==='queueRecep'||p.state==='wait';
-    p.thirst=Math.min(100,p.thirst+dt*.55*(tempAt(p)>25?2:1));p.bladder=Math.min(100,p.bladder+dt*.3);
+    p.thirst=Math.min(100,p.thirst+dt*.55*(tempAt(p)>25?2:1));if(G.L.f.bladder)p.bladder=Math.min(100,p.bladder+dt*.3);
     if(p.bladder>=100){p.bladder=0;dropLitter(p,'puddle');p.patience-=25;rep(-1);bubble(p,'Oops...',2.5)}
     if(waiting&&Math.random()<dt*.004)dropTrash(p,'wrapper');
     p.health-=dt*CONFIG.healthDrain*(p.emergency?3:1)*(p.infected?1.5:1);
@@ -498,7 +520,7 @@ function updPatient(p,dt){
       if(step(p,tileField(c.x,c.y),dt)){p.state='inRoom';const s=r.staff;
         p.timer=ROOM_TYPES[r.type].dur*(s&&s.energy<CONFIG.tiredAt?1.6:1)*(s?1.15-.15*lvl(s):1)*(G.res.speed&&r.type!=='toilet'?.75:1)}break}
     case 'inRoom':{const r=p.room;if(!r){p.state=needState(p);break}if(!ROOM_TYPES[r.type].staff||(r.staff&&r.staff.state==='atPost'))p.timer-=dt;if(p.timer<=0)resolveRoom(p,r);break}
-    case 'toDrink':if(step(p,drinksField(),dt)){p.thirst=0;p.bladder=Math.min(100,p.bladder+30);earn(CONFIG.drinkPrice,p.x,p.y);bubble(p,'*slurp*',1.5);
+    case 'toDrink':if(step(p,drinksField(),dt)){p.thirst=0;if(G.L.f.bladder)p.bladder=Math.min(100,p.bladder+30);earn(CONFIG.drinkPrice,p.x,p.y);bubble(p,'*slurp*',1.5);
       if(Math.random()<.35)dropTrash(p,'can');p.state=p.after;}break;
     case 'leaving':if(step(p,tileField(G.entrance.x,G.entrance.y),dt))G.patients.splice(G.patients.indexOf(p),1);break;
   }
@@ -830,7 +852,7 @@ function render(){
   for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);let c;
     if(t.room)c=shade(ROOM_TYPES[t.room.type].color,.45);else c=(x+y)%2?'#eef3ea':'#e3ebe0';
     if(x===G.entrance.x&&y===G.entrance.y)c='#b33a3a';poly(diamond(x,y),c,'rgba(0,0,0,.06)');
-    if(G.temps&&!t.room){const tv=G.temps[y*G.W+x];if(tv<16)poly(diamond(x,y),`rgba(80,160,255,${Math.min(.28,(16-tv)*.04)})`);else if(tv>25)poly(diamond(x,y),`rgba(255,110,60,${Math.min(.28,(tv-25)*.05)})`)}
+    if(G.temps&&G.L.f.temp&&!t.room){const tv=G.temps[y*G.W+x];if(tv<16)poly(diamond(x,y),`rgba(80,160,255,${Math.min(.28,(16-tv)*.04)})`);else if(tv>25)poly(diamond(x,y),`rgba(255,110,60,${Math.min(.28,(tv-25)*.05)})`)}
     if(t.litter){const p=iso(x+.5,y+.5);
       if(t.litter==='vomit'){ctx.fillStyle='#9be15d';ctx.beginPath();ctx.ellipse(p.x,p.y,11,5,0,0,7);ctx.fill();circle(p.x+5,p.y+1,3,'#7cc94a');circle(p.x-4,p.y-1,1.6,'#d8f7b8')}
       else if(t.litter==='fur'){for(let i=0;i<6;i++)circle(p.x+Math.sin(i*7.3)*9,p.y+Math.cos(i*3.1)*4,2.4,i%2?'#e9d5c3':'#cdb4a0')}
@@ -933,7 +955,7 @@ function renderInfo(){
     h=`<h3>${o.name}</h3><div class="sub">${D?D.name+(o.diag!==o.dis?' (probably)':''):'Undiagnosed'}${o.emergency?' · Emergency':''}${o.infected?' · Giggle Hiccups':''}${' · '+(o.species==='monster'?'Monster':'Human')}</div>
     ${D?`<div style="font-size:13px;margin-bottom:6px">${D.desc}</div>`:''}<div class="row"><span>Patience</span></div>${bar(o.patience,'#2bd67b')}
     ${!o.diag?`<div class="row"><span>Doctor is sure</span><b>${Math.round(o.cert)}%</b></div>${bar(o.cert/CONFIG.needCert*100,'#9b5de5')}`:''}
-    <div class="row"><span>Health</span></div>${bar(o.health,'#ff4f5e')}<div class="row"><span>Thirst</span></div>${bar(o.thirst,'#3a86ff')}<div class="row"><span>Needs the toilet</span></div>${bar(o.bladder,'#ffd166')}
+    <div class="row"><span>Health</span></div>${bar(o.health,'#ff4f5e')}<div class="row"><span>Thirst</span></div>${bar(o.thirst,'#3a86ff')}${G.L.f.bladder?`<div class="row"><span>Needs the toilet</span></div>${bar(o.bladder,'#ffd166')}`:''}
     <div class="sub">${STATE_TXT[o.state]||o.state}</div><div class="btns"><button class="btn red" data-act="home">Send home</button><button class="btn ghost" data-act="close">Close</button></div>`}
   else if(o.kind==='staff'){h=`<h3>${o.name} <span style="color:#f4a300">${'★'.repeat(lvl(o))}</span></h3><div class="sub">${STAFF_TYPES[o.role].name} · ${money(salary(o))}/month</div>
     <div class="row"><span>Energy</span></div>${bar(o.energy,o.energy<CONFIG.tiredAt?'#ff4f5e':'#ffd166')}<div class="sub">${STATE_TXT[o.state]||o.state}${o.room?' · '+ROOM_TYPES[o.room.type].name:''}</div>
@@ -969,8 +991,8 @@ function renderPanel(){
     <div class="goal ${d.rep?'done':''}"><span>Reputation</span><b>${Math.round(G.rep)} / ${g.rep}</b></div><div class="goal ${d.cured?'done':''}"><span>Patients cured</span><b>${G.cured} / ${g.cured}</b></div>
     <label for="price">Treatment prices: ${Math.round(G.price*100)}%</label><input id="price" type="range" min="50" max="200" step="10" value="${G.price*100}">
     <small>Higher prices earn more but some patients refuse, and cures earn less reputation.</small>
-    <label for="heat">Radiator power: ${['Off','Low','Medium','High','Sauna'][G.heat]} (${nr} radiators, ${money(nr*G.heat*CONFIG.radCost)}/month)</label><input id="heat" type="range" min="0" max="4" step="1" value="${G.heat}">
-    <small>Patients feel ${Math.round(G.temp)}°C on average. Radiators warm the tiles around them (blue floor = cold, orange = hot). Aim for 17–25°C.</small>
+    ${G.L.f.temp?`<label for="heat">Radiator power: ${['Off','Low','Medium','High','Sauna'][G.heat]} (${nr} radiators, ${money(nr*G.heat*CONFIG.radCost)}/month)</label><input id="heat" type="range" min="0" max="4" step="1" value="${G.heat}">
+    <small>Patients feel ${Math.round(G.temp)}°C on average. Radiators warm the tiles around them (blue floor = cold, orange = hot). Aim for 17–25°C.</small>`:''}
     ${hasLab?`<h4 style="margin-top:12px">Mad Lab research</h4>${pr?`<div class="goal"><span>${pr.name}: ${pr.desc}</span><b>${Math.floor(G.rp/pr.cost*100)}%</b></div>`:'<div class="goal done"><span>Everything invented!</span></div>'}
     ${RESEARCH.slice(0,G.resI).map(r=>`<div class="goal done"><span>${r.name}</span><b>Done</b></div>`).join('')}${G.rooms.some(r=>r.type==='research')?'':'<small>Build a Mad Lab and give it a Doctor to start inventing.</small>'}`:''}
     <div class="goal"><span>Monthly salaries</span><b>${money(sal)}</b></div><div class="goal"><span>Last month in / out</span><b>${money(G.lastMonth.in)} / ${money(G.lastMonth.out)}</b></div>
@@ -1005,7 +1027,7 @@ function showModal(h){$('modal').innerHTML=`<div class="mbox">${h}</div>`;$('mod
 function hideModal(){$('modal').classList.add('hidden')}
 $('modal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(er){}
-  if(b.dataset.go!=null){hideModal();newGame(+b.dataset.go);setSpeed(1)}if(b.dataset.menu!=null)menu()});
+  if(b.dataset.go!=null){hideModal();setSpeed(1);newGame(+b.dataset.go)}if(b.dataset.start!=null){hideModal();setSpeed(1)}if(b.dataset.menu!=null)menu()});
 document.addEventListener('click',e=>{if(e.target.closest('[data-menu]')&&!e.target.closest('#modal'))menu()});
 function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('placeBar').classList.add('hidden');$('eventBar').classList.add('hidden');const un=store.unlocked||1;
   showModal(`<h1>Monster <span>General</span></h1><p style="margin:6px 0 14px;opacity:.8">The hospital where monsters and humans get better together. Mostly.</p>
@@ -1015,8 +1037,7 @@ function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('plac
   <li>Build rooms from <b>Rooms</b>. Tap the floor to position, tap again (or Place) to build. Turn door chooses which way the door faces.</li>
   <li>Hire a Receptionist, Doctors, Nurses and a Janitor from <b>Staff</b>. Staff walk to rooms that need them.</li>
   <li>Tired staff misdiagnose. A Staff Room fixes that. Messy floors bring dust bunnies — tap them to shoo them away.</li>
-  <li>Tricky illnesses need a Snot Scanner or Fur X-Ray before the doctor is sure. Juice fills bladders, so build Toilets. Bins stop litter.</li>
-  <li>Radiators keep patients warm. A Sofa, TV or Pool Table in the Staff Room speeds up breaks. Training gives staff skill stars, and the Mad Lab invents upgrades.</li>
+  <li>Each new hospital adds a couple of new rooms or problems, and explains them when you arrive.</li>
   <li>Drag to pan, pinch or scroll to zoom. Tap anyone or any room for details.</li></ul></details>`)}
 
 // =================== loop ===================
