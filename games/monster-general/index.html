@@ -259,6 +259,17 @@ function showNextAnnouncement(){const t=annQ.shift();if(!t)return;$('tickerText'
   if(voiceOn){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.rate=1.02;u.pitch=1.15;setTimeout(()=>speechSynthesis.speak(u),500)}catch(e){}}}
 let toastT=0;function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');toastT=4}
 
+// =================== Sylli Town art ===================
+// Sprites cut from Stephen's art sheet live in art/. Classic mode draws everything with shapes instead.
+const ART_NAMES=['doctor','nurse','janitor','recep_top','p_blue','p_mummy','p_wolf','p_slime','p_bird','desk','chairs','vending','plant','plant2','flowers','gbin','radiator',
+  'm_slime','m_horn','m_chair','m_tube','bed','cart','cooler','wetsign','logo'];
+const ART={};let artOn=store.art!=='classic';
+for(const n of ART_NAMES){const im=new Image();im.onload=()=>{ART[n]=im;if(n==='logo'&&!G&&!$('modal').classList.contains('hidden')&&$('modal').querySelector('[data-go]'))menu()};im.src='art/'+n+'.webp'}
+const useArt=()=>artOn&&!!ART.doctor;
+const PATIENT_SPRITES=['p_blue','p_mummy','p_wolf','p_slime','p_bird'];
+// draw a sprite with its feet at (x,y), h world-pixels tall
+function sprite(n,x,y,h,flip){const im=ART[n];if(!im)return false;const w=im.width*h/im.height;ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();return true}
+
 // =================== game state ===================
 let G=null, speed=1, animT=0, selected=null, cam={x:0,y:0,z:1};
 const T=(x,y)=>(!G||x<0||y<0||x>=G.W||y>=G.H)?null:G.tiles[y*G.W+x];
@@ -312,6 +323,7 @@ function clearFields(){G.fields.clear();for(const a of allAgents())a.nx=null}
 function allAgents(){return [...G.patients,...G.staff,...G.rats]}
 function step(a,f,dt){
   if(a.nx!=null){const dx=a.nx-a.x,dy=a.ny-a.y,d=Math.hypot(dx,dy),s=a.speed*dt;
+    const sx=dx-dy;if(Math.abs(sx)>.05)a.face=sx<0?-1:1;
     if(d<=s){a.x=a.nx;a.y=a.ny;a.nx=null}else{a.x+=dx/d*s;a.y+=dy/d*s}a.moving=true;return false}
   const cx=Math.floor(a.x),cy=Math.floor(a.y),W=G.W,d=f[cy*W+cx];
   if(d===0){const tx=cx+.5+(a.ox||0),ty=cy+.5+(a.oy||0),dx=tx-a.x,dy=ty-a.y,dd=Math.hypot(dx,dy);
@@ -478,7 +490,7 @@ function spawnPatient(o={}){
     name:species==='monster'?pick(MFIRST)+' '+pick(LAST):pick(FIRST)+' '+pick(LAST),x:e.x+.5,y:e.y+.5,speed:rand(1.1,1.5),dis,diag:null,
     state:'arrive',patience:100,health:100,thirst:rand(0,40),shirt:pick(SHIRTS),skin:pick(SKINS),
     ox:rand(-.28,.28),oy:rand(-.28,.28),t:0,phase:Math.random()*10,emergency:!!o.emergency,infected:false,cured:false};
-  p.jx=p.ox;p.jy=p.oy;p.thinkT=rand(4,14);p.bladder=rand(0,30);p.cert=0;p.visited=[];
+  p.jx=p.ox;p.jy=p.oy;p.thinkT=rand(4,14);p.sprite=pick(PATIENT_SPRITES);p.bladder=rand(0,30);p.cert=0;p.visited=[];
   if(o.emergency){p.diag=dis;p.state='needTreat'}
   G.patients.push(p);return p;
 }
@@ -926,6 +938,15 @@ function drawPerson(a){
   if(pat&&a.state==='inRoom'&&a.room&&a.room.type==='ward'){ctx.translate(0,-6);ctx.rotate(-1.25);ctx.translate(0,6)}
   if(pat&&a.state==='inRoom'&&a.room&&a.room.type==='toilet'){ctx.restore();return}
   if(sick&&a.dis==='floppy')ctx.transform(1,0,Math.sin(t*6)*.3,1,0,0);
+  if(useArt()){const k=pat?(monster?a.sprite:null):{doctor:'doctor',nurse:'nurse',handyman:'janitor',receptionist:'recep_top'}[a.role];
+    if(k&&ART[k]){const h=pat?38*(a.big||1):{doctor:[40,44,47][lvl(a)-1],nurse:38,janitor:40,recep_top:30}[k];
+      const lift=k==='recep_top'?10:0,squash=a.moving?1+Math.sin(t*10)*.03:1;ctx.scale(1,squash);
+      sprite(k,0,4-lift,h,a.face<0);
+      if(a.infected)for(let i=0;i<3;i++)circle(-8+i*8,-h*.75+Math.sin(t*4+i)*2,2.2,'#7bd96b');
+      if(!pat&&a.role==='doctor')(a.badges||[]).forEach((b,i)=>{circle(-13,-h*.5+i*4.5,2.1,BADGES[b].color);ctx.strokeStyle='#fff';ctx.lineWidth=.8;ctx.beginPath();ctx.arc(-13,-h*.5+i*4.5,2.1,0,7);ctx.stroke()});
+      if(!pat&&a.role==='doctor'&&lvl(a)===3){ctx.fillStyle='#ffd166';ctx.font='bold 9px Fredoka';ctx.textAlign='center';ctx.fillText('★',12,-h+4)}
+      if(!pat&&a.role==='handyman'&&a.state==='working'&&a.job&&a.job.tile)sprite('wetsign',16,6,20);
+      ctx.restore();return}}
   if(monster)drawMonster(a,t,sick);else drawHuman(a,t,sick);
   ctx.restore();
 }
@@ -935,6 +956,10 @@ function drawRat(r){const c=iso(r.x,r.y);ctx.save();ctx.translate(c.x,c.y);
   ctx.fillStyle='#a3a9b2';ctx.beginPath();ctx.ellipse(-2.5,-12-hop,1.3,3.5,-.3,0,7);ctx.ellipse(2.5,-12-hop,1.3,3.5,.3,0,7);ctx.fill();
   circle(-1.5,-6-hop,.9,'#222');circle(1.5,-6-hop,.9,'#222');ctx.restore()}
 function drawObj(o){
+  if(useArt()){const p=iso(o.x+.5,o.y+.5);
+    if(o.type==='desk'){const q=iso(o.x+1,o.y+.5);if(sprite('desk',q.x,q.y+16,54))return}
+    const k={bench:'chairs',drinks:'vending',plant:['plant','plant2','flowers'][o.id%3],bin:'gbin',radiator:'radiator'}[o.type],h={chairs:30,vending:58,plant:36,plant2:28,flowers:26,gbin:22,radiator:30}[k];
+    if(k){ctx.globalAlpha=o.type==='radiator'&&G.heat===0?.75:1;const ok=sprite(k,p.x,p.y+7,h);ctx.globalAlpha=1;if(ok)return}}
   if(o.type==='desk'){box(o.x+.1,o.y+.15,1.8,.7,13,'#c08552');const p=iso(o.x+1.5,o.y+.5);circle(p.x,p.y-15,2.5,'#ffd166');return}
   if(o.type==='bench'){box(o.x+.15,o.y+.3,.7,.4,6,'#8d6e63');return}
   if(o.type==='drinks'){box(o.x+.2,o.y+.2,.6,.6,32,'#6ab04c');const p=iso(o.x+.8,o.y+.5);ctx.fillStyle='#fff';ctx.font='bold 7px Fredoka';ctx.textAlign='center';ctx.fillText('JUICE',p.x+6,p.y-18);return}
@@ -949,7 +974,15 @@ function drawObj(o){
   if(o.type==='extinguisher'){box(o.x+.4,o.y+.4,.2,.2,14,'#e5383b');const p=iso(o.x+.5,o.y+.5);rrect(p.x-1.5,p.y-18,3,3,1,'#222');return}
   if(o.type==='plant'){box(o.x+.3,o.y+.3,.4,.4,8,'#b5651d');const p=iso(o.x+.5,o.y+.5);circle(p.x,p.y-16,7,'#2a9d8f');circle(p.x-4,p.y-12,5,'#52b788');circle(p.x+4,p.y-13,5,'#40916c')}
 }
+function smoke(r,x,y){if(!(ROOM_TYPES[r.type].machine&&(r.broken||r.cond<30)))return;const p=iso(x+.5,y+.5);
+  for(let i=0;i<3;i++){const k=(animT*.8+i/3)%1;ctx.globalAlpha=1-k;circle(p.x+Math.sin(i*3+animT)*5,p.y-45-k*25,4+k*5,'#555')}ctx.globalAlpha=1}
 function drawFurniture(r){
+  if(useArt()){
+    if(r.type==='ward'&&ART.bed){for(const q of r.lay.slots){const p=iso(q.x+.5,q.y+.5);sprite('bed',p.x,p.y+8,34)}return}
+    const k={scanner:'m_slime',psych:'m_horn',flip:'m_chair',shower:'m_tube',gp:'bed',pharmacy:'cart',staffroom:'cooler'}[r.type];
+    if(k&&ART[k]){const f=r.lay.furn,p=iso(f.x+.5,f.y+.5),h={m_slime:58,m_horn:52,m_chair:58,m_tube:62,bed:38,cart:36,cooler:38}[k];
+      if(r.broken)ctx.globalAlpha=.55;const wob=r.occ.length&&!r.broken&&ROOM_TYPES[r.type].machine?Math.sin(animT*20)*.6:0;
+      sprite(k,p.x+wob,p.y+9,h);ctx.globalAlpha=1;smoke(r,f.x,f.y);return}}
   const sp=r.lay.furn,RT=ROOM_TYPES[r.type],x=sp.x,y=sp.y;
   const sl=r.lay.slots;
   if(r.type==='ward'){for(const q of sl){box(q.x+.15,q.y+.15,.7,.7,7,'#ffffff');box(q.x+.15,q.y+.15,.25,.7,9,'#ffafcc')}return}
@@ -1175,7 +1208,8 @@ function renderPanel(){
     ${hasLab?`<h4 style="margin-top:12px">Mad Lab research</h4>${pr?`<div class="goal"><span>${pr.name}: ${pr.desc}</span><b>${Math.floor(G.rp/pr.cost*100)}%</b></div>`:'<div class="goal done"><span>Everything invented!</span></div>'}
     ${RESEARCH.slice(0,G.resI).map(r=>`<div class="goal done"><span>${r.name}</span><b>Done</b></div>`).join('')}${G.rooms.some(r=>r.type==='research')?'':'<small>Build a Mad Lab and give it a Doctor to start inventing.</small>'}`:''}
     <div class="goal"><span>Monthly salaries</span><b>${money(sal)}</b></div><div class="goal"><span>Last month in / out</span><b>${money(G.lastMonth.in)} / ${money(G.lastMonth.out)}</b></div>
-    <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="btns"><button class="btn red" data-quit>Quit to menu</button></div>`}
+    <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="goal"><span>Art style</span><span><button class="chip ${artOn?'on':''}" data-art="sylli">Sylli Town</button> <button class="chip ${artOn?'':'on'}" data-art="classic">Classic</button></span></div>
+    <div class="btns"><button class="btn red" data-quit>Quit to menu</button></div>`}
   el.innerHTML=h;
   const pr=$('price'),ht=$('heat');if(pr)pr.oninput=()=>{G.price=pr.value/100;el.querySelector('label[for=price]').textContent=`Treatment prices: ${pr.value}%`};
   if(ht)ht.oninput=()=>{G.heat=+ht.value;renderPanel()};
@@ -1185,6 +1219,7 @@ $('panel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   if(b.dataset.quit!=null){G.prevSpeed=speed||1;setSpeed(0);showModal(`<h2>Quit to menu?</h2><p>You will lose everything at ${G.L.name}: rooms, staff and money. Unlocked hospitals stay unlocked.</p>
     <div class="btns"><button class="btn ghost" data-resume>Keep playing</button><button class="btn red" data-menu>Yes, quit</button></div>`)}
   if(b.dataset.close!=null){closePanel();return}
+  if(b.dataset.art){artOn=b.dataset.art==='sylli';store.art=artOn?'sylli':'classic';saveStore();renderPanel();return}
   if(b.dataset.hrole){G.hireRole=b.dataset.hrole;renderPanel()}
   if(b.dataset.newapps!=null){if(G.cash<150)toast('Not enough cash');else{spend(150);refreshCandidates(G.hireRole||'doctor');renderPanel()}}
   if(b.dataset.hirec!=null){const role=G.hireRole||'doctor',i=+b.dataset.hirec;if(hireCandidate(G.cands[role][i])){G.cands[role][i]=makeCandidate(role);renderPanel()}}});
@@ -1215,7 +1250,7 @@ $('modal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   if(b.dataset.go!=null){hideModal();setSpeed(1);newGame(+b.dataset.go)}if(b.dataset.start!=null){hideModal();setSpeed(1)}if(b.dataset.resume!=null){hideModal();setSpeed(G&&G.prevSpeed||1)}if(b.dataset.menu!=null)menu()});
 document.addEventListener('click',e=>{if(e.target.closest('[data-menu]')&&!e.target.closest('#modal'))menu()});
 function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('placeBar').classList.add('hidden');$('eventBar').classList.add('hidden');const un=store.unlocked||1;
-  showModal(`<h1>Monster <span>General</span></h1><p style="margin:6px 0 14px;opacity:.8">The hospital where monsters and humans get better together. Mostly.</p>
+  showModal(`${ART.logo&&artOn?'<img src="art/logo.webp" alt="Sylli Town Monster Hospital" style="display:block;width:min(300px,80%);margin:0 auto 4px">':'<h1>Monster <span>General</span></h1>'}<p style="margin:6px 0 14px;opacity:.8">The hospital where monsters and humans get better together. Mostly.</p>
   ${LEVELS.map((L,i)=>`<button class="lvl" data-go="${i}" ${i>=un?'disabled':''}><span><b>${i+1}. ${L.name}</b><small>${i>=un?'Locked — finish the previous hospital':L.blurb}</small></span><span>${i>=un?'Locked':'Play'}</span></button>`).join('')}
   <details style="margin-top:10px"><summary style="font-weight:600;cursor:pointer;min-height:32px">How to run a hospital</summary><ul>
   <li>Patients go: front desk → Check-Up Room (diagnosis) → treatment room → pay up → home.</li>
