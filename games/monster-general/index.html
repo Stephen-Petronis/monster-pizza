@@ -31,6 +31,8 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 #placeBar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center;width:max-content;background:var(--paper);padding:6px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:96%}
 #placeBar button{height:44px;padding:0 14px;font-weight:600;background:#e8efe9}
 #placeBar #pOk{background:#2bb673;color:#fff}#pSizes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#pSizes button{background:var(--chrome);color:#fff}#pSizes button.draw{background:#ffd166;color:var(--ink)}#pSizes button:disabled{opacity:.45}
+.stick .x{float:right;background:#e3ebe7;color:var(--ink);width:40px;height:40px;font-size:18px;margin-left:8px}
+#panel.full{top:0;max-height:none;border-radius:0}#panel.full .stick{border-radius:0}
 .stick{position:sticky;top:-12px;background:var(--paper);z-index:2;margin:-12px -12px 0;padding:12px 12px 4px;border-radius:18px 18px 0 0}#placeBar #pNo{background:var(--red);color:#fff}
 #pMsg{font-size:13px;padding:0 6px;max-width:180px}
 #info{position:absolute;right:8px;top:8px;width:min(300px,92vw);background:var(--paper);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:14px}
@@ -631,7 +633,7 @@ function makeCandidate(role){
   const monster=role!=='receptionist',pre=role==='doctor'?'Dr. ':role==='nurse'?'Nurse ':'';
   const taken=new Set([...G.staff.map(s=>s.name),...Object.values(G.cands||{}).flat().map(c=>c.name)]);let name;
   for(let i=0;i<12;i++){name=monster?pre+pick(MFIRST):pick(FIRST)+' '+pick(LAST);if(!taken.has(name))break}
-  return {role,xp,badges,stamina:1+Math.floor(Math.random()*10),focus:1+Math.floor(Math.random()*10),blurb:pick(BLURBS[role]),name};
+  return {role,xp,badges,stamina:1+Math.floor(Math.random()*10),focus:1+Math.floor(Math.random()*10),blurb:pick(BLURBS[role].filter(b=>!(G.cands&&G.cands[role]||[]).some(c=>c.blurb===b)))||pick(BLURBS[role]),name};
 }
 function refreshCandidates(role){
   G.cands=G.cands||{};for(const r of role?[role]:Object.keys(STAFF_TYPES)){const list=G.cands[r]=[];for(let i=0;i<4;i++)list.push(makeCandidate(r));
@@ -1123,13 +1125,13 @@ document.querySelectorAll('#toolbar button').forEach(b=>b.onclick=()=>{tab=tab==
 function closePanel(){tab=null;renderPanel()}
 function renderPanel(){
   document.querySelectorAll('#toolbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  const el=$('panel');if(!tab||!G){el.classList.add('hidden');return}el.classList.remove('hidden');let h='';
+  const el=$('panel');el.classList.toggle('full',tab==='staff');if(!tab||!G){el.classList.add('hidden');return}el.classList.remove('hidden');let h='';
   if(tab==='rooms')h='<h4>Build a room</h4><div class="grid">'+G.L.rooms.map(k=>{const R=ROOM_TYPES[k];
     return `<button class="card" data-room="${k}" ${G.cash<R.cost?'disabled':''}><b><span class="sw" style="background:${R.color}"></span>${R.name}</b><span class="price">${money(R.cost)}</span><small>${R.desc}</small></button>`}).join('')+'</div>';
   if(tab==='items')h='<h4>Buy items</h4><div class="grid">'+Object.entries(OBJ_TYPES).filter(([k,O])=>!O.hidden&&(G.L.items||[]).includes(k)).map(([k,O])=>
     `<button class="card" data-obj="${k}" ${G.cash<O.cost?'disabled':''}><b>${O.name}</b><span class="price">${money(O.cost)}</span><small>${O.desc}</small></button>`).join('')+'</div>';
   if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length,role=G.hireRole||'doctor';
-    h=`<div class="stick"><h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
+    h=`<div class="stick"><button class="x" data-close aria-label="Close">&#10005;</button><h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
     <div class="chips">${Object.entries(STAFF_TYPES).map(([k,S])=>`<button class="chip ${k===role?'on':''}" data-hrole="${k}">${S.name}s (${cnt(k)})</button>`).join('')}<button class="chip" data-newapps>New applicants ($150)</button></div></div>
     <div class="grid">${G.cands[role].map((c,i)=>`<div class="card cand"><b>${c.name}</b><div>${rankHTML(c)} ${badgeHTML(c)}</div>${pipsHTML('Stamina',c.stamina)}${pipsHTML('Focus',c.focus)}
       <span class="price">${money(salary(c))}/month</span><div class="blurb">${c.blurb}</div><button class="btn" data-hirec="${i}">Hire (${money(Math.round(salary(c)*.5))} fee)</button></div>`).join('')}</div>
@@ -1153,6 +1155,7 @@ $('panel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   if(b.dataset.room)startPlace('room',b.dataset.room);if(b.dataset.obj)startPlace('obj',b.dataset.obj);
   if(b.dataset.quit!=null){G.prevSpeed=speed||1;setSpeed(0);showModal(`<h2>Quit to menu?</h2><p>You will lose everything at ${G.L.name}: rooms, staff and money. Unlocked hospitals stay unlocked.</p>
     <div class="btns"><button class="btn ghost" data-resume>Keep playing</button><button class="btn red" data-menu>Yes, quit</button></div>`)}
+  if(b.dataset.close!=null){closePanel();return}
   if(b.dataset.hrole){G.hireRole=b.dataset.hrole;renderPanel()}
   if(b.dataset.newapps!=null){if(G.cash<150)toast('Not enough cash');else{spend(150);refreshCandidates(G.hireRole||'doctor');renderPanel()}}
   if(b.dataset.hirec!=null){const role=G.hireRole||'doctor',i=+b.dataset.hirec;if(hireCandidate(G.cands[role][i])){G.cands[role][i]=makeCandidate(role);renderPanel()}}});
