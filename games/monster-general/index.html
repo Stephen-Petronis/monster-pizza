@@ -474,8 +474,8 @@ function buildRoom(type,cells,door){
   addFx(r.x+r.w/2,r.y+r.h/2,'-'+money(cost),'#ff4f5e');beep(300,500,.15);return r;
 }
 function quickRoom(type,x,y,w,h,side){const R={x,y,w,h},c=rectCells(R),d=doorFor(R,side||'S'),m=validateRoom(type,c,d);if(!m)buildRoom(type,c,d);return m}
-function buildObj(type,x,y){
-  const OT=OBJ_TYPES[type];spend(OT.cost);const o={id:++G.uid,type,x,y,w:1,h:1,block:!T(x,y).room&&!!OT.block};
+function buildObj(type,x,y,flip){
+  const OT=OBJ_TYPES[type];spend(OT.cost);const o={id:++G.uid,type,x,y,w:1,h:1,flip:!!flip,block:!T(x,y).room&&!!OT.block};
   G.objs.push(o);T(x,y).obj=o;clearFields();
   if(o.block)for(const a of allAgents())if(Math.floor(a.x)===x&&Math.floor(a.y)===y){
     for(const [dx,dy] of NB){const t=T(x+dx,y+dy);if(t&&!t.room&&!blocks(t)){a.x=x+dx+.5;a.y=y+dy+.5;break}}}
@@ -973,9 +973,9 @@ function drawRat(r){const c=iso(r.x,r.y);ctx.save();ctx.translate(c.x,c.y);
   circle(-1.5,-6-hop,.9,'#222');circle(1.5,-6-hop,.9,'#222');ctx.restore()}
 function drawObj(o){
   if(useArt()){const p=iso(o.x+.5,o.y+.5);
-    if(o.type==='desk'){const q=iso(o.x+1,o.y+.5);if(sprite('desk',q.x,q.y+16,54))return}
+    if(o.type==='desk'){const q=iso(o.x+1,o.y+.5);if(sprite('desk',q.x,q.y+16,54,!o.flip))return}
     const k={bench:'chairs',drinks:'vending',plant:['plant','plant2','flowers','w_plant'][o.id%4],bin:'gbin',radiator:'radiator',cabinet:'i_cabinet',sofa:'i_sofa'}[o.type],h={chairs:30,vending:58,plant:36,plant2:28,flowers:26,w_plant:32,gbin:22,radiator:30,i_cabinet:24,i_sofa:26}[k];
-    if(k){ctx.globalAlpha=o.type==='radiator'&&G.heat===0?.75:1;const ok=sprite(k,p.x,p.y+7,h);ctx.globalAlpha=1;if(ok)return}}
+    if(k){ctx.globalAlpha=o.type==='radiator'&&G.heat===0?.75:1;const ok=sprite(k,p.x,p.y+7,h,!!o.flip);ctx.globalAlpha=1;if(ok)return}}
   if(o.type==='desk'){box(o.x+.1,o.y+.15,1.8,.7,13,'#c08552');const p=iso(o.x+1.5,o.y+.5);circle(p.x,p.y-15,2.5,'#ffd166');return}
   if(o.type==='bench'){box(o.x+.15,o.y+.3,.7,.4,6,'#8d6e63');return}
   if(o.type==='drinks'){box(o.x+.2,o.y+.2,.6,.6,32,'#6ab04c');const p=iso(o.x+.8,o.y+.5);ctx.fillStyle='#fff';ctx.font='bold 7px Fredoka';ctx.textAlign='center';ctx.fillText('JUICE',p.x+6,p.y-18);return}
@@ -1055,7 +1055,8 @@ function render(){
       ctx.strokeStyle='#7a5c00';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();circle(b.x,b.y,4,'#7a5c00')}
     if(P.cells&&P.cells.length){const B=bbox(P.cells),c=iso(B.x+B.w/2,B.y+B.h/2);ctx.font='bold 12px Fredoka';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.55)';
       const tx=sizeLabel(P.cells);ctx.strokeText(tx,c.x,c.y+4);ctx.fillStyle='#fff';ctx.fillText(tx,c.x,c.y+4)}}
-  else if(P&&P.kind==='obj'&&P.x!=null)poly(diamond(P.x,P.y),!P.msg?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)');
+  else if(P&&P.kind==='obj'&&P.x!=null){poly(diamond(P.x,P.y),!P.msg?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)');
+    if(useArt()){ctx.globalAlpha=.7;drawObj({type:P.type,x:P.x,y:P.y,id:G.uid+1,flip:P.flip});ctx.globalAlpha=1}}
   // sorted drawables
   const D=[];
   for(const r of G.rooms){const RT=ROOM_TYPES[r.type],wc=shade(RT.color,-.1),dr=r.door;
@@ -1146,17 +1147,17 @@ function pickSize(v){const P=G.place;if(!P)return;P.rect=null;P.cells=null;P.hov
 $('pSizes').addEventListener('click',e=>{const b=e.target.closest('button');if(b)pickSize(b.dataset.size)});
 $('pSize').onclick=()=>{const P=G.place;if(P){P.mode=null;P.rect=null;P.cells=null;P.hover=null;P.door=null;P.msg='Pick a size';updatePlaceBar()}};
 function commitPlace(){const P=G.place;if(P.kind==='room'){buildRoom(P.type,P.cells,P.door);G.place=null}
-  else{buildObj(P.type,P.x,P.y);P.x=null;P.msg='Placed. Tap to place another'}updatePlaceBar()}
+  else{buildObj(P.type,P.x,P.y,P.flip);P.x=null;P.msg='Placed. Tap to place another'}updatePlaceBar()}
 function updatePlaceBar(){const P=G&&G.place;$('placeBar').classList.toggle('hidden',!P);if(!P)return;
   const name=P.kind==='room'?ROOM_TYPES[P.type].name:OBJ_TYPES[P.type].name;
   $('pSizes').classList.toggle('hidden',!(P.kind==='room'&&!P.mode));$('pSize').classList.toggle('hidden',!(P.kind==='room'&&P.mode));
   if(P.kind==='room'&&!P.mode){const mn=minSize(P.type);$('pSizes').innerHTML=[3,4].map(n=>`<button data-size="${n}" ${n<mn?'disabled':''}>${n}×${n} · ${money(roomCost(P.type,rectCells({x:0,y:0,w:Math.max(n,mn),h:Math.max(n,mn)})))}</button>`).join('')+'<button class="draw" data-size="draw">Draw my own</button>';
     $('pMsg').textContent=`${name}: pick a size`;$('pRot').classList.add('hidden');$('pOk').classList.add('hidden');return}
   $('pOk').classList.remove('hidden');
-  if(P.kind==='room'){$('pMsg').textContent=P.cells?(P.msg||`${name} ${sizeLabel(P.cells)}: ${money(roomCost(P.type,P.cells))}. Tap a wall to move the door.`):`${name}: ${P.msg}`;
+  if(P.kind==='room'){$('pRot').textContent='Move door';$('pMsg').textContent=P.cells?(P.msg||`${name} ${sizeLabel(P.cells)}: ${money(roomCost(P.type,P.cells))}. Tap a wall to move the door.`):`${name}: ${P.msg}`;
     $('pRot').classList.toggle('hidden',!P.cells);$('pOk').disabled=!P.cells||!!P.msg;return}
-  $('pMsg').textContent=P.x==null?name+': '+P.msg:(P.msg||name+': tap again or press Place');$('pRot').classList.add('hidden');$('pOk').disabled=P.x==null||!!P.msg}
-$('pRot').onclick=()=>{const P=G.place;if(!P||!P.cells)return;const ds=edgeDoors(P.cells);if(!ds.length)return;const i=ds.findIndex(d=>sameDoor(d,P.door));P.door=ds[(i+1)%ds.length];validatePlace()};
+  $('pMsg').textContent=P.x==null?name+': '+P.msg:(P.msg||name+': tap again or press Place');$('pRot').textContent='Rotate';$('pRot').classList.remove('hidden');$('pOk').disabled=P.x==null||!!P.msg}
+$('pRot').onclick=()=>{const P=G.place;if(P&&P.kind==='obj'){P.flip=!P.flip;return}if(!P||!P.cells)return;const ds=edgeDoors(P.cells);if(!ds.length)return;const i=ds.findIndex(d=>sameDoor(d,P.door));P.door=ds[(i+1)%ds.length];validatePlace()};
 $('pOk').onclick=()=>{const P=G.place;if(P&&!P.msg&&(P.kind==='room'?P.cells:P.x!=null))commitPlace()};
 $('pNo').onclick=()=>{G.place=null;updatePlaceBar()};
 addEventListener('keydown',e=>{if(!G)return;if(e.key===' '){setSpeed(speed?0:1);e.preventDefault()}if(e.key==='r'&&G.place)$('pRot').click();if(e.key==='Escape'){G.place=null;updatePlaceBar();select(null);closePanel()}});
@@ -1191,7 +1192,7 @@ function renderInfo(){
     ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}${RT.crew===2?' & '+(o.staff2?o.staff2.name:'nobody'):''}</b></div>`:''}${RT.need?`<div style="margin:2px 0 6px"><span class="badge" style="background:${BADGES[RT.need].color}">Needs ${RT.crew===2?'2 × ':''}${BADGES[RT.need].name}</span></div>`:''}<div class="row"><span>Size</span><b>${sizeLabel(o.cells)}${RT.cap?` · ${cap(o)} ${o.type==='ward'?'beds':'stalls'}`:''}${o.type==='training'?` · ${o.lay.slots.length} desks`:''}${o.type==='staffroom'?` · naps ${resters(o)}/${restCap(o)}`:''}</b></div>${RT.dur?`<div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}${['cabinet','plant','extinguisher','radiator'].filter(k=>itemsIn(o,k)).map(k=>`<div class="row"><span>${OBJ_TYPES[k].name}s</span><b>${itemsIn(o,k)}</b></div>`).join('')}${o.type==='staffroom'?`<div class="row"><span>Rest speed</span><b>${Math.round(restBonus(o)*100)}%</b></div>`:''}
     ${RT.machine?`<div class="row"><span>Condition</span><b>${Math.round(o.cond)}%</b></div>${bar(o.cond,o.cond<30?'#ff4f5e':'#2bd67b')}`:''}
     <div class="btns"><button class="btn red" data-act="sell">Sell (+${money((o.cost||RT.cost)/2)})</button><button class="btn ghost" data-act="close">Close</button></div>`}
-  else{const OT=OBJ_TYPES[o.type];h=`<h3>${OT.name}</h3><div class="sub">${OT.desc}</div><div class="btns"><button class="btn red" data-act="sellobj">Sell</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  else{const OT=OBJ_TYPES[o.type];h=`<h3>${OT.name}</h3><div class="sub">${OT.desc}</div><div class="btns"><button class="btn" data-act="rotate">Rotate</button><button class="btn red" data-act="sellobj">Sell</button><button class="btn ghost" data-act="close">Close</button></div>`}
   el.innerHTML=h;
 }
 $('info').addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return;const o=selected;
@@ -1200,6 +1201,7 @@ $('info').addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return
   if(a.startsWith('train:')||a==='teach'){if(busy){toast('Busy with a patient, try in a moment');return}if(a==='teach')sendTrain(o,'',true);else sendTrain(o,a.slice(6))}
   if(a==='work'){o.trainRoom=null;o.state='idle'}
   if(a==='rest'){if(busy)toast('Busy with a patient, try in a moment');else{unassign(o);goRest(o)}}
+  if(a==='rotate'){o.flip=!o.flip;return}
   if(a==='sell')sellRoom(o);if(a==='sellobj')sellObj(o);select(null)});
 
 // =================== bottom panels ===================
