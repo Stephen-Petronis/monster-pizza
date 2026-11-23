@@ -165,7 +165,7 @@ const LEVELS=[
   {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:.9,goals:{cash:16000,rep:50,cured:15},f:{},
    diseases:['tummy','echo'],rooms:['gp','pharmacy','staffroom'],items:['bench','drinks','plant'],events:[],
    blurb:'A little clinic on the corner where monsters and humans live side by side.',
-   intro:['Pick a room, then a size: <b>3×3</b>, <b>4×4</b> or <b>Draw my own</b>. Tap or drag on the floor, tap a wall to move the door, and press Place. Bigger rooms cost a bit more.','Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Tap <b>Staff</b> to see who is applying. Juniors are cheap but slow, Consultants are quick and clever but pricey. Hire a Receptionist, a Doctor, a Nurse and a Janitor to start.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
+   intro:['Pick a room, then a size: <b>3×3</b>, <b>4×4</b> or <b>Draw my own</b>. Tap the floor to drop it, then drag it around to line it up (it scrolls when you reach the edge). Tap a wall to move the door, and press Place. Bigger rooms cost a bit more.','Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Tap <b>Staff</b> to see who is applying. Juniors are cheap but slow, Consultants are quick and clever but pricey. Hire a Receptionist, a Doctor, a Nurse and a Janitor to start.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
   {name:'Puddle Lane Hospital',W:13,H:11,holes:[[4,4,1,1],[8,4,1,1]],cash:13000,spawn:1.05,goals:{cash:22000,rep:55,cured:30},f:{bladder:1,trash:1},
    diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','plant'],events:['emergency'],
    blurb:'A busier street, with busier tummies.',
@@ -1106,7 +1106,11 @@ function screenToWorld(cx,cy){const r=cv.getBoundingClientRect();return {x:(cx-r
 function worldToTile(w){const a=w.x/(CONFIG.TW/2),b=w.y/(CONFIG.TH/2);return {x:(a+b)/2,y:(b-a)/2}}
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===1){drag={sx:e.clientX,sy:e.clientY,cx:cam.x,cy:cam.y,moved:false};
-    if(G&&G.place&&G.place.kind==='room'&&G.place.mode==='draw'){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));drag.build={x:Math.floor(tp.x),y:Math.floor(tp.y),prev:G.place.rect,prevCells:G.place.cells}}}
+    if(G&&G.place){const P=G.place,tp=worldToTile(screenToWorld(e.clientX,e.clientY)),tx=Math.floor(tp.x),ty=Math.floor(tp.y);
+      // grabbing the ghost drags it around; anywhere else draws (draw mode) or pans
+      const onGhost=P.kind==='room'?!!(P.cells&&cellSet(P.cells).has(ck(tx,ty))):(P.x===tx&&P.y===ty);
+      if(onGhost)drag.move={tx,ty,rect:P.rect&&{...P.rect},door:P.door&&{...P.door},anchor:P.anchor&&{...P.anchor},ox:P.x,oy:P.y};
+      else if(P.kind==='room'&&P.mode==='draw')drag.build={x:tx,y:ty,prev:P.rect,prevCells:P.cells}}}
   else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};
     if(drag&&drag.build&&G.place){G.place.rect=drag.build.prev;G.place.cells=drag.build.prevCells;validatePlace()}drag=null}});
 cv.addEventListener('pointermove',e=>{
@@ -1114,12 +1118,25 @@ cv.addEventListener('pointermove',e=>{
     if(G.place.kind==='room'){if(!G.place.cells&&G.place.mode){const m=G.place.size||minSize(G.place.type);G.place.hover={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m}}}else setGhost(tp)}return}
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];cam.z=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.35,3);return}
-  if(drag){const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.hypot(dx,dy)>8)drag.moved=true;if(!drag.moved)return;
-    if(drag.build){const tp=worldToTile(screenToWorld(e.clientX,e.clientY)),b=drag.build,x2=Math.floor(tp.x),y2=Math.floor(tp.y),P=G.place;
-      P.rect={x:Math.min(b.x,x2),y:Math.min(b.y,y2),w:Math.abs(x2-b.x)+1,h:Math.abs(y2-b.y)+1};P.hover=null;setCells(P,b.x,b.y)}
+  if(drag){const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;drag.px=e.clientX;drag.py=e.clientY;if(Math.hypot(dx,dy)>8)drag.moved=true;if(!drag.moved)return;
+    if(drag.build||drag.move)dragPlaceAt(e.clientX,e.clientY);
     else{cam.x=drag.cx-dx/cam.z;cam.y=drag.cy-dy/cam.z}}});
+function dragPlaceAt(cx,cy){const P=G&&G.place;if(!P||!drag)return;const tp=worldToTile(screenToWorld(cx,cy)),x2=Math.floor(tp.x),y2=Math.floor(tp.y);
+  if(drag.build){const b=drag.build;P.rect={x:Math.min(b.x,x2),y:Math.min(b.y,y2),w:Math.abs(x2-b.x)+1,h:Math.abs(y2-b.y)+1};P.hover=null;setCells(P,b.x,b.y);return}
+  const m=drag.move;
+  if(P.kind==='obj'){const nx=clamp(m.ox+x2-m.tx,0,G.W-1),ny=clamp(m.oy+y2-m.ty,0,G.H-1);if(nx!==P.x||ny!==P.y)setGhost({x:nx+.5,y:ny+.5});return}
+  const R=m.rect,dx=clamp(x2-m.tx,-R.x,G.W-R.x-R.w),dy=clamp(y2-m.ty,-R.y,G.H-R.y-R.h);
+  if(P.rect&&P.rect.x===R.x+dx&&P.rect.y===R.y+dy)return;
+  P.rect={x:R.x+dx,y:R.y+dy,w:R.w,h:R.h};
+  if(m.door)P.door={...m.door,ix:m.door.ix+dx,iy:m.door.iy+dy,ox:m.door.ox+dx,oy:m.door.oy+dy};
+  const a=m.anchor||{x:R.x,y:R.y};setCells(P,a.x+dx,a.y+dy)}
+// while dragging a room or item near the screen edge, scroll the view along with it
+function edgePan(dt){if(!drag||!drag.moved||!(drag.move||drag.build)||drag.px==null)return;const r=cv.getBoundingClientRect(),M=56;
+  const vx=drag.px<r.left+M?-(1-(drag.px-r.left)/M):drag.px>r.right-M?1-(r.right-drag.px)/M:0;
+  const vy=drag.py<r.top+M?-(1-(drag.py-r.top)/M):drag.py>r.bottom-M?1-(r.bottom-drag.py)/M:0;
+  if(!vx&&!vy)return;cam.x+=clamp(vx,-1,1)*520*dt/cam.z;cam.y+=clamp(vy,-1,1)*520*dt/cam.z;dragPlaceAt(drag.px,drag.py)}
 // prefab sizes need the whole square free; draw-your-own wraps around whatever is in the way
-function setCells(P,sx,sy){P.cells=P.mode==='draw'?fitCells(P.rect,sx,sy):rectCells(P.rect);
+function setCells(P,sx,sy){P.anchor={x:sx,y:sy};P.cells=P.mode==='draw'?fitCells(P.rect,sx,sy):rectCells(P.rect);
   if(!P.door||!edgeDoors(P.cells).some(d=>sameDoor(d,P.door)))P.door=bestDoor(P.cells);validatePlace()}
 function validatePlace(){const P=G.place;if(P.kind==='room')P.msg=P.cells?validateRoom(P.type,P.cells,P.door):P.mode==='prefab'?'Tap the floor to place it':'Drag on the floor to draw the room';updatePlaceBar()}
 function endPtr(e){if(drag&&!drag.moved&&ptrs.size===1)tap(e.clientX,e.clientY);ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(ptrs.size===0)drag=null}
@@ -1286,7 +1303,7 @@ function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('plac
 
 // =================== loop ===================
 let last=performance.now(),hudT=0;
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;animT+=dt;
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;animT+=dt;edgePan(dt);
   if(G&&!G.over&&speed>0)for(let i=0;i<speed;i++)update(dt);
   if(annT>0)annT-=dt;else if(annQ.length)showNextAnnouncement();
   if(toastT>0&&(toastT-=dt)<=0)$('toast').classList.add('hidden');
