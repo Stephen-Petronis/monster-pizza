@@ -28,9 +28,10 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 #stage{position:relative;flex:1}
 #cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #eventBar{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:6px 14px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:0 4px 0 #a3202c;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
-#placeBar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:var(--paper);padding:6px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:96%}
+#placeBar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center;width:max-content;background:var(--paper);padding:6px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:96%}
 #placeBar button{height:44px;padding:0 14px;font-weight:600;background:#e8efe9}
-#placeBar #pOk{background:#2bb673;color:#fff}#placeBar #pNo{background:var(--red);color:#fff}
+#placeBar #pOk{background:#2bb673;color:#fff}#pSizes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#pSizes button{background:var(--chrome);color:#fff}#pSizes button.draw{background:#ffd166;color:var(--ink)}#pSizes button:disabled{opacity:.45}
+.stick{position:sticky;top:-12px;background:var(--paper);z-index:2;margin:-12px -12px 0;padding:12px 12px 4px;border-radius:18px 18px 0 0}#placeBar #pNo{background:var(--red);color:#fff}
 #pMsg{font-size:13px;padding:0 6px;max-width:180px}
 #info{position:absolute;right:8px;top:8px;width:min(300px,92vw);background:var(--paper);border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:14px}
 #info h3{margin:0 0 2px;font-size:18px}#info .sub{opacity:.7;margin-bottom:8px}
@@ -88,7 +89,7 @@ input[type=range]{width:100%;height:32px;accent-color:var(--chrome)}
     <div id="toast" class="hidden"></div>
     <div id="info" class="hidden"></div>
     <div id="panel" class="hidden"></div>
-    <div id="placeBar" class="hidden"><button id="pRot">Turn door</button><span id="pMsg"></span><button id="pOk">Place</button><button id="pNo">&#10005;</button></div>
+    <div id="placeBar" class="hidden"><span id="pSizes"></span><button id="pSize">Change size</button><button id="pRot">Turn door</button><span id="pMsg"></span><button id="pOk">Place</button><button id="pNo">&#10005;</button></div>
   </div>
   <div id="toolbar">
     <button data-tab="rooms">Rooms</button><button data-tab="items">Items</button><button data-tab="staff">Staff</button><button data-tab="hosp">Hospital</button>
@@ -162,7 +163,7 @@ const LEVELS=[
   {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:.9,goals:{cash:16000,rep:50,cured:15},f:{},
    diseases:['tummy','echo'],rooms:['gp','pharmacy','staffroom'],items:['bench','drinks','plant'],events:[],
    blurb:'A little clinic on the corner where monsters and humans live side by side.',
-   intro:['<b>Drag on the floor</b> to draw a room (most need at least 3×3), then tap a wall to move the door and press Place. Bigger rooms cost a bit more.','Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Tap <b>Staff</b> to see who is applying. Juniors are cheap but slow, Consultants are quick and clever but pricey. Hire a Receptionist, a Doctor, a Nurse and a Janitor to start.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
+   intro:['Pick a room, then a size: <b>3×3</b>, <b>4×4</b> or <b>Draw my own</b>. Tap or drag on the floor, tap a wall to move the door, and press Place. Bigger rooms cost a bit more.','Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Tap <b>Staff</b> to see who is applying. Juniors are cheap but slow, Consultants are quick and clever but pricey. Hire a Receptionist, a Doctor, a Nurse and a Janitor to start.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
   {name:'Puddle Lane Hospital',W:13,H:11,holes:[[4,4,1,1],[8,4,1,1]],cash:13000,spawn:1.05,goals:{cash:22000,rep:55,cured:30},f:{bladder:1,trash:1},
    diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','plant'],events:['emergency'],
    blurb:'A busier street, with busier tummies.',
@@ -1020,12 +1021,12 @@ function screenToWorld(cx,cy){const r=cv.getBoundingClientRect();return {x:(cx-r
 function worldToTile(w){const a=w.x/(CONFIG.TW/2),b=w.y/(CONFIG.TH/2);return {x:(a+b)/2,y:(b-a)/2}}
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===1){drag={sx:e.clientX,sy:e.clientY,cx:cam.x,cy:cam.y,moved:false};
-    if(G&&G.place&&G.place.kind==='room'){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));drag.build={x:Math.floor(tp.x),y:Math.floor(tp.y),prev:G.place.rect}}}
+    if(G&&G.place&&G.place.kind==='room'&&G.place.mode==='draw'){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));drag.build={x:Math.floor(tp.x),y:Math.floor(tp.y),prev:G.place.rect}}}
   else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};
     if(drag&&drag.build&&G.place){G.place.rect=drag.build.prev;validatePlace()}drag=null}});
 cv.addEventListener('pointermove',e=>{
   if(!ptrs.has(e.pointerId)){if(e.pointerType==='mouse'&&G&&G.place){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));
-    if(G.place.kind==='room'){if(!G.place.rect){const m=minSize(G.place.type);G.place.hover={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m}}}else setGhost(tp)}return}
+    if(G.place.kind==='room'){if(!G.place.rect&&G.place.mode){const m=G.place.size||minSize(G.place.type);G.place.hover={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m}}}else setGhost(tp)}return}
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];cam.z=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.35,3);return}
   if(drag){const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.hypot(dx,dy)>8)drag.moved=true;if(!drag.moved)return;
@@ -1034,16 +1035,16 @@ cv.addEventListener('pointermove',e=>{
       if(!P.door||!onWall(P.rect,P.door))P.door=bestDoor(P.rect);else P.door=doorAt(P.rect,P.door.ix+.5+DIRS[P.door.side][0]*.49,P.door.iy+.5+DIRS[P.door.side][1]*.49)||bestDoor(P.rect);validatePlace()}
     else{cam.x=drag.cx-dx/cam.z;cam.y=drag.cy-dy/cam.z}}});
 function onWall(R,d){return inRect(R,d.ix,d.iy)&&((d.side==='N'&&d.iy===R.y)||(d.side==='S'&&d.iy===R.y+R.h-1)||(d.side==='W'&&d.ix===R.x)||(d.side==='E'&&d.ix===R.x+R.w-1))}
-function validatePlace(){const P=G.place;if(P.kind==='room')P.msg=P.rect?validateRoom(P.type,P.rect,P.door):'Drag on the floor to draw the room';updatePlaceBar()}
+function validatePlace(){const P=G.place;if(P.kind==='room')P.msg=P.rect?validateRoom(P.type,P.rect,P.door):P.mode==='prefab'?'Tap the floor to place it':'Drag on the floor to draw the room';updatePlaceBar()}
 function endPtr(e){if(drag&&!drag.moved&&ptrs.size===1)tap(e.clientX,e.clientY);ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(ptrs.size===0)drag=null}
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);drag=null;pinch=null});
 cv.addEventListener('wheel',e=>{e.preventDefault();cam.z=clamp(cam.z*(e.deltaY<0?1.1:.9),.35,3)},{passive:false});
 function setGhost(tp){const P=G.place;{P.x=Math.floor(tp.x);P.y=Math.floor(tp.y);P.msg=validateObj(P.type,P.x,P.y)}updatePlaceBar()}
 function tap(cx,cy){
   if(!G||G.over)return;const w=screenToWorld(cx,cy),tp=worldToTile(w);
-  if(G.place&&G.place.kind==='room'){const P=G.place,d=P.rect&&doorAt(P.rect,tp.x,tp.y);
+  if(G.place&&G.place.kind==='room'){const P=G.place;if(!P.mode)return;const d=P.rect&&doorAt(P.rect,tp.x,tp.y);
     if(d&&!(inRect(P.rect,Math.floor(tp.x),Math.floor(tp.y))&&!onWall(P.rect,{...d}))){P.door=d}
-    else if(!P.rect||!inRect(P.rect,Math.floor(tp.x),Math.floor(tp.y))){const m=minSize(P.type);P.rect={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m};P.hover=null;P.door=bestDoor(P.rect)}
+    else if(!P.rect||!inRect(P.rect,Math.floor(tp.x),Math.floor(tp.y))){const m=P.size||minSize(P.type);P.rect={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m};P.hover=null;P.door=bestDoor(P.rect)}
     validatePlace();return}
   if(G.place){const P=G.place,ox=P.x,oy=P.y;setGhost(tp);if(P.x===ox&&P.y===oy&&!P.msg)commitPlace();return}
   const hit=(list,r)=>{let best=null,bd=r;for(const a of list){if(a.state==='dead')continue;const c=iso(a.x,a.y),d=Math.hypot(c.x-w.x,c.y-14-w.y);if(d<bd){bd=d;best=a}}return best};
@@ -1054,11 +1055,19 @@ function tap(cx,cy){
   const t=T(Math.floor(tp.x),Math.floor(tp.y));
   if(t&&t.room){select(t.room);return}if(t&&t.obj&&t.obj.type!=='desk'){select(t.obj);return}select(null);
 }
-function startPlace(kind,type){closePanel();select(null);G.place={kind,type,x:null,y:null,rect:null,door:null,msg:kind==='room'?'Drag on the floor to draw the room':'Tap the floor to position'};updatePlaceBar()}
+function startPlace(kind,type){closePanel();select(null);G.place={kind,type,mode:null,size:0,x:null,y:null,rect:null,door:null,msg:kind==='room'?'Pick a size':'Tap the floor to position'};updatePlaceBar()}
+function pickSize(v){const P=G.place;if(!P)return;P.rect=null;P.hover=null;P.door=null;if(v==='draw'){P.mode='draw';P.size=0;P.msg='Drag on the floor to draw the room'}
+  else{P.mode='prefab';P.size=+v;P.msg='Tap the floor to place it'}updatePlaceBar()}
+$('pSizes').addEventListener('click',e=>{const b=e.target.closest('button');if(b)pickSize(b.dataset.size)});
+$('pSize').onclick=()=>{const P=G.place;if(P){P.mode=null;P.rect=null;P.hover=null;P.door=null;P.msg='Pick a size';updatePlaceBar()}};
 function commitPlace(){const P=G.place;if(P.kind==='room'){buildRoom(P.type,P.rect,P.door);G.place=null}
   else{buildObj(P.type,P.x,P.y);P.x=null;P.msg='Placed. Tap to place another'}updatePlaceBar()}
 function updatePlaceBar(){const P=G&&G.place;$('placeBar').classList.toggle('hidden',!P);if(!P)return;
   const name=P.kind==='room'?ROOM_TYPES[P.type].name:OBJ_TYPES[P.type].name;
+  $('pSizes').classList.toggle('hidden',!(P.kind==='room'&&!P.mode));$('pSize').classList.toggle('hidden',!(P.kind==='room'&&P.mode));
+  if(P.kind==='room'&&!P.mode){const mn=minSize(P.type);$('pSizes').innerHTML=[3,4].map(n=>`<button data-size="${n}" ${n<mn?'disabled':''}>${n}×${n} · ${money(roomCost(P.type,{w:Math.max(n,mn),h:Math.max(n,mn)}))}</button>`).join('')+'<button class="draw" data-size="draw">Draw my own</button>';
+    $('pMsg').textContent=`${name}: pick a size`;$('pRot').classList.add('hidden');$('pOk').classList.add('hidden');return}
+  $('pOk').classList.remove('hidden');
   if(P.kind==='room'){$('pMsg').textContent=P.rect?(P.msg||`${name} ${P.rect.w}×${P.rect.h}: ${money(roomCost(P.type,P.rect))}. Tap a wall to move the door.`):`${name}: ${P.msg}`;
     $('pRot').classList.toggle('hidden',!P.rect);$('pOk').disabled=!P.rect||!!P.msg;return}
   $('pMsg').textContent=P.x==null?name+': '+P.msg:(P.msg||name+': tap again or press Place');$('pRot').classList.add('hidden');$('pOk').disabled=P.x==null||!!P.msg}
@@ -1120,8 +1129,8 @@ function renderPanel(){
   if(tab==='items')h='<h4>Buy items</h4><div class="grid">'+Object.entries(OBJ_TYPES).filter(([k,O])=>!O.hidden&&(G.L.items||[]).includes(k)).map(([k,O])=>
     `<button class="card" data-obj="${k}" ${G.cash<O.cost?'disabled':''}><b>${O.name}</b><span class="price">${money(O.cost)}</span><small>${O.desc}</small></button>`).join('')+'</div>';
   if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length,role=G.hireRole||'doctor';
-    h=`<h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
-    <div class="chips">${Object.entries(STAFF_TYPES).map(([k,S])=>`<button class="chip ${k===role?'on':''}" data-hrole="${k}">${S.name}s (${cnt(k)})</button>`).join('')}<button class="chip" data-newapps>New applicants ($150)</button></div>
+    h=`<div class="stick"><h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
+    <div class="chips">${Object.entries(STAFF_TYPES).map(([k,S])=>`<button class="chip ${k===role?'on':''}" data-hrole="${k}">${S.name}s (${cnt(k)})</button>`).join('')}<button class="chip" data-newapps>New applicants ($150)</button></div></div>
     <div class="grid">${G.cands[role].map((c,i)=>`<div class="card cand"><b>${c.name}</b><div>${rankHTML(c)} ${badgeHTML(c)}</div>${pipsHTML('Stamina',c.stamina)}${pipsHTML('Focus',c.focus)}
       <span class="price">${money(salary(c))}/month</span><div class="blurb">${c.blurb}</div><button class="btn" data-hirec="${i}">Hire (${money(Math.round(salary(c)*.5))} fee)</button></div>`).join('')}</div>
     <small>Juniors are cheap and learn fast but are slow and make mistakes. Consultants are quick and clever, and can teach. Stamina: how long before they need a nap. Focus: high works faster in busy rooms, low walks faster.</small>`;}
@@ -1135,13 +1144,15 @@ function renderPanel(){
     ${hasLab?`<h4 style="margin-top:12px">Mad Lab research</h4>${pr?`<div class="goal"><span>${pr.name}: ${pr.desc}</span><b>${Math.floor(G.rp/pr.cost*100)}%</b></div>`:'<div class="goal done"><span>Everything invented!</span></div>'}
     ${RESEARCH.slice(0,G.resI).map(r=>`<div class="goal done"><span>${r.name}</span><b>Done</b></div>`).join('')}${G.rooms.some(r=>r.type==='research')?'':'<small>Build a Mad Lab and give it a Doctor to start inventing.</small>'}`:''}
     <div class="goal"><span>Monthly salaries</span><b>${money(sal)}</b></div><div class="goal"><span>Last month in / out</span><b>${money(G.lastMonth.in)} / ${money(G.lastMonth.out)}</b></div>
-    <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="btns"><button class="btn ghost" data-menu>Quit to menu</button></div>`}
+    <div class="goal"><span>Fainted / stormed out</span><b>${G.died} / ${G.sentHome}</b></div><div class="btns"><button class="btn red" data-quit>Quit to menu</button></div>`}
   el.innerHTML=h;
   const pr=$('price'),ht=$('heat');if(pr)pr.oninput=()=>{G.price=pr.value/100;el.querySelector('label[for=price]').textContent=`Treatment prices: ${pr.value}%`};
   if(ht)ht.oninput=()=>{G.heat=+ht.value;renderPanel()};
 }
 $('panel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.room)startPlace('room',b.dataset.room);if(b.dataset.obj)startPlace('obj',b.dataset.obj);
+  if(b.dataset.quit!=null){G.prevSpeed=speed||1;setSpeed(0);showModal(`<h2>Quit to menu?</h2><p>You will lose everything at ${G.L.name}: rooms, staff and money. Unlocked hospitals stay unlocked.</p>
+    <div class="btns"><button class="btn ghost" data-resume>Keep playing</button><button class="btn red" data-menu>Yes, quit</button></div>`)}
   if(b.dataset.hrole){G.hireRole=b.dataset.hrole;renderPanel()}
   if(b.dataset.newapps!=null){if(G.cash<150)toast('Not enough cash');else{spend(150);refreshCandidates(G.hireRole||'doctor');renderPanel()}}
   if(b.dataset.hirec!=null){const role=G.hireRole||'doctor',i=+b.dataset.hirec;if(hireCandidate(G.cands[role][i])){G.cands[role][i]=makeCandidate(role);renderPanel()}}});
@@ -1169,14 +1180,14 @@ function showModal(h){$('modal').innerHTML=`<div class="mbox">${h}</div>`;$('mod
 function hideModal(){$('modal').classList.add('hidden')}
 $('modal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(er){}
-  if(b.dataset.go!=null){hideModal();setSpeed(1);newGame(+b.dataset.go)}if(b.dataset.start!=null){hideModal();setSpeed(1)}if(b.dataset.menu!=null)menu()});
+  if(b.dataset.go!=null){hideModal();setSpeed(1);newGame(+b.dataset.go)}if(b.dataset.start!=null){hideModal();setSpeed(1)}if(b.dataset.resume!=null){hideModal();setSpeed(G&&G.prevSpeed||1)}if(b.dataset.menu!=null)menu()});
 document.addEventListener('click',e=>{if(e.target.closest('[data-menu]')&&!e.target.closest('#modal'))menu()});
 function menu(){G=null;selected=null;tab=null;renderPanel();renderInfo();$('placeBar').classList.add('hidden');$('eventBar').classList.add('hidden');const un=store.unlocked||1;
   showModal(`<h1>Monster <span>General</span></h1><p style="margin:6px 0 14px;opacity:.8">The hospital where monsters and humans get better together. Mostly.</p>
   ${LEVELS.map((L,i)=>`<button class="lvl" data-go="${i}" ${i>=un?'disabled':''}><span><b>${i+1}. ${L.name}</b><small>${i>=un?'Locked — finish the previous hospital':L.blurb}</small></span><span>${i>=un?'Locked':'Play'}</span></button>`).join('')}
   <details style="margin-top:10px"><summary style="font-weight:600;cursor:pointer;min-height:32px">How to run a hospital</summary><ul>
   <li>Patients go: front desk → Check-Up Room (diagnosis) → treatment room → pay up → home.</li>
-  <li>Build rooms from <b>Rooms</b>: drag on the floor to draw one, tap a wall to put the door there, then press Place.</li>
+  <li>Build rooms from <b>Rooms</b>: pick 3×3, 4×4 or Draw my own, tap or drag on the floor, tap a wall to put the door there, then press Place.</li>
   <li>Hire a Receptionist, Doctors, Nurses and a Janitor from <b>Staff</b>. Staff walk to rooms that need them.</li>
   <li>Tired staff misdiagnose. A Staff Room fixes that. Messy floors bring dust bunnies — tap them to shoo them away.</li>
   <li>Each new hospital adds a couple of new rooms or problems, and explains them when you arrive.</li>
