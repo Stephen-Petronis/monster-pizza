@@ -91,7 +91,7 @@ input[type=range]{width:100%;height:32px;accent-color:var(--chrome)}
     <div id="toast" class="hidden"></div>
     <div id="info" class="hidden"></div>
     <div id="panel" class="hidden"></div>
-    <div id="placeBar" class="hidden"><span id="pSizes"></span><button id="pSize">Change size</button><button id="pRot">Turn door</button><span id="pMsg"></span><button id="pOk">Place</button><button id="pNo">&#10005;</button></div>
+    <div id="placeBar" class="hidden"><span id="pSizes"></span><button id="pSize">Change size</button><button id="pRot">Move door</button><span id="pMsg"></span><button id="pOk">Place</button><button id="pNo">&#10005;</button></div>
   </div>
   <div id="toolbar">
     <button data-tab="rooms">Rooms</button><button data-tab="items">Items</button><button data-tab="staff">Staff</button><button data-tab="hosp">Hospital</button>
@@ -169,7 +169,7 @@ const LEVELS=[
   {name:'Puddle Lane Hospital',W:13,H:11,holes:[[4,4,1,1],[8,4,1,1]],cash:13000,spawn:1.05,goals:{cash:22000,rep:55,cured:30},f:{bladder:1,trash:1},
    diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','plant'],events:['emergency'],
    blurb:'A busier street, with busier tummies.',
-   intro:['This building has <b>pillars</b>. Plan your rooms around them! A bigger <b>Toilets</b> room fits more stalls.','<b>Scare School</b> helps monsters who have Lost Their Scary. It only works with a Doctor who has the <b>Scare Expert</b> badge. Look for one in the applicants.','Patients need the loo now, and juice makes it worse. Build <b>Toilets</b> or there will be puddles.','<b>Bins</b> stop patients dropping wrappers and cans on the floor.','<b>Emergencies:</b> sometimes a helicopter drops off several sick patients at once. Cure them all for a bonus.']},
+   intro:['This building has <b>pillars</b>. With <b>Draw my own</b>, rooms wrap around pillars and other rooms, so they don\'t have to be square. A bigger <b>Toilets</b> room fits more stalls.','<b>Scare School</b> helps monsters who have Lost Their Scary. It only works with a Doctor who has the <b>Scare Expert</b> badge. Look for one in the applicants.','Patients need the loo now, and juice makes it worse. Build <b>Toilets</b> or there will be puddles.','<b>Bins</b> stop patients dropping wrappers and cans on the floor.','<b>Emergencies:</b> sometimes a helicopter drops off several sick patients at once. Cure them all for a bonus.']},
   {name:'Snowmonster Valley Hospital',W:14,H:12,holes:[[10,0,4,3],[5,5,1,1],[9,6,1,1]],cash:15000,spawn:1.2,goals:{cash:30000,rep:58,cured:45},f:{bladder:1,trash:1,temp:1},
    diseases:['tummy','echo','scary','humanitis'],rooms:['gp','scanner','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','radiator','plant','sofa','tv','cabinet'],events:['emergency'],
    blurb:'It is snowing. Everyone is cold, and some cases are tricky.',
@@ -325,40 +325,65 @@ const reachable=(f,x,y)=>f[y*G.W+x]<1e9;
 
 // =================== rooms & objects ===================
 const minSize=type=>ROOM_TYPES[type].min||3;
-const roomCost=(type,R)=>ROOM_TYPES[type].cost+CONFIG.tileCost*Math.max(0,R.w*R.h-minSize(type)**2);
+const ck=(x,y)=>x+','+y,OPP={N:'S',S:'N',E:'W',W:'E'};
+const roomCost=(type,cells)=>ROOM_TYPES[type].cost+CONFIG.tileCost*Math.max(0,cells.length-minSize(type)**2);
 const inRect=(R,x,y)=>x>=R.x&&y>=R.y&&x<R.x+R.w&&y<R.y+R.h;
+const rectCells=R=>{const c=[];for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++)c.push({x,y});return c};
+const cellSet=cells=>new Set(cells.map(c=>ck(c.x,c.y)));
+const freeCell=(x,y)=>{const t=T(x,y);return !!t&&!t.void&&!t.room&&!t.obj&&!t.res&&!isDoorOutside(x,y)};
+// Draw-your-own rooms take the free tiles inside the dragged box that join up with where you started,
+// so they wrap around pillars, items and other rooms instead of having to be square.
+function fitCells(R,sx,sy){
+  const ok=new Set(rectCells(R).filter(c=>freeCell(c.x,c.y)).map(c=>ck(c.x,c.y)));
+  let start=ok.has(ck(sx,sy))?{x:sx,y:sy}:null;
+  if(!start){let bd=1e9;for(const k of ok){const [x,y]=k.split(',').map(Number),d=Math.abs(x-sx)+Math.abs(y-sy);if(d<bd){bd=d;start={x,y}}}}
+  if(!start)return [];const seen=new Set([ck(start.x,start.y)]),out=[start];
+  for(let i=0;i<out.length;i++){const c=out[i];for(const [dx,dy] of NB){const k=ck(c.x+dx,c.y+dy);if(ok.has(k)&&!seen.has(k)){seen.add(k);out.push({x:c.x+dx,y:c.y+dy})}}}
+  return out;
+}
+function bbox(cells){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const c of cells){x0=Math.min(x0,c.x);y0=Math.min(y0,c.y);x1=Math.max(x1,c.x);y1=Math.max(y1,c.y)}return {x:x0,y:y0,w:x1-x0+1,h:y1-y0+1}}
+function hasSquare(set,cells,m){return cells.some(c=>{for(let y=0;y<m;y++)for(let x=0;x<m;x++)if(!set.has(ck(c.x+x,c.y+y)))return false;return true})}
+const isRect=cells=>{const B=bbox(cells);return cells.length===B.w*B.h};
+const sizeLabel=cells=>{const B=bbox(cells);return isRect(cells)?`${B.w}×${B.h}`:`${cells.length} tiles`};
 function doorFor(R,side){let ix,iy;const mx=R.x+Math.floor((R.w-1)/2),my=R.y+Math.floor((R.h-1)/2);
   if(side==='S'){ix=mx;iy=R.y+R.h-1}if(side==='N'){ix=mx;iy=R.y}if(side==='E'){ix=R.x+R.w-1;iy=my}if(side==='W'){ix=R.x;iy=my}
   const d=DIRS[side];return {ix,iy,ox:ix+d[0],oy:iy+d[1],side}}
+// every spot on the outside wall where a door could go
+function edgeDoors(cells){const set=cellSet(cells),out=[];
+  for(const c of cells)for(const sd of SIDES){const [dx,dy]=DIRS[sd],ox=c.x+dx,oy=c.y+dy;if(set.has(ck(ox,oy)))continue;const o=T(ox,oy);
+    if(o&&!o.room&&!blocks(o))out.push({ix:c.x,iy:c.y,ox,oy,side:sd})}
+  return out}
+// default door: the wall spot closest to the front desk
+function bestDoor(cells){const ds=edgeDoors(cells);if(!ds.length)return null;const s=G.recep.servSpot,m=d=>Math.abs(d.ox-s.x)+Math.abs(d.oy-s.y);
+  ds.sort((a,b)=>m(a)-m(b));return ds[0]}
+const sameDoor=(a,b)=>a&&b&&a.ix===b.ix&&a.iy===b.iy&&a.side===b.side;
 // door on the wall nearest a tapped point (tile coords with fractions)
-function doorAt(R,fx,fy){const tx=Math.floor(fx),ty=Math.floor(fy);
-  if(!inRect({x:R.x-1,y:R.y-1,w:R.w+2,h:R.h+2},tx,ty))return null;
-  const cx=clamp(tx,R.x,R.x+R.w-1),cy=clamp(ty,R.y,R.y+R.h-1),c=[];
-  if(cy===R.y)c.push(['N',fy-R.y]);if(cy===R.y+R.h-1)c.push(['S',R.y+R.h-fy]);if(cx===R.x)c.push(['W',fx-R.x]);if(cx===R.x+R.w-1)c.push(['E',R.x+R.w-fx]);
-  if(!c.length)return null;c.sort((a,b)=>a[1]-b[1]);const side=c[0][0],d=DIRS[side];
-  return {ix:cx,iy:cy,ox:cx+d[0],oy:cy+d[1],side}}
-function bestDoor(R){for(const sd of ['S','E','W','N']){const d=doorFor(R,sd),o=T(d.ox,d.oy);if(o&&!o.room&&!blocks(o)&&!o.void)return d}return doorFor(R,'S')}
-function roomTiles(r){const c=[];for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)if(!(x===r.door.ix&&y===r.door.iy))c.push({x,y});return c}
-// work out where furniture, staff and patients go inside a room of any size
+function doorAt(cells,fx,fy){const set=cellSet(cells),tx=Math.floor(fx),ty=Math.floor(fy),c=[],near={N:fy-ty,S:ty+1-fy,W:fx-tx,E:tx+1-fx};
+  if(set.has(ck(tx,ty))){for(const sd of SIDES){const [dx,dy]=DIRS[sd];if(!set.has(ck(tx+dx,ty+dy)))c.push({ix:tx,iy:ty,ox:tx+dx,oy:ty+dy,side:sd,d:near[sd]})}}
+  else for(const sd of SIDES){const [dx,dy]=DIRS[sd],ix=tx-dx,iy=ty-dy;if(set.has(ck(ix,iy)))c.push({ix,iy,ox:tx,oy:ty,side:sd,d:near[OPP[sd]]})}
+  if(!c.length)return null;c.sort((a,b)=>a.d-b.d);const {d,...door}=c[0];return door}
+function roomTiles(r){return r.cells.filter(c=>!(c.x===r.door.ix&&c.y===r.door.iy))}
+// work out where furniture, staff and patients go inside a room of any shape
 function layoutRoom(r){
-  const RT=ROOM_TYPES[r.type],d=r.door,dir=DIRS[d.side],md=(x,y)=>Math.abs(x-d.ix)+Math.abs(y-d.iy),same=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y;
-  const tiles=roomTiles(r),inside=(x,y)=>inRect(r,x,y)&&!(x===d.ix&&y===d.iy);
-  // back wall tile straight across from the door
-  let furn;if(d.side==='S')furn={x:d.ix,y:r.y};if(d.side==='N')furn={x:d.ix,y:r.y+r.h-1};if(d.side==='E')furn={x:r.x,y:d.iy};if(d.side==='W')furn={x:r.x+r.w-1,y:d.iy};
-  const pspot={x:furn.x+dir[0],y:furn.y+dir[1]},px=dir[1],py=-dir[0];
-  const side=k=>({x:furn.x+k*px,y:furn.y+k*py});
-  let staff=inside(side(-1).x,side(-1).y)?side(-1):side(1),staff2=same(staff,side(1))?side(-1):side(1);
-  if(!inside(staff2.x,staff2.y))staff2={x:pspot.x+px,y:pspot.y+py};
+  const d=r.door,set=cellSet(r.cells),has=(x,y)=>set.has(ck(x,y)),same=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y,isDoor=c=>c.x===d.ix&&c.y===d.iy;
+  const dist=new Map([[ck(d.ix,d.iy),0]]),q=[{x:d.ix,y:d.iy}];
+  for(let i=0;i<q.length;i++){const c=q[i],k=dist.get(ck(c.x,c.y));for(const [dx,dy] of NB){const n=ck(c.x+dx,c.y+dy);if(has(c.x+dx,c.y+dy)&&!dist.has(n)){dist.set(n,k+1);q.push({x:c.x+dx,y:c.y+dy})}}}
+  const D=c=>dist.get(ck(c.x,c.y))??99,tiles=roomTiles(r),nb=c=>NB.map(([dx,dy])=>({x:c.x+dx,y:c.y+dy})).filter(n=>has(n.x,n.y)&&!isDoor(n));
+  const furn=[...tiles].sort((a,b)=>(D(b)+nb(b).length*1.5)-(D(a)+nb(a).length*1.5))[0]||{x:d.ix,y:d.iy};
+  const pspot=nb(furn).sort((a,b)=>D(a)-D(b))[0]||furn;
+  const pool=[...nb(furn),...nb(pspot)].filter(c=>!same(c,furn)&&!same(c,pspot));
+  const staff=pool[0]||pspot,staff2=pool.find(c=>!same(c,staff))||staff;
   const L={furn,pspot,staff,staff2,slots:[],rest:tiles,teacher:null};
-  const edge=(x,y)=>x===r.x||y===r.y||x===r.x+r.w-1||y===r.y+r.h-1,par=(d.ix+d.iy+1)%2;
+  const edge=c=>NB.some(([dx,dy])=>!has(c.x+dx,c.y+dy)),par=(d.ix+d.iy+1)%2,n=r.cells.length;
   if(r.type==='ward'||r.type==='toilet'){
-    let c=tiles.filter(t=>edge(t.x,t.y)&&md(t.x,t.y)>1&&(t.x+t.y)%2===par).sort((a,b)=>md(b.x,b.y)-md(a.x,a.y));
-    L.slots=c.slice(0,Math.max(1,Math.floor(r.w*r.h/3)));
-    const mid=tiles.filter(t=>!L.slots.some(q=>same(q,t))).sort((a,b)=>Math.hypot(a.x-r.x-r.w/2+.5,a.y-r.y-r.h/2+.5)-Math.hypot(b.x-r.x-r.w/2+.5,b.y-r.y-r.h/2+.5));
+    L.slots=tiles.filter(c=>edge(c)&&D(c)>1&&(c.x+c.y)%2===par).sort((a,b)=>D(b)-D(a)).slice(0,Math.max(1,Math.floor(n/3)));
+    if(!L.slots.length)L.slots=[furn];
+    const B=bbox(r.cells),mx=B.x+B.w/2-.5,my=B.y+B.h/2-.5;
+    const mid=tiles.filter(t=>!L.slots.some(q=>same(q,t))).sort((a,b)=>Math.hypot(a.x-mx,a.y-my)-Math.hypot(b.x-mx,b.y-my));
     L.staff=L.staff2=L.furn=mid[0]||pspot;
   }
   if(r.type==='training'){L.teacher=pspot;
-    L.slots=tiles.filter(t=>!same(t,furn)&&!same(t,pspot)&&md(t.x,t.y)>1&&(t.x+t.y)%2===par).slice(0,Math.max(1,Math.floor(r.w*r.h/2.5)))}
+    L.slots=tiles.filter(t=>!same(t,furn)&&!same(t,pspot)&&D(t)>1&&(t.x+t.y)%2===par).slice(0,Math.max(1,Math.floor(n/2.5)))}
   r.lay=L;
 }
 function patientSpot(r,p){return r.lay.slots.length&&ROOM_TYPES[r.type].cap?r.lay.slots[p.slot||0]:r.lay.pspot}
@@ -385,16 +410,17 @@ function connectivityOK(){
   return true;
 }
 function isDoorOutside(x,y){return G.rooms.some(r=>r.door.ox===x&&r.door.oy===y)}
-function validateRoom(type,R,door){
-  const RT=ROOM_TYPES[type],mn=minSize(type);
-  if(R.w<mn||R.h<mn)return `Too small: needs at least ${mn}×${mn}`;if(R.w>CONFIG.maxRoom||R.h>CONFIG.maxRoom)return 'Too big';
-  if(G.cash<roomCost(type,R))return 'Not enough cash';
-  for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++){const t=T(x,y);if(!t)return 'Off the edge';if(t.void)return 'There is a wall in the way';
-    if(t.room||t.obj||t.res)return 'Something is in the way';if(isDoorOutside(x,y))return "Blocks another room's door"}
-  if(!door)return 'Tap a wall for the door';const o=T(door.ox,door.oy);if(!o||o.room||blocks(o))return 'Door opens onto a wall';
-  const tmp={type,...R,door};const cells=[];
-  for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++){T(x,y).room=tmp;cells.push(T(x,y))}
-  G.rooms.push(tmp);const ok=connectivityOK();G.rooms.pop();for(const c of cells)c.room=null;G.fields.clear();
+function validateRoom(type,cells,door){
+  const mn=minSize(type);if(!cells||!cells.length)return 'No free floor there';const set=cellSet(cells),B=bbox(cells);
+  for(const c of cells){const t=T(c.x,c.y);if(!t)return 'Off the edge';if(t.void)return 'There is a wall in the way';
+    if(t.room||t.obj||t.res)return 'Something is in the way';if(isDoorOutside(c.x,c.y))return "Blocks another room's door"}
+  if(cells.length<mn*mn||!hasSquare(set,cells,mn-1))return isRect(cells)?`Too small: needs at least ${mn}×${mn}`:`Too small: needs at least ${mn*mn} tiles with some open space`;
+  if(B.w>CONFIG.maxRoom||B.h>CONFIG.maxRoom)return 'Too big';
+  if(G.cash<roomCost(type,cells))return 'Not enough cash';
+  if(!door||!set.has(ck(door.ix,door.iy))||set.has(ck(door.ox,door.oy)))return 'Tap a wall for the door';
+  const o=T(door.ox,door.oy);if(!o||o.room||blocks(o))return 'Door opens onto a wall';
+  const tmp={type,door};for(const c of cells)T(c.x,c.y).room=tmp;
+  G.rooms.push(tmp);const ok=connectivityOK();G.rooms.pop();for(const c of cells)T(c.x,c.y).room=null;G.fields.clear();
   return ok?null:'That would block the corridor';
 }
 function keySpots(r){const L=r.lay;if(r.type==='staffroom')return [L.furn,{x:r.door.ix,y:r.door.iy}];return [L.furn,L.pspot,L.staff,L.staff2,L.teacher,...(r.type==='staffroom'?[]:L.slots),{x:r.door.ix,y:r.door.iy}].filter(Boolean)}
@@ -411,15 +437,15 @@ function validateObj(type,x,y){
   const tmp={type,x,y,block:true};t.obj=tmp;G.objs.push(tmp);const ok=connectivityOK();G.objs.pop();t.obj=null;G.fields.clear();
   return ok?null:'That would block the corridor';
 }
-function buildRoom(type,R,door){
-  const cost=roomCost(type,R);spend(cost);
-  const r={id:++G.uid,type,x:R.x,y:R.y,w:R.w,h:R.h,cost,door,queue:[],staff:null,occ:[],cond:100,broken:false,warned:false};
-  for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)T(x,y).room=r;
+function buildRoom(type,cells,door){
+  const cost=roomCost(type,cells);spend(cost);const B=bbox(cells);
+  const r={id:++G.uid,type,x:B.x,y:B.y,w:B.w,h:B.h,cells:cells.map(c=>({x:c.x,y:c.y})),cost,door,queue:[],staff:null,occ:[],cond:100,broken:false,warned:false};
+  for(const c of r.cells)T(c.x,c.y).room=r;
   layoutRoom(r);G.rooms.push(r);clearFields();
   for(const a of allAgents()){const t=T(Math.floor(a.x),Math.floor(a.y));if(t&&t.room===r){a.x=r.door.ox+.5;a.y=r.door.oy+.5}}
   addFx(r.x+r.w/2,r.y+r.h/2,'-'+money(cost),'#ff4f5e');beep(300,500,.15);return r;
 }
-function quickRoom(type,x,y,w,h,side){const R={x,y,w,h},d=doorFor(R,side||'S'),m=validateRoom(type,R,d);if(!m)buildRoom(type,R,d);return m}
+function quickRoom(type,x,y,w,h,side){const R={x,y,w,h},c=rectCells(R),d=doorFor(R,side||'S'),m=validateRoom(type,c,d);if(!m)buildRoom(type,c,d);return m}
 function buildObj(type,x,y){
   const OT=OBJ_TYPES[type];spend(OT.cost);const o={id:++G.uid,type,x,y,w:1,h:1,block:!T(x,y).room&&!!OT.block};
   G.objs.push(o);T(x,y).obj=o;clearFields();
@@ -433,7 +459,7 @@ function sellRoom(r){
   r.queue=[];r.occ=[];
   for(const o of [...G.objs])if(T(o.x,o.y).room===r)sellObj(o);
   for(const s of G.staff){if(s.room===r||s.restRoom===r||s.trainRoom===r){unassign(s);s.restRoom=null;s.trainRoom=null;s.state='idle'}if(s.job&&s.job.room===r){s.job=null;s.state='idle'}}
-  for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)T(x,y).room=null;
+  for(const c of r.cells)T(c.x,c.y).room=null;
   G.rooms=G.rooms.filter(q=>q!==r);clearFields();
 }
 function sellObj(o){if(o.seats)for(const q of o.seats)if(q)q.seat=null;earn(Math.round(OBJ_TYPES[o.type].cost*.5),o.x+.5,o.y+.5);T(o.x,o.y).obj=null;G.objs=G.objs.filter(q=>q!==o);clearFields()}
@@ -969,21 +995,23 @@ function render(){
       else{for(let i=0;i<4;i++)box(x+.2+i*.15,y+.3+(i%2)*.2,.15,.15,4,'#9c8c7a')}}}
   // placement ghost
   const P=G.place;
-  if(P&&P.kind==='room'&&(P.rect||P.hover)){const R=P.rect||P.hover,ok=P.rect&&!P.msg,col=!P.rect?'rgba(58,134,255,.35)':ok?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)';
-    for(let y=R.y;y<R.y+R.h;y++)for(let x=R.x;x<R.x+R.w;x++)if(T(x,y))poly(diamond(x,y),col);
-    ctx.strokeStyle=P.rect?'#1d4e89':'#3a86ff';ctx.lineWidth=2;ctx.setLineDash([5,4]);poly(diamond(R.x,R.y,R.w,R.h));ctx.stroke();ctx.setLineDash([]);
-    if(P.rect&&P.door){const d=P.door;poly(diamond(d.ox,d.oy),'rgba(255,209,102,.8)');const a=iso(d.ix+.5,d.iy+.5),b=iso(d.ox+.5,d.oy+.5);
+  if(P&&P.kind==='room'&&(P.cells||P.hover)){const ok=P.cells&&!P.msg,col=!P.cells?'rgba(58,134,255,.35)':ok?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)';
+    const show=P.cells||rectCells(P.hover);for(const c of show)if(T(c.x,c.y))poly(diamond(c.x,c.y),col);
+    const R=P.rect||P.hover;ctx.strokeStyle=P.cells?'#1d4e89':'#3a86ff';ctx.lineWidth=2;ctx.setLineDash([5,4]);poly(diamond(R.x,R.y,R.w,R.h));ctx.stroke();ctx.setLineDash([]);
+    if(P.cells&&P.door){const d=P.door;poly(diamond(d.ox,d.oy),'rgba(255,209,102,.8)');const a=iso(d.ix+.5,d.iy+.5),b=iso(d.ox+.5,d.oy+.5);
       ctx.strokeStyle='#7a5c00';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();circle(b.x,b.y,4,'#7a5c00')}
-    if(P.rect){const c=iso(R.x+R.w/2,R.y+R.h/2);ctx.font='bold 12px Fredoka';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.55)';const tx=`${R.w}×${R.h}`;ctx.strokeText(tx,c.x,c.y+4);ctx.fillStyle='#fff';ctx.fillText(tx,c.x,c.y+4)}}
+    if(P.cells&&P.cells.length){const B=bbox(P.cells),c=iso(B.x+B.w/2,B.y+B.h/2);ctx.font='bold 12px Fredoka';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.55)';
+      const tx=sizeLabel(P.cells);ctx.strokeText(tx,c.x,c.y+4);ctx.fillStyle='#fff';ctx.fillText(tx,c.x,c.y+4)}}
   else if(P&&P.kind==='obj'&&P.x!=null)poly(diamond(P.x,P.y),!P.msg?'rgba(43,214,123,.45)':'rgba(255,79,94,.45)');
   // sorted drawables
   const D=[];
   for(const r of G.rooms){const RT=ROOM_TYPES[r.type],wc=shade(RT.color,-.1),dr=r.door;
-    const X2=r.x+r.w,Y2=r.y+r.h;
-    for(let x=r.x;x<X2;x++){if(!(dr.side==='N'&&dr.ix===x))D.push({d:x+.5+r.y-.01,f:()=>wall(x,r.y,x+1,r.y,22,wc)});
-      if(!(dr.side==='S'&&dr.ix===x))D.push({d:x+.5+Y2+.01,f:()=>wall(x,Y2,x+1,Y2,8,wc,.85)})}
-    for(let y=r.y;y<Y2;y++){if(!(dr.side==='W'&&dr.iy===y))D.push({d:r.x+y+.5-.01,f:()=>wall(r.x,y,r.x,y+1,22,shade(RT.color,-.25))});
-      if(!(dr.side==='E'&&dr.iy===y))D.push({d:X2+y+.5+.01,f:()=>wall(X2,y,X2,y+1,8,shade(RT.color,-.25),.85)})}
+    const wc2=shade(RT.color,-.25),isD=(c,sd)=>dr.ix===c.x&&dr.iy===c.y&&dr.side===sd;
+    for(const c of r.cells){const x=c.x,y=c.y,out=(dx,dy)=>{const t=T(x+dx,y+dy);return !t||t.room!==r};
+      if(out(0,-1)&&!isD(c,'N'))D.push({d:x+.5+y-.01,f:()=>wall(x,y,x+1,y,22,wc)});
+      if(out(0,1)&&!isD(c,'S'))D.push({d:x+.5+y+1+.01,f:()=>wall(x,y+1,x+1,y+1,8,wc,.85)});
+      if(out(-1,0)&&!isD(c,'W'))D.push({d:x+y+.5-.01,f:()=>wall(x,y,x,y+1,22,wc2)});
+      if(out(1,0)&&!isD(c,'E'))D.push({d:x+1+y+.5+.01,f:()=>wall(x+1,y,x+1,y+1,8,wc2,.85)})}
     const fs=r.lay.furn;D.push({d:fs.x+fs.y+(cap(r)>1?.7:1),f:()=>drawFurniture(r)})}
   for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);if(!t.void)continue;
     if(t.void==='pillar')D.push({d:x+y+1,f:()=>{box(x+.2,y+.2,.6,.6,46,'#c3d8d1')}});else D.push({d:x+y+1,f:()=>box(x,y,1,1,46,'#d9e8e3')})}
@@ -1023,30 +1051,31 @@ function screenToWorld(cx,cy){const r=cv.getBoundingClientRect();return {x:(cx-r
 function worldToTile(w){const a=w.x/(CONFIG.TW/2),b=w.y/(CONFIG.TH/2);return {x:(a+b)/2,y:(b-a)/2}}
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===1){drag={sx:e.clientX,sy:e.clientY,cx:cam.x,cy:cam.y,moved:false};
-    if(G&&G.place&&G.place.kind==='room'&&G.place.mode==='draw'){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));drag.build={x:Math.floor(tp.x),y:Math.floor(tp.y),prev:G.place.rect}}}
+    if(G&&G.place&&G.place.kind==='room'&&G.place.mode==='draw'){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));drag.build={x:Math.floor(tp.x),y:Math.floor(tp.y),prev:G.place.rect,prevCells:G.place.cells}}}
   else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};
-    if(drag&&drag.build&&G.place){G.place.rect=drag.build.prev;validatePlace()}drag=null}});
+    if(drag&&drag.build&&G.place){G.place.rect=drag.build.prev;G.place.cells=drag.build.prevCells;validatePlace()}drag=null}});
 cv.addEventListener('pointermove',e=>{
   if(!ptrs.has(e.pointerId)){if(e.pointerType==='mouse'&&G&&G.place){const tp=worldToTile(screenToWorld(e.clientX,e.clientY));
-    if(G.place.kind==='room'){if(!G.place.rect&&G.place.mode){const m=G.place.size||minSize(G.place.type);G.place.hover={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m}}}else setGhost(tp)}return}
+    if(G.place.kind==='room'){if(!G.place.cells&&G.place.mode){const m=G.place.size||minSize(G.place.type);G.place.hover={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m}}}else setGhost(tp)}return}
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];cam.z=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,.35,3);return}
   if(drag){const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.hypot(dx,dy)>8)drag.moved=true;if(!drag.moved)return;
     if(drag.build){const tp=worldToTile(screenToWorld(e.clientX,e.clientY)),b=drag.build,x2=Math.floor(tp.x),y2=Math.floor(tp.y),P=G.place;
-      P.rect={x:Math.min(b.x,x2),y:Math.min(b.y,y2),w:Math.abs(x2-b.x)+1,h:Math.abs(y2-b.y)+1};P.hover=null;
-      if(!P.door||!onWall(P.rect,P.door))P.door=bestDoor(P.rect);else P.door=doorAt(P.rect,P.door.ix+.5+DIRS[P.door.side][0]*.49,P.door.iy+.5+DIRS[P.door.side][1]*.49)||bestDoor(P.rect);validatePlace()}
+      P.rect={x:Math.min(b.x,x2),y:Math.min(b.y,y2),w:Math.abs(x2-b.x)+1,h:Math.abs(y2-b.y)+1};P.hover=null;setCells(P,b.x,b.y)}
     else{cam.x=drag.cx-dx/cam.z;cam.y=drag.cy-dy/cam.z}}});
-function onWall(R,d){return inRect(R,d.ix,d.iy)&&((d.side==='N'&&d.iy===R.y)||(d.side==='S'&&d.iy===R.y+R.h-1)||(d.side==='W'&&d.ix===R.x)||(d.side==='E'&&d.ix===R.x+R.w-1))}
-function validatePlace(){const P=G.place;if(P.kind==='room')P.msg=P.rect?validateRoom(P.type,P.rect,P.door):P.mode==='prefab'?'Tap the floor to place it':'Drag on the floor to draw the room';updatePlaceBar()}
+// prefab sizes need the whole square free; draw-your-own wraps around whatever is in the way
+function setCells(P,sx,sy){P.cells=P.mode==='draw'?fitCells(P.rect,sx,sy):rectCells(P.rect);
+  if(!P.door||!edgeDoors(P.cells).some(d=>sameDoor(d,P.door)))P.door=bestDoor(P.cells);validatePlace()}
+function validatePlace(){const P=G.place;if(P.kind==='room')P.msg=P.cells?validateRoom(P.type,P.cells,P.door):P.mode==='prefab'?'Tap the floor to place it':'Drag on the floor to draw the room';updatePlaceBar()}
 function endPtr(e){if(drag&&!drag.moved&&ptrs.size===1)tap(e.clientX,e.clientY);ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(ptrs.size===0)drag=null}
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',e=>{ptrs.delete(e.pointerId);drag=null;pinch=null});
 cv.addEventListener('wheel',e=>{e.preventDefault();cam.z=clamp(cam.z*(e.deltaY<0?1.1:.9),.35,3)},{passive:false});
 function setGhost(tp){const P=G.place;{P.x=Math.floor(tp.x);P.y=Math.floor(tp.y);P.msg=validateObj(P.type,P.x,P.y)}updatePlaceBar()}
 function tap(cx,cy){
   if(!G||G.over)return;const w=screenToWorld(cx,cy),tp=worldToTile(w);
-  if(G.place&&G.place.kind==='room'){const P=G.place;if(!P.mode)return;const d=P.rect&&doorAt(P.rect,tp.x,tp.y);
-    if(d&&!(inRect(P.rect,Math.floor(tp.x),Math.floor(tp.y))&&!onWall(P.rect,{...d}))){P.door=d}
-    else if(!P.rect||!inRect(P.rect,Math.floor(tp.x),Math.floor(tp.y))){const m=P.size||minSize(P.type);P.rect={x:Math.floor(tp.x)-(m>>1),y:Math.floor(tp.y)-(m>>1),w:m,h:m};P.hover=null;P.door=bestDoor(P.rect)}
+  if(G.place&&G.place.kind==='room'){const P=G.place;if(!P.mode)return;const tx=Math.floor(tp.x),ty=Math.floor(tp.y),d=P.cells&&doorAt(P.cells,tp.x,tp.y);
+    if(d&&edgeDoors(P.cells).some(q=>sameDoor(q,d)))P.door=d;
+    else if(!P.cells||!cellSet(P.cells).has(ck(tx,ty))){const m=P.size||minSize(P.type);P.rect={x:tx-(m>>1),y:ty-(m>>1),w:m,h:m};P.hover=null;P.door=null;setCells(P,tx,ty);return}
     validatePlace();return}
   if(G.place){const P=G.place,ox=P.x,oy=P.y;setGhost(tp);if(P.x===ox&&P.y===oy&&!P.msg)commitPlace();return}
   const hit=(list,r)=>{let best=null,bd=r;for(const a of list){if(a.state==='dead')continue;const c=iso(a.x,a.y),d=Math.hypot(c.x-w.x,c.y-14-w.y);if(d<bd){bd=d;best=a}}return best};
@@ -1058,23 +1087,23 @@ function tap(cx,cy){
   if(t&&t.room){select(t.room);return}if(t&&t.obj&&t.obj.type!=='desk'){select(t.obj);return}select(null);
 }
 function startPlace(kind,type){closePanel();select(null);G.place={kind,type,mode:null,size:0,x:null,y:null,rect:null,door:null,msg:kind==='room'?'Pick a size':'Tap the floor to position'};updatePlaceBar()}
-function pickSize(v){const P=G.place;if(!P)return;P.rect=null;P.hover=null;P.door=null;if(v==='draw'){P.mode='draw';P.size=0;P.msg='Drag on the floor to draw the room'}
+function pickSize(v){const P=G.place;if(!P)return;P.rect=null;P.cells=null;P.hover=null;P.door=null;if(v==='draw'){P.mode='draw';P.size=0;P.msg='Drag on the floor to draw the room'}
   else{P.mode='prefab';P.size=+v;P.msg='Tap the floor to place it'}updatePlaceBar()}
 $('pSizes').addEventListener('click',e=>{const b=e.target.closest('button');if(b)pickSize(b.dataset.size)});
-$('pSize').onclick=()=>{const P=G.place;if(P){P.mode=null;P.rect=null;P.hover=null;P.door=null;P.msg='Pick a size';updatePlaceBar()}};
-function commitPlace(){const P=G.place;if(P.kind==='room'){buildRoom(P.type,P.rect,P.door);G.place=null}
+$('pSize').onclick=()=>{const P=G.place;if(P){P.mode=null;P.rect=null;P.cells=null;P.hover=null;P.door=null;P.msg='Pick a size';updatePlaceBar()}};
+function commitPlace(){const P=G.place;if(P.kind==='room'){buildRoom(P.type,P.cells,P.door);G.place=null}
   else{buildObj(P.type,P.x,P.y);P.x=null;P.msg='Placed. Tap to place another'}updatePlaceBar()}
 function updatePlaceBar(){const P=G&&G.place;$('placeBar').classList.toggle('hidden',!P);if(!P)return;
   const name=P.kind==='room'?ROOM_TYPES[P.type].name:OBJ_TYPES[P.type].name;
   $('pSizes').classList.toggle('hidden',!(P.kind==='room'&&!P.mode));$('pSize').classList.toggle('hidden',!(P.kind==='room'&&P.mode));
-  if(P.kind==='room'&&!P.mode){const mn=minSize(P.type);$('pSizes').innerHTML=[3,4].map(n=>`<button data-size="${n}" ${n<mn?'disabled':''}>${n}×${n} · ${money(roomCost(P.type,{w:Math.max(n,mn),h:Math.max(n,mn)}))}</button>`).join('')+'<button class="draw" data-size="draw">Draw my own</button>';
+  if(P.kind==='room'&&!P.mode){const mn=minSize(P.type);$('pSizes').innerHTML=[3,4].map(n=>`<button data-size="${n}" ${n<mn?'disabled':''}>${n}×${n} · ${money(roomCost(P.type,rectCells({x:0,y:0,w:Math.max(n,mn),h:Math.max(n,mn)})))}</button>`).join('')+'<button class="draw" data-size="draw">Draw my own</button>';
     $('pMsg').textContent=`${name}: pick a size`;$('pRot').classList.add('hidden');$('pOk').classList.add('hidden');return}
   $('pOk').classList.remove('hidden');
-  if(P.kind==='room'){$('pMsg').textContent=P.rect?(P.msg||`${name} ${P.rect.w}×${P.rect.h}: ${money(roomCost(P.type,P.rect))}. Tap a wall to move the door.`):`${name}: ${P.msg}`;
-    $('pRot').classList.toggle('hidden',!P.rect);$('pOk').disabled=!P.rect||!!P.msg;return}
+  if(P.kind==='room'){$('pMsg').textContent=P.cells?(P.msg||`${name} ${sizeLabel(P.cells)}: ${money(roomCost(P.type,P.cells))}. Tap a wall to move the door.`):`${name}: ${P.msg}`;
+    $('pRot').classList.toggle('hidden',!P.cells);$('pOk').disabled=!P.cells||!!P.msg;return}
   $('pMsg').textContent=P.x==null?name+': '+P.msg:(P.msg||name+': tap again or press Place');$('pRot').classList.add('hidden');$('pOk').disabled=P.x==null||!!P.msg}
-$('pRot').onclick=()=>{const P=G.place;if(!P||!P.rect)return;const sd=SIDES[(SIDES.indexOf(P.door?P.door.side:'W')+1)%4];P.door=doorFor(P.rect,sd);validatePlace()};
-$('pOk').onclick=()=>{const P=G.place;if(P&&!P.msg&&(P.kind==='room'?P.rect:P.x!=null))commitPlace()};
+$('pRot').onclick=()=>{const P=G.place;if(!P||!P.cells)return;const ds=edgeDoors(P.cells);if(!ds.length)return;const i=ds.findIndex(d=>sameDoor(d,P.door));P.door=ds[(i+1)%ds.length];validatePlace()};
+$('pOk').onclick=()=>{const P=G.place;if(P&&!P.msg&&(P.kind==='room'?P.cells:P.x!=null))commitPlace()};
 $('pNo').onclick=()=>{G.place=null;updatePlaceBar()};
 addEventListener('keydown',e=>{if(!G)return;if(e.key===' '){setSpeed(speed?0:1);e.preventDefault()}if(e.key==='r'&&G.place)$('pRot').click();if(e.key==='Escape'){G.place=null;updatePlaceBar();select(null);closePanel()}});
 
@@ -1105,7 +1134,7 @@ function renderInfo(){
     ${doc&&hasTR&&!inClass&&L3?'<button class="btn" data-act="teach">Teach a class</button>':''}
     ${o.role!=='receptionist'&&!inClass?'<button class="btn ghost" data-act="rest">Send to rest</button>':''}<button class="btn red" data-act="fire">Fire</button><button class="btn ghost" data-act="close">Close</button></div>`}
   else if(o.queue){const RT=ROOM_TYPES[o.type];h=`<h3>${RT.name}</h3><div class="sub">${RT.desc}</div>
-    ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}${RT.crew===2?' & '+(o.staff2?o.staff2.name:'nobody'):''}</b></div>`:''}${RT.need?`<div style="margin:2px 0 6px"><span class="badge" style="background:${BADGES[RT.need].color}">Needs ${RT.crew===2?'2 × ':''}${BADGES[RT.need].name}</span></div>`:''}<div class="row"><span>Size</span><b>${o.w}×${o.h}${RT.cap?` · ${cap(o)} ${o.type==='ward'?'beds':'stalls'}`:''}${o.type==='training'?` · ${o.lay.slots.length} desks`:''}${o.type==='staffroom'?` · naps ${resters(o)}/${restCap(o)}`:''}</b></div>${RT.dur?`<div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}${['cabinet','plant','extinguisher','radiator'].filter(k=>itemsIn(o,k)).map(k=>`<div class="row"><span>${OBJ_TYPES[k].name}s</span><b>${itemsIn(o,k)}</b></div>`).join('')}${o.type==='staffroom'?`<div class="row"><span>Rest speed</span><b>${Math.round(restBonus(o)*100)}%</b></div>`:''}
+    ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}${RT.crew===2?' & '+(o.staff2?o.staff2.name:'nobody'):''}</b></div>`:''}${RT.need?`<div style="margin:2px 0 6px"><span class="badge" style="background:${BADGES[RT.need].color}">Needs ${RT.crew===2?'2 × ':''}${BADGES[RT.need].name}</span></div>`:''}<div class="row"><span>Size</span><b>${sizeLabel(o.cells)}${RT.cap?` · ${cap(o)} ${o.type==='ward'?'beds':'stalls'}`:''}${o.type==='training'?` · ${o.lay.slots.length} desks`:''}${o.type==='staffroom'?` · naps ${resters(o)}/${restCap(o)}`:''}</b></div>${RT.dur?`<div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}${['cabinet','plant','extinguisher','radiator'].filter(k=>itemsIn(o,k)).map(k=>`<div class="row"><span>${OBJ_TYPES[k].name}s</span><b>${itemsIn(o,k)}</b></div>`).join('')}${o.type==='staffroom'?`<div class="row"><span>Rest speed</span><b>${Math.round(restBonus(o)*100)}%</b></div>`:''}
     ${RT.machine?`<div class="row"><span>Condition</span><b>${Math.round(o.cond)}%</b></div>${bar(o.cond,o.cond<30?'#ff4f5e':'#2bd67b')}`:''}
     <div class="btns"><button class="btn red" data-act="sell">Sell (+${money((o.cost||RT.cost)/2)})</button><button class="btn ghost" data-act="close">Close</button></div>`}
   else{const OT=OBJ_TYPES[o.type];h=`<h3>${OT.name}</h3><div class="sub">${OT.desc}</div><div class="btns"><button class="btn red" data-act="sellobj">Sell</button><button class="btn ghost" data-act="close">Close</button></div>`}
