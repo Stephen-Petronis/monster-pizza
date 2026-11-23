@@ -49,6 +49,11 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 #panel label{display:block;font-weight:600;margin-top:8px}
 input[type=range]{width:100%;height:32px;accent-color:var(--chrome)}
 .goal{display:flex;justify-content:space-between;padding:6px 10px;border-radius:10px;background:#eef5f1;margin:4px 0}.goal.done{background:#c9f5dc}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.chip{background:#e3ebe7;color:var(--ink);height:38px;padding:0 12px;font-weight:600;font-size:14px}.chip.on{background:var(--chrome);color:#fff}
+.cand{display:flex;flex-direction:column;gap:3px}.cand .btn{margin-top:auto;height:40px;white-space:nowrap;font-size:14px;padding:0 10px}.cand .blurb{margin-bottom:6px}.rank{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:#0f4c5c}.rank svg{width:18px;height:18px}
+.badge{display:inline-block;color:#fff;font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;margin:1px 3px 1px 0}
+.pips{display:flex;gap:2px;align-items:center;font-size:12px}.pips i{width:7px;height:7px;border-radius:2px;background:#d6e5df}.pips i.on{background:#0f9d8a}.pips span{width:56px;opacity:.75}
+.blurb{font-style:italic;font-size:12.5px;opacity:.8;line-height:1.3}
 #toolbar{display:flex;background:var(--chrome);z-index:3}
 #toolbar button{flex:1;height:52px;background:none;color:#fff;font-weight:600;font-size:15px;border-radius:0;border-top:3px solid transparent}
 #toolbar button.on{background:var(--chrome2);border-top-color:var(--gold)}
@@ -109,16 +114,16 @@ const CONFIG={
 const ROOM_TYPES={
   gp:{name:'Check-Up Room',cost:2500,staff:'doctor',color:'#7cc6fe',dur:4,desc:'Works out what is wrong (and if you are a monster). Needs a Doctor.'},
   pharmacy:{name:'Snack Lab',cost:2000,staff:'nurse',color:'#9be59b',dur:3,desc:'Medicine cookies for tummies and sneezes. Needs a Nurse.'},
-  psych:{name:'Scare School',cost:3000,staff:'doctor',color:'#d7a6ff',dur:6,desc:'Teaches monsters to be scary again. Needs a Doctor.'},
+  psych:{name:'Scare School',cost:3000,staff:'doctor',need:'scare',color:'#d7a6ff',dur:6,desc:'Teaches monsters to be scary again. Needs a Doctor with the Scare Expert badge.'},
   shower:{name:'Fur Salon',cost:3500,staff:'nurse',color:'#ffb3d9',dur:5,machine:true,desc:'Grows fur back on monsters, trims it off humans. Machine.'},
-  flip:{name:'Tooth Trimmer',cost:4500,staff:'doctor',color:'#ffd6a5',dur:6,machine:true,desc:'Too many teeth? Not any more. Machine wears out.'},
+  flip:{name:'Tooth Trimmer',cost:4500,staff:'doctor',need:'surgeon',crew:2,color:'#ffd6a5',dur:6,machine:true,desc:'Too many teeth? Not any more. Needs TWO Tooth Surgeons. Machine wears out.'},
   scanner:{name:'Snot Scanner',cost:3000,staff:'doctor',color:'#a0e7e5',dur:4,diag:40,machine:true,desc:'A second opinion, from your nose. Helps the doctor be sure.'},
   xray:{name:'Fur X-Ray',cost:4000,staff:'doctor',color:'#cdb4db',dur:4,diag:45,machine:true,desc:'Sees right through fur. A big help with tricky cases.'},
   ward:{name:'Snooze Ward',cost:5000,staff:'nurse',cap:3,color:'#ffe5ec',dur:12,desc:'3 beds for Floppy Bones. One Nurse looks after all of them.'},
   toilet:{name:'Toilets',cost:900,staff:null,cap:3,color:'#caf0f8',dur:2.5,desc:'3 stalls. Juice goes in, juice must come out.'},
   staffroom:{name:'Staff Room',cost:1500,staff:null,color:'#f5d76e',dur:0,desc:'Tired staff nap here. Add a Sofa, TV or Pool Table so they rest faster.'},
-  training:{name:'Training Room',cost:3500,staff:null,color:'#fde2a7',desc:'Send staff here to earn skill stars. Skilled staff work faster and make fewer mistakes.'},
-  research:{name:'Mad Lab',cost:6000,staff:'doctor',color:'#c3f0ca',desc:'A Doctor invents upgrades. Check progress under Hospital.'},
+  training:{name:'Training Room',cost:3500,staff:null,color:'#fde2a7',desc:'A Consultant teaches, Juniors and Doctors learn: more skill or a specialist badge.'},
+  research:{name:'Mad Lab',cost:6000,staff:'doctor',need:'science',color:'#c3f0ca',desc:'A Mad Scientist invents upgrades. Check progress under Hospital.'},
 };
 const OBJ_TYPES={
   bench:{name:'Bench',cost:120,block:false,desc:'Waiting patients nearby lose patience half as fast.'},
@@ -155,11 +160,11 @@ const LEVELS=[
   {name:'Fuzzy Corners Clinic',W:12,H:10,cash:12000,spawn:.9,goals:{cash:16000,rep:50,cured:15},f:{},
    diseases:['tummy','echo'],rooms:['gp','pharmacy','staffroom'],items:['bench','drinks','plant'],events:[],
    blurb:'A little clinic on the corner where monsters and humans live side by side.',
-   intro:['Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Hire a Receptionist, a Doctor, a Nurse and a Janitor to get started.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
+   intro:['Patients check in at the front desk, see the Doctor in the <b>Check-Up Room</b>, then get treated.','The <b>Snack Lab</b> cures Grumbly Tummy and Echo Sneeze. It needs a Nurse.','Tap <b>Staff</b> to see who is applying. Juniors are cheap but slow, Consultants are quick and clever but pricey. Hire a Receptionist, a Doctor, a Nurse and a Janitor to start.','<b>Benches</b> keep waiting patients calm. A <b>Staff Room</b> lets tired staff nap.']},
   {name:'Puddle Lane Hospital',W:13,H:11,cash:13000,spawn:1.05,goals:{cash:22000,rep:55,cured:30},f:{bladder:1,trash:1},
    diseases:['tummy','echo','scary'],rooms:['gp','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','plant'],events:['emergency'],
    blurb:'A busier street, with busier tummies.',
-   intro:['<b>Scare School</b> helps monsters who have Lost Their Scary. It needs a Doctor.','Patients need the loo now, and juice makes it worse. Build <b>Toilets</b> or there will be puddles.','<b>Bins</b> stop patients dropping wrappers and cans on the floor.','<b>Emergencies:</b> sometimes a helicopter drops off several sick patients at once. Cure them all for a bonus.']},
+   intro:['<b>Scare School</b> helps monsters who have Lost Their Scary. It only works with a Doctor who has the <b>Scare Expert</b> badge. Look for one in the applicants.','Patients need the loo now, and juice makes it worse. Build <b>Toilets</b> or there will be puddles.','<b>Bins</b> stop patients dropping wrappers and cans on the floor.','<b>Emergencies:</b> sometimes a helicopter drops off several sick patients at once. Cure them all for a bonus.']},
   {name:'Snowmonster Valley Hospital',W:14,H:12,cash:15000,spawn:1.2,goals:{cash:30000,rep:58,cured:45},f:{bladder:1,trash:1,temp:1},
    diseases:['tummy','echo','scary','humanitis'],rooms:['gp','scanner','pharmacy','psych','toilet','staffroom'],items:['bench','drinks','bin','radiator','plant','sofa','tv'],events:['emergency'],
    blurb:'It is snowing. Everyone is cold, and some cases are tricky.',
@@ -167,15 +172,15 @@ const LEVELS=[
   {name:'Fluffington Heights',W:15,H:12,cash:17000,spawn:1.35,goals:{cash:40000,rep:60,cured:60},f:{bladder:1,trash:1,temp:1},
    diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis'],rooms:['gp','scanner','xray','pharmacy','psych','shower','toilet','staffroom','training'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic'],
    blurb:'A fancy neighbourhood where everyone cares about their fur.',
-   intro:['The <b>Fur Salon</b> grows fur back on monsters and trims it off humans. Its machine wears out, so keep a Janitor around.','The <b>Fur X-Ray</b> is another way to check tricky cases.','Send staff to the <b>Training Room</b> (tap them, then Train) to earn skill stars.','<b>Giggle Hiccups</b> spread! Tap green-faced patients for a shot before the inspector arrives.']},
+   intro:['The <b>Fur Salon</b> grows fur back on monsters and trims it off humans. Its machine wears out, so keep a Janitor around.','The <b>Fur X-Ray</b> is another way to check tricky cases.','In the <b>Training Room</b> a <b>Consultant</b> teaches and Juniors and Doctors learn more skill or a badge. Consultants cannot take classes, so train your specialists early!','<b>Giggle Hiccups</b> spread! Tap green-faced patients for a shot before the inspector arrives.']},
   {name:'Grizzle Bay General',W:16,H:13,cash:19000,spawn:1.55,goals:{cash:55000,rep:65,cured:90},f:{bladder:1,trash:1,temp:1},
    diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth','floppy'],rooms:['gp','scanner','xray','pharmacy','psych','shower','flip','ward','toilet','staffroom','training'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic'],
    blurb:'A big seaside hospital. Lots of teeth. Lots of bendy bones.',
-   intro:['The <b>Tooth Trimmer</b> fixes Too Many Teeth. It needs a Doctor.','The <b>Snooze Ward</b> has 3 beds for Floppy Bones. One Nurse looks after all of them.']},
+   intro:['The <b>Tooth Trimmer</b> fixes Too Many Teeth. It needs <b>two Tooth Surgeons</b> working together.','The <b>Snooze Ward</b> has 3 beds for Floppy Bones. One Nurse looks after all of them.']},
   {name:'Mount Grumble Medical Centre',W:18,H:14,cash:20000,spawn:1.75,goals:{cash:75000,rep:70,cured:120},f:{bladder:1,trash:1,temp:1},
    diseases:['tummy','echo','scary','humanitis','fuzz','monsteritis','teeth','floppy'],rooms:['gp','scanner','xray','pharmacy','psych','shower','flip','ward','toilet','staffroom','training','research'],items:['bench','drinks','bin','radiator','plant','sofa','tv','pool'],events:['emergency','epidemic','earthquake'],
    blurb:'Built on a sleeping giant monster. It rolls over sometimes.',
-   intro:['The <b>Mad Lab</b> lets a Doctor invent upgrades. Check progress under Hospital.','<b>Earthquakes!</b> The giant rolls over, machines get damaged and rubble falls. Keep your Janitors busy.']},
+   intro:['The <b>Mad Lab</b> needs a <b>Mad Scientist</b>. They invent upgrades. Check progress under Hospital.','<b>Earthquakes!</b> The giant rolls over, machines get damaged and rubble falls. Keep your Janitors busy.']},
 ];
 const FLAVOR=[
   "Would the monster eating the waiting-room chairs please stop. Those are for sitting.",
@@ -191,6 +196,17 @@ const FLAVOR=[
   "Today's lost property: one mitten, one sock, one horn. Please collect your horn.",
   "Remember: the bench is for sitting, not for eating. We mean you, Gerald.",
 ];
+const RANKS=['Junior','Doctor','Consultant'],RANKS_O=['Rookie','Regular','Veteran'];
+const RANK_ICONS=[
+  '<svg viewBox="0 0 20 20"><path d="M5 2v6a5 5 0 0 0 10 0V2" fill="none" stroke="#0f4c5c" stroke-width="2"/><path d="M10 13v2a3 3 0 0 0 6 0v-2" fill="none" stroke="#0f4c5c" stroke-width="2"/><circle cx="16" cy="11" r="2.2" fill="#ff4f5e"/></svg>',
+  '<svg viewBox="0 0 20 20"><rect x="2" y="6" width="16" height="11" rx="2" fill="#7a4b2a"/><path d="M7 6V4h6v2" fill="none" stroke="#7a4b2a" stroke-width="2"/><path d="M10 9v5M7.5 11.5h5" stroke="#fff" stroke-width="2"/></svg>',
+  '<svg viewBox="0 0 20 20"><path d="M2 13l2-5h9l3 3h2v3H2z" fill="#e5383b"/><path d="M5.5 8.5h3v2.5h-4zM9.5 8.5h2.5l2 2.5h-4.5z" fill="#caf0f8"/><circle cx="6" cy="15" r="2" fill="#222"/><circle cx="15" cy="15" r="2" fill="#222"/></svg>'];
+const BADGES={scare:{name:'Scare Expert',color:'#9b5de5',room:'psych'},surgeon:{name:'Tooth Surgeon',color:'#e5383b',room:'flip'},science:{name:'Mad Scientist',color:'#2bb673',room:'research'}};
+const BLURBS={
+  doctor:['Once diagnosed a lamp. Was right.','Has a stethoscope for each day of the week.','Very good at hugs. Medium good at medicine.','Can tell what is wrong just by sniffing. Please do not ask how.','Faints at the sight of slime. Works in a slime hospital.','Says "hmm" a lot. Seems to help.','Graduated top of the class. The class was two monsters.','Writes prescriptions in crayon. They work anyway.','Has never lost a patient. Has lost several hats.','Hums lullabies during check-ups. Patients fall asleep.'],
+  nurse:['Fastest bandage in the valley.','Remembers everyone\'s birthday. And their allergies.','Can carry six juice cups at once.','Gives the best stickers after shots.','Tiny but terrifying when the rules are broken.','Knits scarves for patients in her breaks.','Has a calming voice. Also a very loud one.','Never late. Not once. Ever.'],
+  handyman:['Will eat anything that is on the floor.','Fixed a machine with a spoon once.','Hums while mopping. Badly.','Has never met a puddle they did not love.','Carries a wrench, a mop and a sandwich at all times.','Says the machine "just needs a good kick". Is usually right.'],
+  receptionist:['Smiles at everyone, even the scary ones.','Types 90 words a minute. Mostly the right ones.','Has a clipboard for every occasion.','Can spell "Fluffington" without looking.','Not scared of monsters. Mildly scared of pigeons.','Knows every patient by name. And by fur colour.']};
 const RESEARCH=[
   {key:'wear',name:'Sturdier machines',cost:120,desc:'Machines wear out half as fast.'},
   {key:'diag',name:'Sharper noses',cost:170,desc:'Every check-up and scan is 15% more sure.'},
@@ -257,7 +273,7 @@ function newGame(li){
   T(ex-1,ry).obj=desk;T(ex,ry).obj=desk;
   for(const p of [G.entrance,G.recep.staffSpot,G.recep.servSpot]) T(p.x,p.y).res=true;
   if(L.f.temp)for(const [x,y] of [[ex-3,G.H-3],[ex+3,G.H-3]])if(!validateObj('radiator',x,y)){buildObj('radiator',x,y);G.cash+=OBJ_TYPES.radiator.cost;G.mOut=0}
-  computeTemps();
+  computeTemps();refreshCandidates();
   selected=null;fitCamera();
   announce(`Welcome to ${L.name}! ${li===0?'Build a Check-Up Room, hire a Doctor and a Receptionist, and keep everybody happy.':'Have a look around. Something new is waiting.'}`,true);
   if(L.intro){setSpeed(0);showModal(`<h2>${li+1}. ${L.name}</h2><p>${L.blurb}</p><h4 style="margin:10px 0 4px">${li===0?'How it works':'New at this hospital'}</h4><ul>${L.intro.map(t=>`<li>${t}</li>`).join('')}</ul>
@@ -306,14 +322,21 @@ function doorFor(rx,ry,side){let ix,iy;
   if(side==='S'){ix=rx+1;iy=ry+2}if(side==='N'){ix=rx+1;iy=ry}if(side==='E'){ix=rx+2;iy=ry+1}if(side==='W'){ix=rx;iy=ry+1}
   const d=DIRS[side];return {ix,iy,ox:ix+d[0],oy:iy+d[1],side}}
 function roomSpots(r){const d=DIRS[r.door.side],cx=r.x+1,cy=r.y+1,px=d[1],py=-d[0];
-  if(ROOM_TYPES[r.type].cap>1)return {center:{x:cx,y:cy},staff:{x:cx,y:cy},furn:{x:cx-d[0],y:cy-d[1]},slots:[-1,0,1].map(k=>({x:cx-d[0]+k*px,y:cy-d[1]+k*py}))};
-  return {center:{x:cx,y:cy},staff:{x:cx-d[0],y:cy-d[1]},furn:{x:cx+px,y:cy+py}}}
+  if(ROOM_TYPES[r.type].cap>1)return {center:{x:cx,y:cy},staff:{x:cx,y:cy},staff2:{x:cx,y:cy},furn:{x:cx-d[0],y:cy-d[1]},slots:[-1,0,1].map(k=>({x:cx-d[0]+k*px,y:cy-d[1]+k*py}))};
+  return {center:{x:cx,y:cy},staff:{x:cx-d[0],y:cy-d[1]},staff2:{x:cx-d[0]-px,y:cy-d[1]-py},furn:{x:cx+px,y:cy+py}}}
 function patientSpot(r,p){const sp=roomSpots(r);return sp.slots?sp.slots[p.slot||0]:sp.center}
 const cap=r=>ROOM_TYPES[r.type].cap||1;
 function freeSlot(r){for(let i=0;i<cap(r);i++)if(!r.occ.some(q=>q.slot===i))return i;return 0}
 function needState(p){return p.diag?'needTreat':p.diagType?'needDiag':'needGP'}
-const lvl=s=>Math.floor(s.skill||1);
-const salary=s=>Math.round(CONFIG.salaries[s.role]*(1+.25*(lvl(s)-1)));
+const lvl=s=>s.xp>=800?3:s.xp>=250?2:1;
+const rankName=s=>(s.role==='doctor'?RANKS:RANKS_O)[lvl(s)-1];
+const rankHTML=s=>`<span class="rank">${RANK_ICONS[lvl(s)-1]}${rankName(s)}</span>`;
+const badgeHTML=s=>(s.badges||[]).map(b=>`<span class="badge" style="background:${BADGES[b].color}">${BADGES[b].name}</span>`).join('');
+const pipsHTML=(label,v)=>`<div class="pips"><span>${label}</span>${Array.from({length:10},(_,i)=>`<i class="${i<v?'on':''}"></i>`).join('')}</div>`;
+const salary=s=>Math.round(CONFIG.salaries[s.role]*[.8,1.15,1.8][lvl(s)-1]+250*(s.badges||[]).length);
+const canWork=(s,r)=>{const RT=ROOM_TYPES[r.type];return RT.staff===s.role&&(!RT.need||(s.badges||[]).includes(RT.need))};
+function staffReady(r){const RT=ROOM_TYPES[r.type];if(!RT.staff)return true;const ok=x=>x&&x.state==='atPost';return ok(r.staff)&&(RT.crew!==2||ok(r.staff2))}
+function unassign(s){if(s.room){if(s.room.staff===s)s.room.staff=null;if(s.room.staff2===s)s.room.staff2=null}if(G.recep.staff===s)G.recep.staff=null;s.room=null}
 function connectivityOK(){
   G.fields.clear();const f=field('ENT',[G.entrance]);
   const need=[G.recep.servSpot,G.recep.staffSpot,...G.rooms.map(r=>({x:r.door.ox,y:r.door.oy}))];
@@ -364,7 +387,7 @@ function sellRoom(r){
   r.sold=true;for(const p of [...r.queue,...r.occ]){p.room=null;p.state=needState(p)}
   r.queue=[];r.occ=[];
   for(const o of [...G.objs])if(T(o.x,o.y).room===r&&OBJ_TYPES[o.type].where)sellObj(o);
-  for(const s of G.staff){if(s.room===r||s.restRoom===r||s.trainRoom===r){s.room=null;s.restRoom=null;s.trainRoom=null;s.state='idle'}if(s.job&&s.job.room===r){s.job=null;s.state='idle'}}
+  for(const s of G.staff){if(s.room===r||s.restRoom===r||s.trainRoom===r){unassign(s);s.restRoom=null;s.trainRoom=null;s.state='idle'}if(s.job&&s.job.room===r){s.job=null;s.state='idle'}}
   for(let y=r.y;y<r.y+3;y++)for(let x=r.x;x<r.x+3;x++)T(x,y).room=null;
   G.rooms=G.rooms.filter(q=>q!==r);clearFields();
 }
@@ -514,12 +537,12 @@ function updPatient(p,dt){
     case 'queue':{const r=p.room;if(!r||r.sold){p.state=needState(p);break}
       queueWait(p,r.queue,{x:r.door.ox,y:r.door.oy},dt);
       if(maybeToilet(p))break;
-      if(ROOM_TYPES[r.type].staff&&!r.staff)hint('nostaff'+r.type,`The ${ROOM_TYPES[r.type].name} has a queue and no ${STAFF_TYPES[ROOM_TYPES[r.type].staff].name}. Bold strategy.`);
+      {const RT=ROOM_TYPES[r.type];if(RT.staff&&(!r.staff||(RT.crew===2&&!r.staff2)))hint('nostaff'+r.type,RT.need?`The ${RT.name} needs ${RT.crew===2?'two Doctors':'a Doctor'} with the ${BADGES[RT.need].name} badge. Check the applicants under Staff.`:`The ${RT.name} has a queue and no ${STAFF_TYPES[RT.staff].name}. Bold strategy.`)}
       maybeDrink(p);break}
     case 'enterRoom':{const r=p.room;if(!r){p.state=needState(p);break}const c=patientSpot(r,p);
       if(step(p,tileField(c.x,c.y),dt)){p.state='inRoom';const s=r.staff;
-        p.timer=ROOM_TYPES[r.type].dur*(s&&s.energy<CONFIG.tiredAt?1.6:1)*(s?1.15-.15*lvl(s):1)*(G.res.speed&&r.type!=='toilet'?.75:1)}break}
-    case 'inRoom':{const r=p.room;if(!r){p.state=needState(p);break}if(!ROOM_TYPES[r.type].staff||(r.staff&&r.staff.state==='atPost'))p.timer-=dt;if(p.timer<=0)resolveRoom(p,r);break}
+        p.timer=ROOM_TYPES[r.type].dur*(s&&s.energy<CONFIG.tiredAt?1.6:1)*(s?(1.25-.2*lvl(s))*(1.08-(s.focus||5)*.016):1)*(G.res.speed&&r.type!=='toilet'?.75:1)}break}
+    case 'inRoom':{const r=p.room;if(!r){p.state=needState(p);break}if(staffReady(r))p.timer-=dt;if(p.timer<=0)resolveRoom(p,r);break}
     case 'toDrink':if(step(p,drinksField(),dt)){p.thirst=0;if(G.L.f.bladder)p.bladder=Math.min(100,p.bladder+30);earn(CONFIG.drinkPrice,p.x,p.y);bubble(p,'*slurp*',1.5);
       if(Math.random()<.35)dropTrash(p,'can');p.state=p.after;}break;
     case 'leaving':if(step(p,tileField(G.entrance.x,G.entrance.y),dt))G.patients.splice(G.patients.indexOf(p),1);break;
@@ -528,12 +551,12 @@ function updPatient(p,dt){
 function resolveRoom(p,r){
   const k=r.occ.indexOf(p);if(k>=0)r.occ.splice(k,1);p.room=null;const s=r.staff,RT=ROOM_TYPES[r.type];
   if(r.type==='toilet'){p.bladder=0;p.state=p.after||needState(p);p.after=null;bubble(p,'Ahhh.',1.5);return}
-  if(s)s.energy=Math.max(0,s.energy-6);
+  if(s)s.energy=Math.max(0,s.energy-6);if(r.staff2)r.staff2.energy=Math.max(0,r.staff2.energy-6);
   if(RT.machine){r.cond-=CONFIG.machineWear*(G.res.wear?.5:1);if(r.cond<=0){r.cond=0;r.broken=true;announce(`The ${RT.name} has broken down. Somebody find the Janitor.`,true)}
     else if(r.cond<30&&!r.warned){r.warned=true;announce(`The ${RT.name} is making a noise it should not make.`)}}
   if(r.type==='gp'||RT.diag){
     const tired=s&&s.energy<CONFIG.tiredAt,sk=s?lvl(s):1;
-    if(Math.random()<(tired?.3:.04)*(1.3-.3*sk))p.wrong=true;
+    if(Math.random()<(tired?.3:.05)*[1.6,1,.4][sk-1])p.wrong=true;
     const gain=(r.type==='gp'?DISEASES[p.dis].gp:RT.diag)*(.85+.15*sk)*(G.res.diag?1.15:1);p.cert=Math.min(100,p.cert+gain);
     if(r.type==='gp')earn(Math.round(CONFIG.gpFee*G.price),p.x,p.y);else{earn(Math.round(CONFIG.diagFee*G.price),p.x,p.y);p.visited.push(r.type)}
     p.diagType=null;
@@ -558,16 +581,29 @@ function resolveRoom(p,r){
 function dropLitter(a,type){const t=T(Math.floor(a.x),Math.floor(a.y));if(t&&!t.litter&&!blocks(t))t.litter=type}
 
 // =================== staff ===================
-function hire(role){
-  const fee=Math.round(CONFIG.salaries[role]*.5);if(G.cash<fee){toast('Not enough cash for the signing fee');return}
-  spend(fee);const e=G.entrance,pre=role==='doctor'?'Dr. ':role==='nurse'?'Nurse ':'';
-  const skill=role==='doctor'||role==='nurse'?(Math.random()<.3?2:1):1;
-  G.staff.push({kind:'staff',role,skill,id:++G.uid,name:pre+pick(FIRST)+(role==='doctor'||role==='nurse'?'':' '+pick(LAST)),x:e.x+.5,y:e.y+.5,
-    speed:1.7,energy:100,state:'idle',room:null,ox:0,oy:0,t:0,phase:Math.random()*10});
-  addFx(e.x+.5,e.y+.5,'-'+money(fee),'#ff4f5e');beep(500,700,.12);renderPanel();
+function makeCandidate(role){
+  const r=Math.random(),xp=Math.round(r<.55?rand(40,240):r<.88?rand(300,760):rand(820,960));
+  const badges=[];if(role==='doctor')for(const [k,B] of Object.entries(BADGES))if(G.L.rooms.includes(B.room)&&Math.random()<(xp>=250?.3:.15))badges.push(k);
+  const monster=role!=='receptionist',pre=role==='doctor'?'Dr. ':role==='nurse'?'Nurse ':'';
+  const taken=new Set([...G.staff.map(s=>s.name),...Object.values(G.cands||{}).flat().map(c=>c.name)]);let name;
+  for(let i=0;i<12;i++){name=monster?pre+pick(MFIRST):pick(FIRST)+' '+pick(LAST);if(!taken.has(name))break}
+  return {role,xp,badges,stamina:1+Math.floor(Math.random()*10),focus:1+Math.floor(Math.random()*10),blurb:pick(BLURBS[role]),name};
 }
+function refreshCandidates(role){
+  G.cands=G.cands||{};for(const r of role?[role]:Object.keys(STAFF_TYPES)){const list=G.cands[r]=[];for(let i=0;i<4;i++)list.push(makeCandidate(r));
+    if(r==='doctor')for(const [k,B] of Object.entries(BADGES))if(G.L.rooms.includes(B.room)&&!list.some(c=>c.badges.includes(k))){const c=pick(list);c.badges.push(k)}
+    }
+}
+function hireCandidate(c){
+  const fee=Math.round(salary(c)*.5);if(G.cash<fee){toast('Not enough cash for the signing fee');return false}
+  spend(fee);const e=G.entrance;
+  G.staff.push({kind:'staff',role:c.role,xp:c.xp,badges:[...c.badges],stamina:c.stamina,focus:c.focus,blurb:c.blurb,id:++G.uid,name:c.name,x:e.x+.5,y:e.y+.5,
+    speed:1.7,energy:100,state:'idle',room:null,ox:0,oy:0,t:0,phase:Math.random()*10});
+  addFx(e.x+.5,e.y+.5,'-'+money(fee),'#ff4f5e');beep(500,700,.12);return true;
+}
+function hire(role,badges){const c=makeCandidate(role);if(badges)c.badges=badges;return hireCandidate(c)}
 function fire(s){
-  if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;
+  unassign(s);
   if(s.job&&s.job.tile)s.job.tile.resBy=null;if(s.job&&s.job.room)s.job.room.repairBy=null;
   s.room=null;s.job=null;s.state='leaving';bubble(s,'Fine. FINE.',3);
 }
@@ -576,31 +612,36 @@ function staffRoomTile(){const rs=G.rooms.filter(r=>r.type==='staffroom');if(!rs
   const f=c.filter(t=>T(t.x,t.y).obj&&OBJ_TYPES[T(t.x,t.y).obj.type].where);return {r,t:pick(f.length&&Math.random()<.7?f:c)}}
 function restBonus(r){if(!r)return 1;const k=new Set();for(const o of G.objs)if(OBJ_TYPES[o.type].where&&T(o.x,o.y).room===r)k.add(o.type);
   return 1+.45*k.size+(k.has('pool')?.25:0)}
-function sendTrain(s){const rs=G.rooms.filter(r=>r.type==='training');if(!rs.length)return false;const r=pick(rs);
-  if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;s.room=null;s.job=null;
-  s.trainRoom=r;s.trainTile=pick(roomTiles(r));s.state='toTrain';return true}
-function research(s,dt){const tired=s.energy<CONFIG.tiredAt;G.rp+=dt*lvl(s)*(tired?.5:1)*.6;const pr=RESEARCH[G.resI];
+// Training: a Consultant teaches; Juniors and Doctors take a course (general skill or a badge the teacher holds)
+function sendTrain(s,course='general',teach=false){const rs=G.rooms.filter(r=>r.type==='training');if(!rs.length)return false;const r=pick(rs);
+  unassign(s);s.job=null;s.course=course;s.courseP=0;s.trainRoom=r;s.trainTile=pick(roomTiles(r));s.state=teach?'toTeach':'toTrain';return true}
+const teacherIn=r=>G.staff.find(t=>t.state==='teaching'&&t.trainRoom===r);
+function gainXp(s,v){const before=lvl(s);s.xp=Math.min(1000,s.xp+v);if(lvl(s)>before){bubble(s,'Promoted to '+rankName(s)+'!',3);beep(700,1400,.2);
+  if(s.role==='doctor'&&lvl(s)===3)announce(`${s.name} is now a Consultant. Fancy car and everything.`);return true}return false}
+function research(s,dt){const tired=s.energy<CONFIG.tiredAt;G.rp+=dt*lvl(s)*(tired?.5:1)*.6*(1.08-(s.focus||5)*.016+.08);const pr=RESEARCH[G.resI];
   if(pr&&G.rp>=pr.cost){G.rp-=pr.cost;G.res[pr.key]=true;G.resI++;announce(`The Mad Lab has invented ${pr.name}! ${pr.desc}`,true);beep(600,1200,.4)}}
 function updStaff(s,dt){
   s.t+=dt;if(s.bubble&&(s.bubble.t-=dt)<=0)s.bubble=null;
-  const tired=s.energy<CONFIG.tiredAt;
+  const tired=s.energy<CONFIG.tiredAt,drain=1.45-(s.stamina||5)*.09;
+  s.speed=1.3+.25*lvl(s)+(10-(s.focus||5))*.02;
   switch(s.state){
     case 'idle':{
       if(s.energy<90&&G.rooms.some(r=>r.type==='staffroom')&&s.role!=='receptionist'&&Math.random()<dt*.5){goRest(s);break}
       if(s.role==='receptionist'){if(!G.recep.staff){G.recep.staff=s;s.state='toPost'}break}
       if(s.role==='handyman'){findHandyJob(s);break}
-      let best=null,bd=1e9;for(const r of G.rooms){if(ROOM_TYPES[r.type].staff!==s.role||r.staff)continue;
-        const d=Math.abs(r.x-s.x)+Math.abs(r.y-s.y)+({gp:-60,research:100,scanner:15,xray:15}[r.type]||0);if(d<bd){bd=d;best=r}}
-      if(best){best.staff=s;s.room=best;s.state='toPost'}break}
-    case 'toPost':{let spot;if(s.role==='receptionist')spot=G.recep.staffSpot;else{if(!s.room||s.room.sold){s.state='idle';s.room=null;break}spot=roomSpots(s.room).staff}
+      let best=null,bd=1e9;for(const r of G.rooms){const RT=ROOM_TYPES[r.type];if(!canWork(s,r))continue;
+        const free=!r.staff||(RT.crew===2&&!r.staff2);if(!free)continue;
+        const d=Math.abs(r.x-s.x)+Math.abs(r.y-s.y)+({gp:-60-lvl(s)*10,research:100,scanner:15,xray:15}[r.type]||0)+(RT.need?-40:0);if(d<bd){bd=d;best=r}}
+      if(best){if(!best.staff)best.staff=s;else best.staff2=s;s.room=best;s.state='toPost'}break}
+    case 'toPost':{let spot;if(s.role==='receptionist')spot=G.recep.staffSpot;else{if(!s.room||s.room.sold){s.state='idle';s.room=null;break}spot=roomSpots(s.room)[s.room.staff2===s?'staff2':'staff']}
       if(step(s,tileField(spot.x,spot.y),dt))s.state='atPost';break}
     case 'atPost':{
       const lab=s.room&&s.room.type==='research',busy=s.role==='receptionist'?G.recep.queue.length>0:lab||!!(s.room&&s.room.occ.length);
       if(lab)research(s,dt);
-      s.energy=Math.max(0,s.energy-dt*(busy?.45:.06));
+      s.energy=Math.max(0,s.energy-dt*(busy?.45:.06)*drain);if(busy)gainXp(s,dt*(lvl(s)===1?1.6:.8));
       if(s.role==='receptionist'){const q=G.recep.queue;if(q.length){const p=q[0];if(p.atSpot)p.checkT=(p.checkT||0)+dt;if(p.checkT>1.4){q.shift();p.state='needGP'}}}
       if(tired&&(!busy||lab)&&G.rooms.some(r=>r.type==='staffroom')){
-        if(s.room&&s.room.staff===s)s.room.staff=null;if(G.recep.staff===s)G.recep.staff=null;s.room=null;goRest(s);bubble(s,'Tea break.',2)}
+        unassign(s);goRest(s);bubble(s,'Tea break.',2)}
       else if(tired&&Math.random()<dt*.05)bubble(s,'*yawn*',1.5);
       break}
     case 'toRest':{if(!s.restRoom||s.restRoom.sold){s.state='idle';break}if(step(s,tileField(s.restTile.x,s.restTile.y),dt))s.state='resting';break}
@@ -608,8 +649,18 @@ function updStaff(s,dt){
       if(o&&Math.random()<dt*.15)bubble(s,o.type==='pool'?pick(['*clack*','Nice shot!','That was a foul!']):o.type==='tv'?pick(['Ooh, cartoons.','Shh, my show!']):pick(['Ahh, comfy.','*snore*']),1.6);
       if(s.energy>=100){s.energy=100;s.state='idle';s.restRoom=null}break}
     case 'toTrain':{if(!s.trainRoom||s.trainRoom.sold){s.state='idle';break}if(step(s,tileField(s.trainTile.x,s.trainTile.y),dt))s.state='training';break}
-    case 'training':{if(!s.trainRoom||s.trainRoom.sold){s.state='idle';break}const before=lvl(s);s.skill=Math.min(3,s.skill+dt/45);s.energy=Math.max(0,s.energy-dt*.08);
-      if(lvl(s)>before||s.skill>=3){s.skill=lvl(s);bubble(s,'Level up! '+'★'.repeat(lvl(s)),2.5);beep(700,1400,.2);s.trainRoom=null;s.state='idle'}break}
+    case 'toTeach':{if(!s.trainRoom||s.trainRoom.sold){s.state='idle';break}if(step(s,tileField(s.trainTile.x,s.trainTile.y),dt)){s.state='teaching';bubble(s,'Settle down, class!',2)}break}
+    case 'teaching':{if(!s.trainRoom||s.trainRoom.sold){s.state='idle';break}s.energy=Math.max(0,s.energy-dt*.15*drain);
+      if(Math.random()<dt*.08)bubble(s,pick(['Pay attention!','And THAT is a nose.','Any questions?','Scaring is all in the eyebrows.']),1.8);
+      if(tired&&G.rooms.some(r=>r.type==='staffroom')){s.trainRoom=null;goRest(s);bubble(s,'Class dismissed. Nap time.',2)}break}
+    case 'training':{const r=s.trainRoom;if(!r||r.sold){s.state='idle';break}if(lvl(s)===3){s.trainRoom=null;s.state='idle';break}
+      const t=teacherIn(r),ok=t&&(s.course==='general'||(t.badges||[]).includes(s.course));s.energy=Math.max(0,s.energy-dt*.08*drain);
+      if(!ok){if(Math.random()<dt*.1)bubble(s,t?"Teacher can't teach this!":"Where's the teacher?",1.8);break}
+      const fast=lvl(s)===1?1.8:1;
+      if(s.course==='general'){if(gainXp(s,dt*5*fast)){s.trainRoom=null;s.state='idle'}}
+      else{s.courseP+=dt*2.2*fast;if(s.courseP>=100){s.badges=[...(s.badges||[]),s.course];bubble(s,'New badge: '+BADGES[s.course].name+'!',3);beep(700,1400,.25);
+        announce(`${s.name} is now a ${BADGES[s.course].name}.`);s.trainRoom=null;s.state='idle'}}
+      break}
     case 'toJob':{const j=s.job;if(!j){s.state='idle';break}
       if(j.room&&j.room.sold){s.job=null;s.state='idle';break}
       if(step(s,tileField(j.x,j.y),dt)){s.state='working';s.workT=j.room?3:1.2}break}
@@ -673,7 +724,7 @@ function update(dt){
     G.spawnT=Math.max(2,(CONFIG.spawnBase-G.rep*.06)/G.L.spawn)*rand(.7,1.3)}
   updEvents(dt);
   for(const r of G.rooms){const RT=ROOM_TYPES[r.type];if(!RT.dur)continue;
-    const ready=!r.broken&&(!RT.staff||(r.staff&&r.staff.state==='atPost'));
+    const ready=!r.broken&&staffReady(r);
     while(ready&&r.occ.length<cap(r)&&r.queue.length){const p=r.queue.shift();releaseSeat(p);p.slot=freeSlot(r);r.occ.push(p);p.state='enterRoom';p.ox=p.jx;p.oy=p.jy}}
   for(const p of [...G.patients])updPatient(p,dt);
   for(const s of [...G.staff])updStaff(s,dt);
@@ -696,7 +747,7 @@ function monthEnd(){
   const sal=G.staff.filter(s=>s.state!=='leaving').reduce((a,s)=>a+salary(s),0),heat=G.objs.filter(o=>o.type==='radiator').length*G.heat*CONFIG.radCost;
   spend(sal+heat);G.lastMonth={in:G.mIn,out:G.mOut};
   toast(`${MONTHS[(Math.floor(G.day/30)+11)%12]} report: earned ${money(G.mIn)}, spent ${money(G.mOut)} (salaries ${money(sal)}, heating ${money(heat)})`);
-  G.mIn=0;G.mOut=0;
+  G.mIn=0;G.mOut=0;refreshCandidates();if(tab==='staff')renderPanel();
 }
 function goalsDone(){const g=G.L.goals;return {cash:G.cash>=g.cash,rep:G.rep>=g.rep,cured:G.cured>=g.cured}}
 function checkEnd(){
@@ -732,7 +783,7 @@ function eye(x,y,r,t,droop){circle(x,y,r,'#fff');ctx.strokeStyle='rgba(0,0,0,.35
 function drawMonster(a,t,sick){
   const staff=a.kind==='staff',role=a.role,dis=sick?a.dis:null;
   let fur=staff?STAFF_TYPES[role].body:a.fur;if(dis==='scary')fur=shade(fur,.45);if(a.infected)fur=shade(fur,-.1);
-  const bald=dis==='fuzz',bodyCol=bald?'#f4c7c3':fur,sc=staff?(role==='doctor'?1.25:role==='nurse'?.8:1.05):a.big;
+  const bald=dis==='fuzz',bodyCol=bald?'#f4c7c3':fur,sc=staff?(role==='doctor'?[1.1,1.25,1.32][lvl(a)-1]:role==='nurse'?.8:1.05):a.big;
   ctx.save();ctx.scale(sc,sc);
   // feet
   const leg=a.moving?Math.sin(t*10)*1.6:0;circle(-4,-1-Math.max(0,leg),2.6,shade(bodyCol,-.3));circle(4,-1-Math.max(0,-leg),2.6,shade(bodyCol,-.3));
@@ -767,7 +818,10 @@ function drawMonster(a,t,sick){
   if(dis==='humanitis'){poly([{x:-1,y:-6},{x:1,y:-6},{x:1.6,y:-1},{x:0,y:0},{x:-1.6,y:-1}],'#c1121f');rrect(7,-7,6,5,1,'#6b4226')}
   if(dis==='scary'&&Math.sin(t*2)>.6)circle(7,-18,1.3,'#8ecae6');
   // staff accessories
-  if(staff){if(role==='doctor'){ctx.strokeStyle='#4a4e69';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(-2.6,-15.5);ctx.quadraticCurveTo(-3,-9,0,-7.5);ctx.moveTo(2.6,-15.5);ctx.quadraticCurveTo(3,-9,0,-7.5);ctx.stroke();circle(0,-6.6,1.5,'#adb5bd');circle(0,-24,2.4,'#e9ecef')}
+  if(staff){if(role==='doctor'){ctx.strokeStyle='#4a4e69';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(-2.6,-15.5);ctx.quadraticCurveTo(-3,-9,0,-7.5);ctx.moveTo(2.6,-15.5);ctx.quadraticCurveTo(3,-9,0,-7.5);ctx.stroke();circle(0,-6.6,1.5,'#adb5bd');
+      if(lvl(a)===3){rrect(-5.5,-25,4.6,2.4,1.2,'#1b1b1b');rrect(.9,-25,4.6,2.4,1.2,'#1b1b1b');ctx.fillStyle='#1b1b1b';ctx.fillRect(-1,-24.4,2,.8)}else circle(0,-24,2.4,'#e9ecef');
+      (a.badges||[]).forEach((b,i)=>circle(-5.2,-12.5+i*2.7,1.25,BADGES[b].color));
+      if(a.state==='teaching'){ctx.strokeStyle='#7a4b2a';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(8,-12);ctx.lineTo(14,-20+Math.sin(animT*5)*2);ctx.stroke()}}
     if(role==='nurse'){poly([{x:-6,y:-24.5},{x:6,y:-24.5},{x:4.6,y:-31},{x:-4.6,y:-31}],'#ffffff','#d0d7de');ctx.fillStyle='#e5383b';ctx.fillRect(-.9,-30,1.8,4.6);ctx.fillRect(-2.3,-28.6,4.6,1.8)}
     if(role==='handyman'){rrect(-6,-25,12,4,2,'#1d4e89');rrect(2,-24,7,2,1,'#1d4e89')}}
   ctx.restore();
@@ -885,7 +939,8 @@ function render(){
   for(const r of G.rooms){const p=iso(r.x+1.5,r.y+.2);ctx.font='600 10px Fredoka';const RT=ROOM_TYPES[r.type],label=RT.name+(r.broken?' (BROKEN)':'');
     const w=ctx.measureText(label).width+10;rrect(p.x-w/2,p.y-40,w,14,7,r===selected?'#ffd166':'rgba(15,76,92,.85)');ctx.fillStyle=r===selected?'#10262c':'#fff';ctx.fillText(label,p.x,p.y-30);
     if(RT.machine){rrect(p.x-15,p.y-24,30,4,2,'#333');rrect(p.x-15,p.y-24,30*r.cond/100,4,2,r.cond<30?'#ff4f5e':'#2bd67b')}
-    if(RT.staff&&!r.staff){ctx.font='600 9px Fredoka';ctx.fillStyle='#ff4f5e';ctx.fillText('needs '+STAFF_TYPES[RT.staff].name,p.x,p.y-16)}}
+    if(RT.staff&&(!r.staff||(RT.crew===2&&!r.staff2))){ctx.font='600 9px Fredoka';ctx.fillStyle='#ff4f5e';
+      ctx.fillText('needs '+(RT.need?(RT.crew===2&&!r.staff?'2 ':'')+BADGES[RT.need].name+(RT.crew===2&&!r.staff?'s':''):STAFF_TYPES[RT.staff].name),p.x,p.y-16)}}
   for(const a of [...G.patients,...G.staff]){if(a.state==='dead')continue;const c=iso(a.x,a.y);
     if(a===selected){ctx.strokeStyle='#ffd166';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(c.x,c.y,11,5.5,0,0,7);ctx.stroke()}
     if(a.kind==='patient'){if(['queue','queueRecep','wait'].includes(a.state)||a.patience<40){const v=a.patience/100;rrect(c.x-8,c.y-38,16,3,1.5,'rgba(0,0,0,.4)');rrect(c.x-8,c.y-38,16*v,3,1.5,v>.5?'#2bd67b':v>.25?'#ffd166':'#ff4f5e')}
@@ -948,7 +1003,7 @@ function select(o){selected=o;renderInfo()}
 function bar(v,c){return `<div class="bar"><span style="width:${clamp(v,0,100)}%;background:${c}"></span></div>`}
 const STATE_TXT={arrive:'Heading to reception',queueRecep:'Queueing at reception',needGP:'Looking for a GP',needTreat:'Looking for treatment',wait:'Waiting for a room to exist',
   toRoom:'Walking to a room',queue:'Queueing',enterRoom:'Going in',inRoom:'Being seen',toDrink:'Off for a drink',leaving:'Leaving',idle:'Looking for work',toPost:'Going to work',
-  atPost:'Working',toRest:'Off for a tea break',resting:'Resting',toJob:'Going to a job',working:'Fixing / munching mess',needDiag:'Looking for a scan',toTrain:'Off to training',training:'Training'};
+  atPost:'Working',toRest:'Off for a tea break',resting:'Resting',toJob:'Going to a job',working:'Fixing / munching mess',needDiag:'Looking for a scan',toTrain:'Off to class',training:'In class',toTeach:'Off to teach',teaching:'Teaching a class'};
 function renderInfo(){
   const el=$('info');if(!selected||!G){el.classList.add('hidden');return}el.classList.remove('hidden');const o=selected;let h='';
   if(o.kind==='patient'){const D=o.diag?DISEASES[o.diag]:null;
@@ -957,19 +1012,31 @@ function renderInfo(){
     ${!o.diag?`<div class="row"><span>Doctor is sure</span><b>${Math.round(o.cert)}%</b></div>${bar(o.cert/CONFIG.needCert*100,'#9b5de5')}`:''}
     <div class="row"><span>Health</span></div>${bar(o.health,'#ff4f5e')}<div class="row"><span>Thirst</span></div>${bar(o.thirst,'#3a86ff')}${G.L.f.bladder?`<div class="row"><span>Needs the toilet</span></div>${bar(o.bladder,'#ffd166')}`:''}
     <div class="sub">${STATE_TXT[o.state]||o.state}</div><div class="btns"><button class="btn red" data-act="home">Send home</button><button class="btn ghost" data-act="close">Close</button></div>`}
-  else if(o.kind==='staff'){h=`<h3>${o.name} <span style="color:#f4a300">${'★'.repeat(lvl(o))}</span></h3><div class="sub">${STAFF_TYPES[o.role].name} · ${money(salary(o))}/month</div>
-    <div class="row"><span>Energy</span></div>${bar(o.energy,o.energy<CONFIG.tiredAt?'#ff4f5e':'#ffd166')}<div class="sub">${STATE_TXT[o.state]||o.state}${o.room?' · '+ROOM_TYPES[o.room.type].name:''}</div>
-    <div class="btns">${o.role!=='receptionist'?'<button class="btn" data-act="rest">Send to rest</button>':''}${o.role!=='receptionist'&&lvl(o)<3&&G.rooms.some(r=>r.type==='training')?'<button class="btn" data-act="train">Train</button>':''}<button class="btn red" data-act="fire">Fire</button><button class="btn ghost" data-act="close">Close</button></div>`}
+  else if(o.kind==='staff'){const hasTR=G.rooms.some(r=>r.type==='training'),doc=o.role==='doctor',L3=lvl(o)===3,next=[250,800,1000][lvl(o)-1],prev=[0,250,800][lvl(o)-1];
+    const courses=Object.entries(BADGES).filter(([k,B])=>G.L.rooms.includes(B.room)&&!(o.badges||[]).includes(k));
+    const inClass=o.state==='training'||o.state==='toTrain'||o.state==='teaching'||o.state==='toTeach';
+    h=`<h3>${o.name}</h3><div class="sub">${STAFF_TYPES[o.role].name} · ${money(salary(o))}/month</div><div>${rankHTML(o)} ${badgeHTML(o)}</div>
+    ${L3?'':`<div class="row"><span>Experience</span><b>${Math.round(o.xp)} / ${next}</b></div>${bar((o.xp-prev)/(next-prev)*100,'#0f9d8a')}`}
+    ${o.state==='training'&&o.course!=='general'?`<div class="row"><span>${BADGES[o.course].name} course</span><b>${Math.floor(o.courseP)}%</b></div>${bar(o.courseP,BADGES[o.course].color)}`:''}
+    <div class="row"><span>Energy</span></div>${bar(o.energy,o.energy<CONFIG.tiredAt?'#ff4f5e':'#ffd166')}${pipsHTML('Stamina',o.stamina)}${pipsHTML('Focus',o.focus)}
+    <div class="blurb">${o.blurb||''}</div><div class="sub" style="margin-top:6px">${STATE_TXT[o.state]||o.state}${o.room?' · '+ROOM_TYPES[o.room.type].name:''}</div>
+    <div class="btns">${inClass?'<button class="btn" data-act="work">Back to work</button>':''}
+    ${doc&&hasTR&&!inClass&&!L3?`<button class="btn" data-act="train:general">Train skill</button>${courses.map(([k,B])=>`<button class="btn" style="background:${B.color}" data-act="train:${k}">Learn ${B.name}</button>`).join('')}`:''}
+    ${doc&&hasTR&&!inClass&&L3?'<button class="btn" data-act="teach">Teach a class</button>':''}
+    ${o.role!=='receptionist'&&!inClass?'<button class="btn ghost" data-act="rest">Send to rest</button>':''}<button class="btn red" data-act="fire">Fire</button><button class="btn ghost" data-act="close">Close</button></div>`}
   else if(o.queue){const RT=ROOM_TYPES[o.type];h=`<h3>${RT.name}</h3><div class="sub">${RT.desc}</div>
-    ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}</b></div>`:''}${RT.dur?`<div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}${o.type==='staffroom'?`<div class="row"><span>Rest speed</span><b>${Math.round(restBonus(o)*100)}%</b></div>`:''}
+    ${RT.staff?`<div class="row"><span>Staff</span><b>${o.staff?o.staff.name:'Nobody!'}${RT.crew===2?' & '+(o.staff2?o.staff2.name:'nobody'):''}</b></div>`:''}${RT.need?`<div style="margin:2px 0 6px"><span class="badge" style="background:${BADGES[RT.need].color}">Needs ${RT.crew===2?'2 × ':''}${BADGES[RT.need].name}</span></div>`:''}${RT.dur?`<div class="row"><span>Queue</span><b>${o.queue.length}</b></div>`:''}${o.type==='staffroom'?`<div class="row"><span>Rest speed</span><b>${Math.round(restBonus(o)*100)}%</b></div>`:''}
     ${RT.machine?`<div class="row"><span>Condition</span><b>${Math.round(o.cond)}%</b></div>${bar(o.cond,o.cond<30?'#ff4f5e':'#2bd67b')}`:''}
     <div class="btns"><button class="btn red" data-act="sell">Sell (+${money(RT.cost/2)})</button><button class="btn ghost" data-act="close">Close</button></div>`}
   else{const OT=OBJ_TYPES[o.type];h=`<h3>${OT.name}</h3><div class="sub">${OT.desc}</div><div class="btns"><button class="btn red" data-act="sellobj">Sell</button><button class="btn ghost" data-act="close">Close</button></div>`}
   el.innerHTML=h;
 }
 $('info').addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return;const o=selected;
-  if(a==='home')leave(o,'Fine, I will walk it off.');if(a==='fire')fire(o);if(a==='train'){if(o.room&&o.room.occ&&o.room.occ.length)toast('Busy with a patient, try in a moment');else sendTrain(o)}
-  if(a==='rest'){if(o.room&&o.room.staff===o&&!o.room.occ.length){o.room.staff=null;o.room=null;goRest(o)}else if(o.state==='idle')goRest(o);else toast('Busy with a patient, try in a moment')}
+  const busy=o.room&&o.room.occ&&o.room.occ.length;
+  if(a==='home')leave(o,'Fine, I will walk it off.');if(a==='fire')fire(o);
+  if(a.startsWith('train:')||a==='teach'){if(busy){toast('Busy with a patient, try in a moment');return}if(a==='teach')sendTrain(o,'',true);else sendTrain(o,a.slice(6))}
+  if(a==='work'){o.trainRoom=null;o.state='idle'}
+  if(a==='rest'){if(busy)toast('Busy with a patient, try in a moment');else{unassign(o);goRest(o)}}
   if(a==='sell')sellRoom(o);if(a==='sellobj')sellObj(o);select(null)});
 
 // =================== bottom panels ===================
@@ -983,9 +1050,12 @@ function renderPanel(){
     return `<button class="card" data-room="${k}" ${G.cash<R.cost?'disabled':''}><b><span class="sw" style="background:${R.color}"></span>${R.name}</b><span class="price">${money(R.cost)}</span><small>${R.desc}</small></button>`}).join('')+'</div>';
   if(tab==='items')h='<h4>Buy items</h4><div class="grid">'+Object.entries(OBJ_TYPES).filter(([k,O])=>!O.hidden&&(G.L.items||[]).includes(k)).map(([k,O])=>
     `<button class="card" data-obj="${k}" ${G.cash<O.cost?'disabled':''}><b>${O.name}</b><span class="price">${money(O.cost)}</span><small>${O.desc}</small></button>`).join('')+'</div>';
-  if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length;
-    h='<h4>Hire staff <small style="font-weight:400;opacity:.7">signing fee = half a month\'s salary. Some Doctors and Nurses arrive with 2 stars.</small></h4><div class="grid">'+Object.entries(STAFF_TYPES).map(([k,S])=>
-    `<button class="card" data-hire="${k}"><b>${S.name} <small style="display:inline">(${cnt(k)} employed)</small></b><span class="price">${money(CONFIG.salaries[k])}+/month</span><small>${S.desc}</small></button>`).join('')+'</div>';}
+  if(tab==='staff'){const cnt=r=>G.staff.filter(s=>s.role===r&&s.state!=='leaving').length,role=G.hireRole||'doctor';
+    h=`<h4>Applicants <small style="font-weight:400;opacity:.7">signing fee is half a month's pay. New applicants arrive every month.</small></h4>
+    <div class="chips">${Object.entries(STAFF_TYPES).map(([k,S])=>`<button class="chip ${k===role?'on':''}" data-hrole="${k}">${S.name}s (${cnt(k)})</button>`).join('')}<button class="chip" data-newapps>New applicants ($150)</button></div>
+    <div class="grid">${G.cands[role].map((c,i)=>`<div class="card cand"><b>${c.name}</b><div>${rankHTML(c)} ${badgeHTML(c)}</div>${pipsHTML('Stamina',c.stamina)}${pipsHTML('Focus',c.focus)}
+      <span class="price">${money(salary(c))}/month</span><div class="blurb">${c.blurb}</div><button class="btn" data-hirec="${i}">Hire (${money(Math.round(salary(c)*.5))} fee)</button></div>`).join('')}</div>
+    <small>Juniors are cheap and learn fast but are slow and make mistakes. Consultants are quick and clever, and can teach. Stamina: how long before they need a nap. Focus: high works faster in busy rooms, low walks faster.</small>`;}
   if(tab==='hosp'){const g=G.L.goals,d=goalsDone(),sal=G.staff.reduce((a,s)=>a+salary(s),0),nr=G.objs.filter(o=>o.type==='radiator').length,pr=RESEARCH[G.resI],hasLab=G.L.rooms.includes('research');
     h=`<h4>${G.L.name}</h4><div class="goal ${d.cash?'done':''}"><span>Bank balance</span><b>${money(G.cash)} / ${money(g.cash)}</b></div>
     <div class="goal ${d.rep?'done':''}"><span>Reputation</span><b>${Math.round(G.rep)} / ${g.rep}</b></div><div class="goal ${d.cured?'done':''}"><span>Patients cured</span><b>${G.cured} / ${g.cured}</b></div>
@@ -1002,7 +1072,10 @@ function renderPanel(){
   if(ht)ht.oninput=()=>{G.heat=+ht.value;renderPanel()};
 }
 $('panel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.room)startPlace('room',b.dataset.room);if(b.dataset.obj)startPlace('obj',b.dataset.obj);if(b.dataset.hire)hire(b.dataset.hire)});
+  if(b.dataset.room)startPlace('room',b.dataset.room);if(b.dataset.obj)startPlace('obj',b.dataset.obj);
+  if(b.dataset.hrole){G.hireRole=b.dataset.hrole;renderPanel()}
+  if(b.dataset.newapps!=null){if(G.cash<150)toast('Not enough cash');else{spend(150);refreshCandidates(G.hireRole||'doctor');renderPanel()}}
+  if(b.dataset.hirec!=null){const role=G.hireRole||'doctor',i=+b.dataset.hirec;if(hireCandidate(G.cands[role][i])){G.cands[role][i]=makeCandidate(role);renderPanel()}}});
 
 // =================== HUD, speed, modal ===================
 function setSpeed(s){speed=s;document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.s===s))}
@@ -1049,7 +1122,7 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;animT+=dt;
   if((hudT-=dt)<=0){hudT=.25;updateHUD()}
   try{render()}catch(e){console.error(e)}requestAnimationFrame(loop)}
 addEventListener('resize',()=>{resize()});
-window.BP={get G(){return G},cam,buildRoom,validateRoom,validateObj,hire,buildObj,spawnPatient,sendTrain};
+window.BP={get G(){return G},hireCandidate,makeCandidate,cam,buildRoom,validateRoom,validateObj,hire,buildObj,spawnPatient,sendTrain};
 resize();menu();requestAnimationFrame(loop);
 }
 </script>
