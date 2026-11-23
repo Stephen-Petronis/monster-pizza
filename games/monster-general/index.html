@@ -261,28 +261,46 @@ let toastT=0;function toast(t){$('toast').textContent=t;$('toast').classList.rem
 
 // =================== Sylli Town art ===================
 // Sprites cut from Stephen's art sheet live in art/. Classic mode draws everything with shapes instead.
-const ART_NAMES=['doctor','nurse','janitor','recep_top','p_blue','p_mummy','p_wolf','p_slime','p_bird','desk','chairs','vending','plant','plant2','flowers','gbin','radiator',
-  'm_slime','m_horn','m_chair','m_tube','bed','cart','cooler','wetsign','logo',
-  'f_white','f_blue','f_green','f_purple','f_speckle','f_cross','f_grate','f_splat','f_grey','f_dots',
-  'c_bed','c_monitor','c_lamp','c_poster','c_iv','c_cart','c_stool','c_night','s_jars','s_counter','s_cabinet','s_fridge','x_machine','x_monitor',
-  'o_gas','o_lights','o_table','o_cart','p_shelf','p_shelf2','p_counter','b_bed','b_iv','b_night','b_monitor','w_chairs','w_chair','w_rack','w_plant','w_table','w_arm',
-  'i_cabinet','i_sofa','i_chair','i_clock','i_board','i_curtain'];
+const ART_NAMES=['doctor','nurse','janitor','recep_top','p_blue','p_mummy','p_wolf','p_slime','p_bird','desk','chairs','vending','plant','plant2','flowers','gbin','radiator','wetsign','logo',
+  'f_white','f_blue','f_green','f_purple','f_speckle','f_cross','f_grate','f_splat','f_grey','f_dots','w_plant','i_cabinet',
+  // building library: room furniture
+  'cu_bed','cu_desk','cu_cab','cu_night','cu_iv','cu_stool','ss_tube','ss_mon','ss_tissue','xr_table','xr_cab','xr_mon','xr_light',
+  'sl_mixer','sl_oven','sl_shelf','sl_jars','sl_cart','sl_table','sc_mouth','sc_desks','sc_easel','sc_podium','fs_chair','fs_mirror','fs_dryer','fs_rack','fs_cart','fs_hair',
+  'tt_chair','tt_cart','tt_drawers','tt_lamp','sw_bed','sw_bed2','sw_bed3','sw_lamp','sw_plant','to_stalls','to_sink','to_sink2',
+  'st_tv','st_sofa','st_pool','st_arm','st_lamp','st_plant','st_table','st_locker','tr_board','tr_desks','tr_books','tr_skel','tr_screen',
+  'ml_tank','ml_console','ml_plasma','ml_contra','ml_mon','ml_jars',
+  // wall textures (flattened panels)
+  'tx_w_plain','tx_w_window','tx_w_cross','tx_w_frame','tx_w_slime','tx_v_orange','tx_v_swirl','tx_v_moon','tx_v_leaf','tx_v_pink','tx_v_teal','tx_v_grid',
+  'tx_n_blind','tx_n_green','tx_n_round','tx_n_vent','tx_n_xray','tx_n_paw','tx_n_doll','tx_n_plant'];
 // floor tile and furniture art for each room
 const FLOOR_ART={gp:'f_blue',pharmacy:'f_green',psych:'f_purple',scanner:'f_speckle',xray:'f_grate',shower:'f_dots',flip:'f_grey',ward:'f_blue',toilet:'f_speckle',staffroom:'f_green',training:'f_grey',research:'f_splat'};
-const MAIN_ART={gp:'c_bed',pharmacy:'s_counter',psych:'m_horn',scanner:'m_slime',xray:'x_machine',shower:'m_tube',flip:'m_chair',staffroom:'cooler',research:'p_shelf2'};
-const DECOR={gp:['c_monitor','c_night','c_iv','c_lamp'],pharmacy:['s_fridge','s_cabinet','s_jars'],psych:['w_arm','w_plant','i_board'],scanner:['x_monitor','c_stool','c_cart'],
-  xray:['c_poster','x_monitor','c_stool'],shower:['c_stool','i_curtain','w_chair'],flip:['o_lights','o_gas','o_cart'],ward:['b_night','b_monitor','b_iv','b_night'],
-  staffroom:['w_table','w_arm','w_plant'],training:['i_board','i_clock'],research:['o_gas','c_cart','p_shelf','x_monitor'],toilet:[]};
-const ART_H={c_bed:36,s_counter:36,x_machine:50,p_shelf2:40,b_bed:32,cooler:38,m_slime:58,m_horn:52,m_chair:58,m_tube:62,
-  c_monitor:22,c_night:22,c_lamp:36,c_iv:38,c_poster:30,c_cart:26,c_stool:18,s_fridge:42,s_cabinet:30,s_jars:18,x_monitor:24,o_gas:30,o_lights:30,o_cart:22,
-  p_shelf:44,b_night:20,b_monitor:30,b_iv:36,w_arm:26,w_plant:34,w_table:18,w_chair:22,i_board:28,i_clock:18,i_curtain:38,i_chair:24,i_cabinet:24,i_sofa:26};
+const MAIN_ART={gp:'cu_bed',pharmacy:'sl_mixer',psych:'sc_mouth',scanner:'ss_tube',xray:'xr_table',shower:'fs_chair',flip:'tt_chair',staffroom:'st_locker',training:'tr_board',research:'ml_tank'};
+const DECOR={gp:['cu_desk','cu_night','cu_iv','cu_cab','cu_stool'],pharmacy:['sl_oven','sl_shelf','sl_table','sl_jars','sl_cart'],psych:['sc_desks','sc_easel','sc_podium','sc_desks'],
+  scanner:['ss_mon','ss_tissue'],xray:['xr_cab','xr_mon','xr_light'],shower:['fs_mirror','fs_dryer','fs_rack','fs_cart','fs_hair'],flip:['tt_cart','tt_drawers','tt_lamp'],
+  ward:['sw_lamp','sw_plant','sw_lamp'],staffroom:['st_arm','st_lamp','st_plant','st_table'],training:['tr_books','tr_skel','tr_screen'],research:['ml_console','ml_plasma','ml_contra','ml_mon','ml_jars'],toilet:['to_sink','to_sink2']};
+const ART_H={cu_bed:36,sl_mixer:40,sc_mouth:62,ss_tube:52,xr_table:56,fs_chair:40,tt_chair:56,st_locker:44,tr_board:44,ml_tank:62,
+  cu_desk:40,cu_night:30,cu_iv:40,cu_cab:26,cu_stool:18,sl_oven:32,sl_shelf:36,sl_table:24,sl_jars:30,sl_cart:28,sc_desks:30,sc_easel:36,sc_podium:34,
+  ss_mon:42,ss_tissue:24,xr_cab:38,xr_mon:42,xr_light:28,fs_mirror:42,fs_dryer:46,fs_rack:40,fs_cart:30,fs_hair:10,tt_cart:42,tt_drawers:30,tt_lamp:34,
+  sw_bed:40,sw_bed2:40,sw_bed3:30,sw_lamp:28,sw_plant:28,to_stalls:46,to_sink:44,to_sink2:34,st_tv:36,st_sofa:30,st_pool:30,st_arm:28,st_lamp:36,st_plant:28,st_table:20,
+  tr_desks:26,tr_books:46,tr_skel:38,tr_screen:34,ml_console:40,ml_plasma:36,ml_contra:44,ml_mon:36,ml_jars:30,w_plant:32,i_cabinet:24};
 const ART={};let artOn=store.art!=='classic';
 for(const n of ART_NAMES){const im=new Image();im.onload=()=>{ART[n]=im;if(n==='logo'&&!G&&!$('modal').classList.contains('hidden')&&$('modal').querySelector('[data-go]'))menu()};im.src='art/'+n+'.webp'}
 const useArt=()=>artOn&&!!ART.doctor;
 const PATIENT_SPRITES=['p_blue','p_mummy','p_wolf','p_slime','p_bird'];
 // draw a sprite with its feet at (x,y), h world-pixels tall
 function sprite(n,x,y,h,flip){const im=ART[n];if(!im)return false;const w=im.width*h/im.height;ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();return true}
-
+// wall textures per room: a base pattern plus an accent panel every few tiles
+const WALL_ART={gp:['tx_w_plain','tx_w_cross'],pharmacy:['tx_v_orange','tx_n_plant'],psych:['tx_v_moon','tx_n_doll'],scanner:['tx_v_teal','tx_n_vent'],xray:['tx_w_plain','tx_n_xray'],
+  shower:['tx_v_pink','tx_n_paw'],flip:['tx_w_plain','tx_w_frame'],ward:['tx_v_leaf','tx_n_green'],toilet:['tx_v_grid','tx_n_round'],staffroom:['tx_v_swirl','tx_n_plant'],
+  training:['tx_w_plain','tx_n_doll'],research:['tx_w_slime','tx_n_vent']};
+const OUTER_ART=['tx_w_plain','tx_w_plain','tx_n_blind','tx_w_plain','tx_n_round','tx_w_plain','tx_w_window','tx_w_plain','tx_n_plant'];
+// stretch a flat wall texture onto one tile-wide wall segment
+function texWall(x1,y1,x2,y2,ht,k,dark,crop){const im=ART[k];if(!im)return false;const a=iso(x1,y1),b=iso(x2,y2),sy=crop?im.height*(1-crop):0,sh=crop?im.height*crop:im.height;
+  ctx.save();ctx.transform((b.x-a.x)/im.width,(b.y-a.y)/im.width,0,ht/sh,a.x,a.y-ht);ctx.drawImage(im,0,sy,im.width,sh,0,0,im.width,sh);ctx.restore();
+  if(dark)poly([a,b,up(b,ht),up(a,ht)],`rgba(20,30,40,${dark})`);ctx.strokeStyle='rgba(60,50,40,.55)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(a.x,a.y-ht);ctx.lineTo(b.x,b.y-ht);ctx.stroke();return true}
+function roomWall(r,x1,y1,x2,y2,ht,c,alpha,i,dark,front){const W=useArt()&&WALL_ART[r.type];
+  if(W){if(front){ctx.globalAlpha=alpha;texWall(x1,y1,x2,y2,ht,W[0],dark,.3);ctx.globalAlpha=1;return}if(texWall(x1,y1,x2,y2,ht,i%3===1?W[1]:W[0],dark))return}
+  wall(x1,y1,x2,y2,ht,c,alpha)}
 // =================== game state ===================
 let G=null, speed=1, animT=0, selected=null, cam={x:0,y:0,z:1};
 const T=(x,y)=>(!G||x<0||y<0||x>=G.W||y>=G.H)?null:G.tiles[y*G.W+x];
@@ -978,7 +996,7 @@ function drawRat(r){const c=iso(r.x,r.y);ctx.save();ctx.translate(c.x,c.y);
 function drawObj(o){
   if(useArt()){const p=iso(o.x+.5,o.y+.5);
     if(o.type==='desk'){const q=iso(o.x+1,o.y+.5);if(sprite('desk',q.x,q.y+16,54,!o.flip))return}
-    const k={bench:'chairs',drinks:'vending',plant:['plant','plant2','flowers','w_plant'][o.id%4],bin:'gbin',radiator:'radiator',cabinet:'i_cabinet',sofa:'i_sofa'}[o.type],h={chairs:30,vending:58,plant:36,plant2:28,flowers:26,w_plant:32,gbin:22,radiator:30,i_cabinet:24,i_sofa:26}[k];
+    const k={bench:'chairs',drinks:'vending',plant:['plant','plant2','flowers','w_plant'][o.id%4],bin:'gbin',radiator:'radiator',cabinet:'i_cabinet',tv:'st_tv',pool:'st_pool',sofa:'st_sofa',_old:'i_sofa'}[o.type],h={chairs:30,vending:58,plant:36,plant2:28,flowers:26,w_plant:32,gbin:22,radiator:30,i_cabinet:24,st_sofa:30,st_tv:36,st_pool:30}[k];
     if(k){ctx.globalAlpha=o.type==='radiator'&&G.heat===0?.75:1;const ok=sprite(k,p.x,p.y+7,h,!!o.flip);ctx.globalAlpha=1;if(ok)return}}
   if(o.type==='desk'){box(o.x+.1,o.y+.15,1.8,.7,13,'#c08552');const p=iso(o.x+1.5,o.y+.5);circle(p.x,p.y-15,2.5,'#ffd166');return}
   if(o.type==='bench'){box(o.x+.15,o.y+.3,.7,.4,6,'#8d6e63');return}
@@ -998,8 +1016,9 @@ function smoke(r,x,y){if(!(ROOM_TYPES[r.type].machine&&(r.broken||r.cond<30)))re
   for(let i=0;i<3;i++){const k=(animT*.8+i/3)%1;ctx.globalAlpha=1-k;circle(p.x+Math.sin(i*3+animT)*5,p.y-45-k*25,4+k*5,'#555')}ctx.globalAlpha=1}
 function drawFurniture(r){
   if(useArt()){
-    if(r.type==='ward'&&ART.b_bed){for(const q of r.lay.slots){const p=iso(q.x+.5,q.y+.5);sprite('b_bed',p.x,p.y+8,32)}return}
-    if(r.type==='training'&&ART.i_chair){for(const q of r.lay.slots){const p=iso(q.x+.5,q.y+.5);sprite('i_chair',p.x,p.y+6,22)}}
+    if(r.type==='ward'&&ART.sw_bed){r.lay.slots.forEach((q,i)=>{const p=iso(q.x+.5,q.y+.5),k=['sw_bed','sw_bed2','sw_bed3'][i%3];sprite(k,p.x,p.y+9,ART_H[k])});return}
+    if(r.type==='toilet'&&ART.to_stalls){for(const q of r.lay.slots){const p=iso(q.x+.5,q.y+.5);sprite('to_stalls',p.x,p.y+10,40)}return}
+    if(r.type==='training'&&ART.tr_desks){for(const q of r.lay.slots){const p=iso(q.x+.5,q.y+.5);sprite('tr_desks',p.x,p.y+8,22)}}
     const k=MAIN_ART[r.type];
     if(k&&ART[k]){const f=r.lay.furn,p=iso(f.x+.5,f.y+.5),h=ART_H[k]||36;
       if(r.broken)ctx.globalAlpha=.55;const wob=r.occ.length&&!r.broken&&ROOM_TYPES[r.type].machine?Math.sin(animT*20)*.6:0;
@@ -1033,8 +1052,9 @@ function render(){
   // outside ground
   poly([iso(-2,-2),iso(G.W+2,-2),iso(G.W+2,G.H+2),iso(-2,G.H+2)],'#3c6e47');
   // outer back walls
-  for(let x=0;x<G.W;x++){wall(x,0,x+1,0,44,'#d9e8e3');if(x%3===1){const a=iso(x+.2,0),b=iso(x+.8,0);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#9fd8f5')}}
-  for(let y=0;y<G.H;y++){wall(0,y,0,y+1,44,'#c3d8d1');if(y%3===1){const a=iso(0,y+.2),b=iso(0,y+.8);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#8cc9e8')}}
+  if(useArt()&&ART.tx_w_plain){for(let x=0;x<G.W;x++)texWall(x,0,x+1,0,48,OUTER_ART[x%OUTER_ART.length]);for(let y=0;y<G.H;y++)texWall(0,y,0,y+1,48,OUTER_ART[(y+4)%OUTER_ART.length],.12)}
+  else for(let x=0;x<G.W;x++){wall(x,0,x+1,0,44,'#d9e8e3');if(x%3===1){const a=iso(x+.2,0),b=iso(x+.8,0);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#9fd8f5')}}
+  if(!(useArt()&&ART.tx_w_plain))for(let y=0;y<G.H;y++){wall(0,y,0,y+1,44,'#c3d8d1');if(y%3===1){const a=iso(0,y+.2),b=iso(0,y+.8);poly([up(a,14),up(b,14),up(b,34),up(a,34)],'#8cc9e8')}}
   // floors
   for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);let c;if(t.void)continue;
     if(t.room)c=shade(ROOM_TYPES[t.room.type].color,.45);else c=(x+y)%2?'#eef3ea':'#e3ebe0';
@@ -1066,13 +1086,16 @@ function render(){
   for(const r of G.rooms){const RT=ROOM_TYPES[r.type],wc=shade(RT.color,-.1),dr=r.door;
     const wc2=shade(RT.color,-.25),isD=(c,sd)=>dr.ix===c.x&&dr.iy===c.y&&dr.side===sd;
     for(const c of r.cells){const x=c.x,y=c.y,out=(dx,dy)=>{const t=T(x+dx,y+dy);return !t||t.room!==r};
-      if(out(0,-1)&&!isD(c,'N'))D.push({d:x+.5+y-.01,f:()=>wall(x,y,x+1,y,22,wc)});
-      if(out(0,1)&&!isD(c,'S'))D.push({d:x+.5+y+1+.01,f:()=>wall(x,y+1,x+1,y+1,8,wc,.85)});
-      if(out(-1,0)&&!isD(c,'W'))D.push({d:x+y+.5-.01,f:()=>wall(x,y,x,y+1,22,wc2)});
-      if(out(1,0)&&!isD(c,'E'))D.push({d:x+1+y+.5+.01,f:()=>wall(x+1,y,x+1,y+1,8,wc2,.85)})}
+      if(out(0,-1)&&!isD(c,'N'))D.push({d:x+.5+y-.01,f:()=>roomWall(r,x,y,x+1,y,26,wc,1,x,0)});
+      if(out(0,1)&&!isD(c,'S'))D.push({d:x+.5+y+1+.01,f:()=>roomWall(r,x,y+1,x+1,y+1,8,wc,.9,x,0,1)});
+      if(out(-1,0)&&!isD(c,'W'))D.push({d:x+y+.5-.01,f:()=>roomWall(r,x,y,x,y+1,26,wc2,1,y,.14)});
+      if(out(1,0)&&!isD(c,'E'))D.push({d:x+1+y+.5+.01,f:()=>roomWall(r,x+1,y,x+1,y+1,8,wc2,.9,y,.14,1)})}
     const fs=r.lay.furn;D.push({d:fs.x+fs.y+(cap(r)>1?.7:1),f:()=>drawFurniture(r)})}
   for(let y=0;y<G.H;y++)for(let x=0;x<G.W;x++){const t=T(x,y);if(!t.void)continue;
-    if(t.void==='pillar')D.push({d:x+y+1,f:()=>{box(x+.2,y+.2,.6,.6,46,'#c3d8d1')}});else D.push({d:x+y+1,f:()=>box(x,y,1,1,46,'#d9e8e3')})}
+    if(t.void==='pillar')D.push({d:x+y+1,f:()=>{box(x+.2,y+.2,.6,.6,46,'#c3d8d1')}});else D.push({d:x+y+1,f:()=>{if(!(useArt()&&ART.tx_w_plain)){box(x,y,1,1,46,'#d9e8e3');return}
+      const sv=(T(x,y+1)||{}).void,ev=(T(x+1,y)||{}).void;
+      if(!sv)texWall(x,y+1,x+1,y+1,46,(x+y)%4===1?'tx_n_blind':'tx_w_plain',.08);if(!ev)texWall(x+1,y,x+1,y+1,46,(x+y)%5===2?'tx_n_round':'tx_w_plain',.2);
+      poly(diamond(x,y).map(q=>up(q,46)),'#e9e1d1','rgba(90,80,60,.35)')}})}
   for(const o of G.objs)D.push({d:o.x+o.y+(o.w||1)/2+(o.h||1)/2,f:()=>drawObj(o)});
   if(useArt())for(const r of G.rooms)for(const q of r.lay.decor||[])D.push({d:q.x+q.y+.9,f:()=>{const p=iso(q.x+.5,q.y+.5);sprite(q.k,p.x,p.y+7,ART_H[q.k]||26)}});
   for(const a of G.patients)D.push({d:a.x+a.y+(isSitting(a)?.6:0),f:()=>drawPerson(a)});
